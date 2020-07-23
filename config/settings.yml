@@ -1,0 +1,4 @@
+plugins:
+  discourse_graphql_enabled:
+    default: true
+    client: true
