@@ -13,7 +13,7 @@ module DiscourseGraphQL
       operation_name = params[:operationName]
       context = {
         # Query context goes here, for example:
-        # current_user: current_user,
+        guardian: Guardian.new(current_user),
       }
       result = DiscourseSchema.execute(query, variables: variables, context: context, operation_name: operation_name)
       render json: result
