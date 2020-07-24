@@ -2,7 +2,7 @@ module Types
   class QueryType < Types::BaseObject
     # Add root-level fields here.
     # They will be entry points for queries on your schema.
-    field :search, GroupedSearchResultsType, null: true do
+    field :search, [SearchPostType], null: true do
       description 'Search for posts'
       argument :term, String, required: true
       argument :page, Int, required: false
@@ -25,7 +25,9 @@ module Types
         page: page,
       }
 
-      Search.new(term, search_args).execute
+      result = Search.new(term, search_args).execute
+      context.scoped_set!(:result, result)
+      result.posts
     end
 
     def latest_topics(page: 0)
