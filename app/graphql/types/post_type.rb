@@ -10,6 +10,7 @@ module Types
     field :post_number, Int, null: false
     field :created_at, String, null: false
     field :cooked, String, null: false
+    field :topic, TopicType, null: false
 
     def name
       if SiteSetting.enable_names?
