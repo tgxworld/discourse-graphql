@@ -8,6 +8,11 @@ module Types
       argument :page, Int, required: false
     end
 
+    field :latest_topics, [TopicType], null: false do
+      description 'Latest topics'
+      argument :page, Int, required: false
+    end
+
     def search(term:, page: 1)
       if term.length < SiteSetting.min_search_term_length
         raise GraphQL::ExecutionError, "Your search term is too short."
@@ -21,6 +26,13 @@ module Types
       }
 
       Search.new(term, search_args).execute
+    end
+
+    def latest_topics(page: 0)
+      TopicQuery.new(context[:guardian].user,
+        guardian: context[:guardian],
+        page: page
+      ).list_latest.topics
     end
   end
 end
