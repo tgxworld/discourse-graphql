@@ -1,6 +1,6 @@
 # DiscourseGraphQL
 
-DiscourseGraphQL is a plugin for ...
+Unofficial Discourse GraphQL API.
 
 ## Installation
 
