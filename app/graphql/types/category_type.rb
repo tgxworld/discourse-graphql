@@ -12,6 +12,7 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :latest_post, PostType, null: true
     field :latest_topic, TopicType, null: true
+    field :parent_category, CategoryType, null: true
 
     def latest_post
       RecordLoader.for(Post).load(object.latest_post_id)
@@ -19,6 +20,10 @@ module Types
 
     def latest_topic
       RecordLoader.for(Topic).load(object.latest_topic_id)
+    end
+
+    def parent_category
+      RecordLoader.for(Category).load(object.parent_category_id)
     end
   end
 end

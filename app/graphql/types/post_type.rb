@@ -25,5 +25,9 @@ module Types
     def avatar_template
       object.user&.avatar_template
     end
+
+    def topic
+      RecordLoader.for(Topic).load(object.topic_id)
+    end
   end
 end

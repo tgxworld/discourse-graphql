@@ -12,5 +12,10 @@ module Types
     field :archived, Boolean, null: false
     field :views, Int, null: false
     field :reply_count, Int, null: false
+    field :category, CategoryType, null: false
+
+    def category
+      RecordLoader.for(Category).load(object.category_id)
+    end
   end
 end
