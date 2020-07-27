@@ -8,14 +8,22 @@ module DiscourseGraphQL
     # protect_from_forgery with: :null_session
 
     def execute
+      raise Discourse::InvalidAccess.new if !Rails.env.development? && !is_api?
+
       variables = ensure_hash(params[:variables])
       query = params[:query]
       operation_name = params[:operationName]
+
       context = {
-        # Query context goes here, for example:
         guardian: Guardian.new(current_user),
       }
-      result = DiscourseSchema.execute(query, variables: variables, context: context, operation_name: operation_name)
+
+      result = DiscourseSchema.execute(query,
+        variables: variables,
+        context: context,
+        operation_name: operation_name
+      )
+
       render json: result
     rescue => e
       raise e unless Rails.env.development?
