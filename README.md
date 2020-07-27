@@ -41,5 +41,4 @@ end
 
 ## Feedback
 
-If you have issues or suggestions for the plugin, please bring them up on
-[Discourse Meta](https://meta.discourse.org).
+If you have issues or suggestions for the plugin, please [open an issue](https://github.com/tgxworld/discourse-graphql/issues/new).
