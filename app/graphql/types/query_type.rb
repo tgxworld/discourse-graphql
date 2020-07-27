@@ -15,6 +15,7 @@ module Types
     field :latest_topics, [TopicType], null: false do
       description 'Latest topics'
       argument :page, Int, required: false
+      argument :category_id, Int, required: false
     end
 
     def search(term:, page: 1)
@@ -34,11 +35,14 @@ module Types
       result.posts
     end
 
-    def latest_topics(page: 0)
-      TopicQuery.new(context[:guardian].user,
+    def latest_topics(page: 0, category_id: nil)
+      opts = {
         guardian: context[:guardian],
-        page: page
-      ).list_latest.topics
+        page: page,
+        category: category_id
+      }
+
+      TopicQuery.new(context[:guardian].user, opts).list_latest.topics
     end
 
     def categories
