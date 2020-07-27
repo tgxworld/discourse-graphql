@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 module Types
   class QueryType < Types::BaseObject
-    # Add root-level fields here.
-    # They will be entry points for queries on your schema.
+    field :categories, [CategoryType], null: false do
+      description 'List of categories that user has access to'
+    end
+
     field :search, [SearchPostType], null: true do
       description 'Search for posts'
       argument :term, String, required: true
@@ -35,6 +39,10 @@ module Types
         guardian: context[:guardian],
         page: page
       ).list_latest.topics
+    end
+
+    def categories
+      CategoryList.new(context[:guardian]).categories
     end
   end
 end

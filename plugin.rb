@@ -8,6 +8,8 @@
 
 gem 'graphql', '1.11.1'
 gem 'graphiql-rails', '1.7.0', require_name: "graphiql/rails"
+gem 'promise.rb', '0.7.2'
+gem 'graphql-batch', '0.4.3', require_name: 'graphql/batch'
 
 enabled_site_setting :discourse_graphql_enabled
 

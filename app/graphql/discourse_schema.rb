@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require_relative 'loaders/record_loader'
+
 class DiscourseSchema < GraphQL::Schema
   # mutation(Types::MutationType)
   query(Types::QueryType)
@@ -9,4 +13,6 @@ class DiscourseSchema < GraphQL::Schema
   # Add built-in connections for pagination
   use GraphQL::Pagination::Connections
   use GraphQL::Execution::Errors
+
+  use GraphQL::Batch
 end
