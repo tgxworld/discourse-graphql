@@ -76,6 +76,8 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `chat/api/channels_read#update` | `mutation.markChatRead` | partial |
 | `chat/api/channels_read#update_all` | `mutation.markAllChatRead` | partial |
 | `list#latest` | `query.latestTopics` | partial |
+| `notifications#index` | `query.notifications` | partial |
+| `notifications#mark_read` | `mutation.markNotificationRead`, `mutation.markAllNotificationsRead` | partial |
 | `posts#create` | `mutation.createTopic`, `mutation.createPost` | partial |
 | `search#query` | `query.search` | partial |
 | `session#current` | `query.currentUser` | partial |

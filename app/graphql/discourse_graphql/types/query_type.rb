@@ -8,6 +8,16 @@ module DiscourseGraphQL
       field :capabilities, [CapabilityType], null: false
       field :current_user, UserType, null: true
 
+      field :notifications, NotificationPageType, null: true do
+        extras [:lookahead]
+        argument :first, Int, required: false, default_value: 25, replace_null_with_default: true
+        argument :after, String, required: false
+        argument :filter, NotificationFilter, required: false
+        complexity ->(_context, arguments, child_complexity) do
+          100 + arguments[:first].clamp(1, 50) * (20 + child_complexity)
+        end
+      end
+
       field :topic, TopicType, null: true do
         argument :id, ID, required: true
       end
@@ -52,6 +62,11 @@ module DiscourseGraphQL
         ).call
         context.scoped_set!(:result, result)
         result.posts
+      end
+
+      def notifications(first:, lookahead:, after: nil, filter: nil)
+        fields = lookahead.selection(:nodes).selections.map { |selection| selection.field.method_sym }
+        Notifications.new(request: context[:request]).call(first: first, after: after, filter: filter, fields: fields)
       end
 
       def current_user

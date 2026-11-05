@@ -135,3 +135,17 @@ Notification inputs accept required `channelId`, optional `muted` and optional `
 Mark read verifies that the message belongs to the channel and prevents backward progress. Native mention updates and tracking publication remain authoritative. Bulk mark read updates the actor's native followed memberships and returns their update count without exposing the native channel identifier list. These admission weights are 1,000 for a single write and 4,000 for bulk read. Final workload benchmarks remain required.
 
 Clients can reconcile acknowledged state through `chatChannel.currentUserMembership`. After group departure, loss of channel access is an expected result. Failed or lost responses do not guarantee rollback or safe retry. Native failure bodies without usable messages receive a generic typed operation error. Disabled Chat returns `FEATURE_DISABLED` and preserves permitted siblings. The installed capability is `chat.membershipAndReading`.
+
+## Notification history and reading
+
+`notifications(first: Int, after: String, filter: NotificationFilter)` reads only the current actor's native history. `filter` accepts `ALL`, `READ` or `UNREAD`. Omitted or null filters select all history. Omitted or null `first` uses 25, with minimum 1 and maximum 50. Native topic, reviewable and badge visibility checks run on every page. Anonymous requests return `UNAUTHENTICATED` at the nullable connection while permitted siblings remain available.
+
+Nodes expose native scalar metadata: `id`, `notificationType`, `read`, `createdAt`, `topicId`, `postNumber`, `fancyTitle`, `slug`, `actingUserName` and `actingUserAvatarTemplate`. `notificationType` retains the native integer identifier. Optional native attributes remain nullable and preserve serializer inclusion rules. Generic notification data, external identity fields and provider payloads are not exposed. Structured notification variants remain incomplete.
+
+The page exposes `seenNotificationId` and `pageInfo`. Its signed cursor binds offset, filter, page size, actor and site. Changed context or invalid bounds return `BAD_USER_INPUT`. The native count is evaluated before visibility filtering, so an empty page may still have `hasNextPage: true`. Follow the cursor until `hasNextPage` is false. Do not treat an empty page as completion.
+
+History retains native ordering by creation time and does not establish a snapshot. Inserts, removals and permission changes can shift offset pages. After a mutation changes the selected filter, restart without `after`. For example, marking the first two unread entries read shrinks the unread list. Continuing at offset 2 can skip the next two unread entries. Reconcile repeated IDs when lists change.
+
+`markNotificationRead(id: ID!)` and `markAllNotificationsRead` return `success` and typed `errors`. They invoke native notification reading, including actor isolation and state publication. A missing ID, an ID owned by another user or an already read ID receives the native successful acknowledgement without changing another actor's data. Success does not prove that the ID existed or changed. Marking all notifications read also retains native seen state updates and affects all native notification types. Base query costs are 1000 for one ID and 4000 for the bulk action. Outer credential, CSRF, GET and readonly protections remain applicable.
+
+Recent menu prioritization, reviewable menu entries, totals, notification administration and typed plugin payloads remain required future coverage.

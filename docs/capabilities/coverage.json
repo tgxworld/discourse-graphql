@@ -371,6 +371,59 @@
       "remaining": [
         "Remaining bulk live delivery journey evidence"
       ]
+    },
+    "notifications#index": {
+      "graphql_operations": [
+        "query.notifications"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/notifications_spec.rb"
+      ],
+      "native_entry_points": [
+        "NotificationsController#index",
+        "Notification.filter_inaccessible_topic_notifications",
+        "Notification.filter_inaccessible_reviewable_notifications",
+        "Notification.filter_disabled_badge_notifications",
+        "Notification.populate_acting_user",
+        "NotificationSerializer"
+      ],
+      "authorization_requirements": [
+        "Native login and current actor history scope",
+        "Native topic, reviewable and badge filtering on each page",
+        "Existing serializer restrictions and inclusion rules",
+        "Signed actor, site, filter and page size scoped continuation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Recent prioritized menu and reviewable entries",
+        "Type filters, totals and remaining structured notification metadata"
+      ]
+    },
+    "notifications#mark_read": {
+      "graphql_operations": [
+        "mutation.markNotificationRead",
+        "mutation.markAllNotificationsRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/notifications_spec.rb"
+      ],
+      "native_entry_points": [
+        "NotificationsController#mark_read",
+        "Notification.read",
+        "Notification.read_types",
+        "User#publish_notifications_state"
+      ],
+      "authorization_requirements": [
+        "Native login, actor scoped updates and identical missing or foreign ID acknowledgements",
+        "Native state publication and bulk seen state updates",
+        "Explicit mutation costs and outer credential, CSRF and readonly checks"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Type filtered dismissal and complete live delivery journey"
+      ]
     }
   },
   "shared_plugin_assessments": {
