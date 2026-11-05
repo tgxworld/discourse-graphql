@@ -112,3 +112,14 @@ The native owner needs a supported preparation boundary that accepts requested t
 
 
 The thread message history adapter also exercises the corresponding `Chat::Thread::Policy::MessageExistence` defect. An anonymous public thread page succeeds, but continuation after deletion of its anchor dereferences the absent actor. The HTTP regression in `chat_thread_history_spec.rb` requires a generic INTERNAL_ERROR and excludes diagnostics and protected content. Both native policies require an upstream correction. This remains part of the existing anonymous anchor recovery dependency.
+
+
+## Count only Chat draft reads prepare and copy complete saved content
+
+With twenty drafts containing 1000000 bytes of native serialized state, a GraphQL selection containing only windowSize returns 33 bytes but allocates 5551156 bytes. Eight aliases return 194 bytes and allocate 5844931 bytes. Both execute 7 SQL queries and one native draft read. The native full current user response allocates 4904553 bytes, executes 51 SQL queries and returns 1006107 bytes. These endpoints select different fields, so this is a preparation reference rather than a latency comparison.
+
+The largest GraphQL allocations are about 2002032 bytes in HTTP response copies, 1004580 bytes in native response JSON parsing, 1001900 bytes in ActiveRecord String casting and 1001175 bytes in native JSON encoding. CurrentUserSerializer chat_drafts always plucks complete data before the adapter receives the native response.
+
+The native owner needs a projection aware draft window reader used by CurrentUserSerializer inside its controller lifecycle. Eligibility, recent twenty ordering, serializer options and row filtering must remain native. A filter depending on draft data still needs that data, requiring declared dependencies or a complete data fallback. A separate count query cannot preserve those filters. Capturing an earlier Ruby value or discarding the final native response would weaken the boundary and is not a solution.
+
+`spec/performance/measure_chat_draft_window_spec.rb` reproduces native and GraphQL allocations. Alias growth is bounded, but this does not satisfy the required total preparation and concurrency budgets. No safe existing owner projection hook was identified. This dependency remains unresolved.

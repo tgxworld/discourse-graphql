@@ -36,11 +36,13 @@ expected = %w[
   chat.threadLookup
   chat.threadLists
   chat.threadMessageHistory
+  chat.draftReading
   chat.messageCreation
   chat.membershipAndReading
   chat.reactionChanges
   chat.threadControls
   chat.threadCreation
+  chat.draftChanges
 ]
 unless capabilities.map { |capability| capability.fetch("id") } == expected
   abort "Unexpected optional capabilities."
@@ -72,11 +74,14 @@ unless %w[
        ].all? { |name| types.include?(name) }
   abort "Thread membership types missing."
 end
-unless %w[chatChannelThreads currentUserChatThreads chatThreadMessages].all? { |name| fields.include?(name) }
+unless %w[chatChannelThreads currentUserChatThreads chatThreadMessages currentUserChatDrafts].all? { |name| fields.include?(name) }
   abort "Thread lists missing."
 end
 abort "Thread lookup missing." if fields.exclude?("chatThread")
 abort "Thread creation missing." if mutations.exclude?("createChatThread")
+unless %w[updateChatChannelDraft updateChatThreadDraft].all? { |name| mutations.include?(name) }
+  abort "Draft mutations missing."
+end
 unless %w[
          ChatThread
          ChatThreadOriginalMessage
@@ -85,6 +90,8 @@ unless %w[
          ChatThreadCreatePayload
          ChatThreadPage
          ChatThreadMessagePage
+         ChatDraft
+         ChatDraftPage
          ChatThreadTracking
        ].all? { |name| types.include?(name) }
   abort "Thread types missing."

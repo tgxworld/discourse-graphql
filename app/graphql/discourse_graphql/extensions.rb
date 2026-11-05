@@ -9,6 +9,7 @@ module DiscourseGraphQL
           Chat::ThreadQueryFields,
           Chat::ThreadListQueryFields,
           Chat::ThreadHistoryQueryFields,
+          Chat::DraftQueryFields,
         ]
       else
         []
@@ -25,6 +26,7 @@ module DiscourseGraphQL
               Chat::ReactionMutationFields,
               Chat::ThreadControlMutationFields,
               Chat::ThreadMutationFields,
+              Chat::DraftMutationFields,
             ]
           else
             []

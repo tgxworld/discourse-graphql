@@ -446,3 +446,29 @@ Native threading, forced threads, readonly category denial, deleted original mod
 The optional capability is chat.threadMessageHistory. Disabled Chat returns FEATURE_DISABLED at the nullable root, preserving siblings. Absent Chat contributes no field or type. Read credentials can use GET. Cost is 100 plus last multiplied by 20 plus selected children. Message renderers are selected without replacing native restrictions or eager query preparation.
 
 The complete SQL growth check observes 32 queries at last 1 and 50 with distinct authors, reactions and user status enabled. This includes authorization. Constant SQL does not establish final allocation, latency, memory or concurrent throughput budgets.
+
+
+## Chat drafts
+
+`updateChatChannelDraft(channelId:, serializedData:)` and `updateChatThreadDraft(channelId:, threadId:, serializedData:)` return the shared action payload. Both invoke the corresponding native POST action. A blank required threadId is rejected before invocation, so it cannot become a channel draft change. Nonblank serializedData is forwarded unchanged. Omitted, null, empty or whitespace values retain native clearing behavior.
+
+Chat composer state is a native serialized String. Clients normally encode message, upload, reply preview and editing state as JSON text inside that String. The adapter preserves unknown fields and native accepted strings rather than introducing a second composer parser or validator. Native character length validation applies. Acknowledgment describes the native response, and a later writer can replace the state.
+
+```graphql
+mutation SaveDraft($channelId: ID!, $serializedData: String) {
+  updateChatChannelDraft(channelId: $channelId, serializedData: $serializedData) {
+    success
+    errors { code message }
+  }
+}
+```
+
+`currentUserChatDrafts(first: 20, after:)` returns the native most recently updated twenty draft window. first ranges from 1 through 20. Nodes contain channelId, nullable threadId and serializedData. windowSize counts that native window, and pageInfo traverses only its rows. Neither field establishes the total number of stored drafts. Absence from the window after an ambiguous save does not prove deletion or failed persistence.
+
+Native omission, including personal Chat being disabled or the actor being ineligible, returns null. An enabled actor with no drafts receives an empty page. Saved own draft data remains readable after losing access to its channel when native current user serialization retains it. This does not grant channel access. New writes and clearing still require native permission. Channel permission policy failures currently return native HTTP422, mapped to BAD_USER_INPUT. Global Chat access failures return HTTP403, mapped to FORBIDDEN. Both deny persistence.
+
+Cursors bind the complete native window, actor, site and first. Any changed window invalidates continuation. Restart pagination after writes or ordering changes. Native omission during continuation is BAD_USER_INPUT. Read credentials can use GET. Browser mutations retain native CSRF protection and site write restrictions.
+
+A request scoped source cache shares one native window across aliases. Complete SQL stays at 7 queries for 1 and 20 rows, and for 1 and 8 aliases. Removing source reuse raises the eight alias request to 14 queries and eight native reads, which fails the regression bound. Mutations cost 1000 each. Read cost is 1000 plus first multiplied by 20 plus selected children. Excessive work is rejected before native persistence.
+
+The optional capabilities are chat.draftReading and chat.draftChanges. Disabled Chat returns FEATURE_DISABLED at nullable roots. Absent Chat contributes no fields or types. Count only reads still prepare and copy native serialized content, as recorded in the native dependencies. Final total performance budgets and complete client journeys remain required.

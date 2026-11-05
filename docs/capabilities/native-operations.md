@@ -88,8 +88,10 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `chat/api/channels_current_user_membership#update` | `mutation.starChatChannel` | partial |
 | `chat/api/channels_current_user_membership_follows#destroy` | `mutation.unfollowChatChannel` | partial |
 | `chat/api/channels_current_user_notifications_settings#update` | `mutation.updateChatNotifications` | partial |
+| `chat/api/channels_drafts#create` | `mutation.updateChatChannelDraft` | partial |
 | `chat/api/channels_read#update` | `mutation.markChatRead` | partial |
 | `chat/api/channels_read#update_all` | `mutation.markAllChatRead` | partial |
+| `chat/api/channels_threads_drafts#create` | `mutation.updateChatThreadDraft` | partial |
 | `chat/api/channels_threads_read#update` | `mutation.markChatThreadRead` | partial |
 | `chat/api/current_user_threads#index` | `query.currentUserChatThreads` | partial |
 | `chat/chat#message_reactions_users` | `query.chatReactionUsers` | partial |
@@ -105,7 +107,7 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `notifications#mark_read` | `mutation.markNotificationRead`, `mutation.markAllNotificationsRead` | partial |
 | `posts#create` | `mutation.createTopic`, `mutation.createPost` | partial |
 | `search#query` | `query.search` | partial |
-| `session#current` | `query.currentUser` | partial |
+| `session#current` | `query.currentUser`, `query.currentUserChatDrafts` | partial |
 | `topics#destroy_timings` | `mutation.resetTopicReading` | partial |
 | `topics#set_notifications` | `mutation.updateTopicNotifications` | partial |
 | `topics#show` | `query.topic`, `query.topicPosts` | partial |

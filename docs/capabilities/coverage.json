@@ -4,17 +4,26 @@
   "operations": {
     "session#current": {
       "graphql_operations": [
-        "query.currentUser"
+        "query.currentUser",
+        "query.currentUserChatDrafts"
       ],
       "graphql_tests": [
-        "spec/requests/discourse_graphql/transport_spec.rb"
+        "spec/requests/discourse_graphql/transport_spec.rb",
+        "spec/requests/discourse_graphql/chat_drafts_spec.rb",
+        "spec/requests/discourse_graphql/chat_drafts_multisite_spec.rb",
+        "spec/performance/measure_chat_draft_window_spec.rb"
       ],
       "native_entry_points": [
-        "Guardian#user"
+        "Guardian#user",
+        "SessionController#current",
+        "CurrentUserSerializer#chat_drafts"
       ],
       "authorization_requirements": [
         "Existing request authentication and credential scopes",
-        "Anonymous actor returns null"
+        "Anonymous actor returns null",
+        "Native current user draft eligibility and personal Chat preference",
+        "Native recent window, own actor storage and serializer filtering",
+        "Signed native window fingerprint, actor, site and page size"
       ],
       "authorization_audit": "partial, declared adapter paths exercised",
       "status": "partial",
@@ -1391,6 +1400,61 @@
         "Complete native message fields and alternative history entry points",
         "Native total preparation and final concurrent budgets",
         "Complete client journeys and protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/channels_drafts#create": {
+      "graphql_operations": [
+        "mutation.updateChatChannelDraft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_drafts_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpsertDraft"
+      ],
+      "authorization_requirements": [
+        "Native Chat access, channel policy and thread binding",
+        "Native current actor storage and maximum character length",
+        "Native blank clearing semantics and serialized String preservation",
+        "Inherited native logical POST, outer credentials, CSRF and site write restrictions",
+        "Query cost admission before effects"
+      ],
+      "authorization_audit": "partial, declared native HTTP status parity and persisted effects exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete client recovery journeys",
+        "Native draft read projection and final total performance budgets"
+      ]
+    },
+    "chat/api/channels_threads_drafts#create": {
+      "graphql_operations": [
+        "mutation.updateChatThreadDraft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_drafts_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpsertDraft"
+      ],
+      "authorization_requirements": [
+        "Native Chat access, channel policy and thread binding",
+        "Native current actor storage and maximum character length",
+        "Native blank clearing semantics and serialized String preservation",
+        "Inherited native logical POST, outer credentials, CSRF and site write restrictions",
+        "Query cost admission before effects",
+        "Nonblank required thread path identity before native optional ID coercion"
+      ],
+      "authorization_audit": "partial, declared native HTTP status parity and persisted effects exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete client recovery journeys",
+        "Native draft read projection and final total performance budgets"
       ]
     }
   },
