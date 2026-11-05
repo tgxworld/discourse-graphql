@@ -7,7 +7,7 @@ session = ActionDispatch::Integration::Session.new(Rails.application)
 session.get(
   "/discourse-graphql/graphql",
   params: {
-    query: "{ capabilities { id queryFields mutationFields } __schema { queryType { fields { name } } types { name } } __type(name: \"BookmarkTarget\") { enumValues { name } } }",
+    query: "{ capabilities { id queryFields mutationFields } __schema { queryType { fields { name } } types { name } } __type(name: \"BookmarkTarget\") { enumValues { name } } postType: __type(name: \"Post\") { fields { name } } }",
   },
   headers: { "HTTP_HOST" => "test.localhost" },
 )
@@ -27,5 +27,9 @@ abort "Chat fields leaked into the schema." if fields.include?("chatChannels")
 abort "Chat types leaked into the schema." if types.any? { |name| name.start_with?("Chat") }
 abort "Native Chat constants were loaded." if defined?(::Chat)
 abort "Native Data Explorer constants were loaded." if defined?(::DiscourseDataExplorer)
+abort "Checklist types leaked into the schema." if types.any? { |name| name.start_with?("Checklist") }
+abort "Checklist mutation leaked into the schema." if capabilities.flat_map { |capability| capability.fetch("mutationFields") }.include?("updateChecklist")
+abort "Native Checklist constants were loaded." if defined?(::Checklist)
 
+abort "Core timestamp field missing without Checklist." unless data.fetch("postType").fetch("fields").any? { |field| field.fetch("name") == "updatedAt" }
 puts JSON.generate(status: "passed", eager_loaded: true, capabilities: capabilities, optional_chat: "absent", bookmark_targets: targets)

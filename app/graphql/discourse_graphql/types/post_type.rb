@@ -10,6 +10,7 @@ module DiscourseGraphQL
       field :like_count, Int, null: false
       field :post_number, Int, null: false
       field :created_at, String, null: false
+      field :updated_at, String, null: true
       field :cooked, String, null: false
       field :raw, String, null: true
       field :author, UserType, null: true
@@ -38,6 +39,10 @@ module DiscourseGraphQL
 
       def raw
         serializer.raw if serializer.include_raw?
+      end
+
+      def updated_at
+        PostSerializer.new(object, scope: context[:guardian], root: false, only: [:updated_at]).as_json.as_json["updated_at"]
       end
 
       def author

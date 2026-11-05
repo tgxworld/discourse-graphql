@@ -246,3 +246,20 @@ Keep ticket identifiers and any acknowledged `shortUrl` in client state. A faile
 Initiation and abort cost 1000. Part signing costs 1000 plus 20 per requested number, before selected response fields. Completion costs 2000, with multipart completion adding one per 10 parts rounded up. The native 10,000 part completion remains admissible. These are work admission bounds, not measured latency or memory budgets.
 
 At the pinned revision, native completion at exactly 100 MiB returns a generic failure and removes the ticket and temporary object because neither native file processing path accepts the equality case. The adapter retains that result. This is an unresolved dependency in [native dependencies](native-dependencies.md), so complete large transfer compatibility remains unmet.
+
+
+## Checklist updates
+
+When Checklist is loaded, `updateChecklist(input: ChecklistUpdateInput!)` invokes its fixed native toggle action through PUT semantics. The native controller and service retain edit permission, source matching, permanent marker rules, state conflicts, revision creation, publication and the shared toggle allowance. The installed capability is `checklist.checkboxChanges`. Disabled Checklist returns `FEATURE_DISABLED` at the nullable payload. An absent plugin contributes no Checklist mutation or reachable types.
+
+Inputs require `postId`, `expectedRaw`, `expectedUpdatedAt`, `mutationId` and `toggles`. Each toggle requires `checkboxIndex` and `checked`, plus optional `checkboxSource` or `checkboxCount`. Index zero and `checked: false` are retained. Source hints take native precedence over the legacy count form. At most 50 toggles are accepted, using the native batch bound. Native validation owns source format, uniqueness, permanent targets and content limits.
+
+Read existing `Post.raw`, `Post.cooked` and the new nullable `Post.updatedAt` to obtain state. The timestamp is selected through native `PostSerializer` inclusion rules and JSON precision. It is an opaque String, so echo it exactly rather than rounding it through a client date formatter. Native cooked markup supplies `data-chk-src` target hints on `span.chcklst-box` elements. Target discovery and rendering continue to use the native protocol. No copied Markdown parser or quote exclusion policy is introduced.
+
+The payload exposes `success`, typed `errors` and native nullable `raw`, `cooked`, `updatedAt`, `lastEditorId`, `version`, `revised` and `retryable`. A matching desired state can acknowledge success with `revised: false` and no revision. Native conflict responses use `CONFLICT`, current raw and timestamp, and native retry guidance. Those details follow the native edit permission check, including after access revocation.
+
+On success, retain returned state. On conflict, retain local intent. For a checkbox state conflict, refetch current state before deciding whether to reapply desired checked values to the current target. For content or target changes, refresh and let the user reconcile. The server does not retry automatically. A lost response remains ambiguous and requires refetching. Neither `retryable` nor `mutationId` provides an idempotency guarantee. The mutation ID preserves native cooked update correlation.
+
+The mutation clears request loaders before and after processing. Its cost is 1000 plus 20 per requested toggle before selected output fields. Native GET rejection, readonly mode, CSRF, credential scopes and rate limiting remain applicable. The shared native allowance is 60 requests per minute at the pinned revision.
+
+A native structured read boundary remains an assessment item before complete plugin coverage. Current clients use native cooked target hints with the typed mutation. Native setting administration, complete client journeys and final concurrent workload budgets remain required.

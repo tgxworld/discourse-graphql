@@ -12,6 +12,9 @@ module DiscourseGraphQL
       if !Discourse.plugins_by_name.key?("chat")
         Rails.autoloaders.main.ignore(config.root.join("app/graphql/discourse_graphql/chat"))
       end
+      if !Discourse.plugins_by_name.key?("checklist")
+        Rails.autoloaders.main.ignore(config.root.join("app/graphql/discourse_graphql/checklist"))
+      end
     end
 
     config.after_initialize do

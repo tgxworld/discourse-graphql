@@ -961,6 +961,36 @@
       "remaining": [
         "Remaining provider error and concurrent lifecycle branches."
       ]
+    },
+    "checklist/checkboxes#toggle": {
+      "graphql_operations": [
+        "mutation.updateChecklist"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/checklist_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_optional_schema.rb",
+        "script/verify_checklist_schema.rb"
+      ],
+      "native_entry_points": [
+        "Checklist::CheckboxesController#toggle",
+        "Checklist::ToggleCheckbox.call",
+        "Checklist::CheckboxLocator.call_many",
+        "PostRevisor#revise!"
+      ],
+      "authorization_requirements": [
+        "Native plugin enablement and login",
+        "Native Guardian.can_edit? before exposing conflict raw or timestamps",
+        "Native state/source/count validation, permanent markers and quote exclusion",
+        "Native shared rate allowance and publication"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Assess reusable structured read boundary without copying private parsing",
+        "Native setting administration through shared core capability",
+        "Complete client journeys, concurrency recovery and final workload budgets"
+      ]
     }
   },
   "shared_plugin_assessments": {

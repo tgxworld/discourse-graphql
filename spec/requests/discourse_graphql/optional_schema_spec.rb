@@ -19,19 +19,30 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       capabilities = data.fetch("capabilities")
       expect(capabilities.flat_map { |capability| capability.fetch("queryFields") }).to match_array(fields)
       expect(capabilities.flat_map { |capability| capability.fetch("mutationFields") }).to match_array(mutations)
+      expected_capabilities = ["discourse"]
 
       if Discourse.plugins_by_name.key?("chat")
         expect(fields).to include("chatChannels", "chatMessages")
         expect(types).to include("ChatChannel", "ChatChannelPage")
         expect(mutations).to include("createChatMessage")
-        expect(capabilities.map { |capability| capability.fetch("id") }).to eq(["discourse", "chat.channelDiscovery", "chat.messageHistory", "chat.messageCreation", "chat.membershipAndReading"])
+        expected_capabilities.concat(["chat.channelDiscovery", "chat.messageHistory", "chat.messageCreation", "chat.membershipAndReading"])
       else
         expect(fields).not_to include("chatChannels", "chatMessages")
         expect(mutations).not_to include("createChatMessage")
         expect(types.grep(/^Chat/)).to be_empty
-        expect(capabilities.map { |capability| capability.fetch("id") }).to eq(["discourse"])
         expect(defined?(::Chat)).to be_nil
       end
+
+      if Discourse.plugins_by_name.key?("checklist")
+        expected_capabilities << "checklist.checkboxChanges"
+        expect(mutations).to include("updateChecklist")
+        expect(types).to include("ChecklistUpdateInput", "ChecklistUpdatePayload")
+      else
+        expect(mutations).not_to include("updateChecklist")
+        expect(types.grep(/^Checklist/)).to be_empty
+        expect(defined?(::Checklist)).to be_nil
+      end
+      expect(capabilities.map { |capability| capability.fetch("id") }).to eq(expected_capabilities)
     end
   end
 end
