@@ -1,0 +1,30 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    base64 (0.3.0)
+    fiber-storage (1.0.1)
+    graphql (2.6.14)
+      base64
+      fiber-storage
+      logger
+    graphql-c_parser (1.1.4)
+      graphql (>= 2.2.10)
+    logger (1.7.0)
+
+PLATFORMS
+  aarch64-linux
+  ruby
+
+DEPENDENCIES
+  graphql (= 2.6.14)
+  graphql-c_parser (= 1.1.4)
+
+CHECKSUMS
+  base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
+  fiber-storage (1.0.1) sha256=f48e5b6d8b0be96dac486332b55cee82240057065dc761c1ea692b2e719240e1
+  graphql (2.6.14) sha256=3b20053c488cdaaef747e10f17453b16b163b59d039533a26e4d5b23505dc228
+  graphql-c_parser (1.1.4) sha256=8d3bf769ae935373ada877fe003036892b45be98c2fbcc6731dd82af2c3e0656
+  logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
+
+BUNDLED WITH
+  4.0.20

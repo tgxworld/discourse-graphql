@@ -5,10 +5,10 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
   let(:api_username) { 'system' }
 
   describe '#execute' do
-    it 'should return 403 if API headers are not present' do
+    it 'returns 400 when the query is missing' do
       post '/discourse-graphql/graphql'
 
-      expect(response.status).to eq(403)
+      expect(response.status).to eq(400)
     end
 
     it 'should return the right results when API headers are present' do
