@@ -229,6 +229,26 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(result.to_s).not_to include("NoMethodError", "MessageExistence", reply.message)
     end
 
+    it "retains overrides on native message serializer instances" do
+      decorated = Class.new(Chat::MessagesSerializer) do
+        def messages
+          super.each do |serializer|
+            serializer.define_singleton_method(:message) { "Native retained #{object.id}" }
+          end
+        end
+      end
+      stub_const(Chat, :MessagesSerializer, decorated) do
+        get "/chat/api/channels/#{channel.id}/threads/#{thread.id}/messages.json", params: { direction: "past", fetch_from_last_message: true }, headers: headers
+        expect(response.status).to eq(200)
+        native = response.parsed_body.fetch("messages").map { |row| row.fetch("message") }
+
+        result = history
+
+        expect(result["errors"]).to be_blank
+        expect(result.dig("data", "chatThreadMessages", "nodes").map { |row| row.fetch("raw") }).to eq(native)
+      end
+    end
+
     it "skips unselected native message renderers" do
       restricted = Class.new(Chat::MessageSerializer) do
         def cooked
@@ -259,7 +279,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     end
 
     it "uses exact native timestamp and ID ordering across tied fractional timestamps" do
-      timestamp = Time.zone.now.change(usec: 100_000)
+      timestamp = 1.minute.from_now.change(usec: 100_000)
       first = Fabricate(:chat_message, chat_channel: channel, thread: thread, created_at: timestamp + 0.5)
       second = Fabricate(:chat_message, chat_channel: channel, thread: thread, created_at: timestamp)
       third = Fabricate(:chat_message, chat_channel: channel, thread: thread, created_at: timestamp + 0.5)
@@ -272,6 +292,32 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         result.dig("data", "chatThreadMessages", "nodes", 0, "id")
       end
       expect(ids).to eq([third.id.to_s, first.id.to_s, second.id.to_s])
+    end
+
+    it "bounds complete SQL growth for 50 messages with distinct authors and reactions" do
+      SiteSetting.enable_user_status = true
+      messages = Array.new(50) do
+        author = Fabricate(:user)
+        message = Fabricate(:chat_message, chat_channel: channel, thread: thread, user: author)
+        Fabricate(:chat_message_reaction, chat_message: message, user: author, emoji: "heart")
+        message
+      end
+      thread.update!(last_message: messages.last)
+      selection = "nodes { id raw author { id username } reactions(first: 1) { nodes { emoji count reacted users { id username } } } } pageInfo { startCursor hasPreviousPage }"
+      [1, 50].each do |size|
+        result = history(last: size, selection: selection)
+        expect(result["errors"]).to be_blank
+      end
+      counts = [1, 50].map do |size|
+        queries = track_sql_queries do
+          result = history(last: size, selection: selection)
+          expect(result["errors"]).to be_blank
+          expect(result.dig("data", "chatThreadMessages", "nodes").size).to eq(size)
+        end
+        queries.count { |sql| sql.match?(/\A\s*(SELECT|WITH)\b/i) }
+      end
+      puts({ measurement: "chat_thread_message_sql", page_sizes: [1, 50], queries: counts }.to_json)
+      expect(counts.last).to be <= counts.first + 3
     end
 
     it "keeps disabled Chat nullable and preserves enabled siblings" do

@@ -1358,6 +1358,40 @@
         "Complete thread history, drafts, user status fields and client journeys",
         "Protected GraphQL live delivery"
       ]
+    },
+    "chat/api/channel_thread_messages#index": {
+      "graphql_operations": [
+        "query.chatThreadMessages"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_history_spec.rb",
+        "spec/requests/discourse_graphql/chat_thread_history_multisite_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelThreadMessagesController#index",
+        "Chat::ListChannelThreadMessages",
+        "Chat::MessagesQuery",
+        "Chat::MessagesSerializer",
+        "Chat::MessageSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread identity binding, access and threading policies",
+        "Native deleted original moderation and target existence policy",
+        "Current permission check on every page",
+        "Signed channel, thread, actor, site, size and exact ordering cursor",
+        "Native permitted message collection, field inclusion and logical GET semantics"
+      ],
+      "authorization_audit": "partial, declared HTTP paths and complete SQL growth verified",
+      "status": "partial",
+      "remaining": [
+        "Native anonymous deleted anchor recovery",
+        "Complete native message fields and alternative history entry points",
+        "Native total preparation and final concurrent budgets",
+        "Complete client journeys and protected GraphQL live delivery"
+      ]
     }
   },
   "shared_plugin_assessments": {

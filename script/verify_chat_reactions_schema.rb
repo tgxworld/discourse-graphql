@@ -35,6 +35,7 @@ expected = %w[
   chat.reactionUsers
   chat.threadLookup
   chat.threadLists
+  chat.threadMessageHistory
   chat.messageCreation
   chat.membershipAndReading
   chat.reactionChanges
@@ -71,7 +72,7 @@ unless %w[
        ].all? { |name| types.include?(name) }
   abort "Thread membership types missing."
 end
-unless %w[chatChannelThreads currentUserChatThreads].all? { |name| fields.include?(name) }
+unless %w[chatChannelThreads currentUserChatThreads chatThreadMessages].all? { |name| fields.include?(name) }
   abort "Thread lists missing."
 end
 abort "Thread lookup missing." if fields.exclude?("chatThread")
@@ -83,6 +84,7 @@ unless %w[
          ChatThreadCreateInput
          ChatThreadCreatePayload
          ChatThreadPage
+         ChatThreadMessagePage
          ChatThreadTracking
        ].all? { |name| types.include?(name) }
   abort "Thread types missing."

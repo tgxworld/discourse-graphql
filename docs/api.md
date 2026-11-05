@@ -431,3 +431,18 @@ The reproducible status probe is `script/measure_thread_list_status_spec.rb`. Wa
 The optional capability is chat.threadLists. Disabled Chat returns FEATURE_DISABLED at nullable roots and preserves siblings. Absent Chat contributes no fields or types. Read credentials can use GET. Cost is 1000 plus first multiplied by 20 plus selected page children, accounting for both node and tracking collections. Excessive combined work is rejected before native actions.
 
 Thread message history, drafts, remaining user status fields, complete clients and protected GraphQL live delivery remain required.
+
+
+## Thread message history
+
+`chatThreadMessages(channelId:, threadId:, last: 25, before:)` returns a nullable ChatThreadMessagePage. last ranges from 1 through 50. The first page asks the native endpoint for the latest messages, independently of membership reading position. Rows retain native chronological order and the shared ChatMessage fields. The query does not mark messages read or create thread membership.
+
+Use pageInfo.startCursor as before to load older messages. Cursors bind channel, thread, actor, site, page size and exact native ordering boundary. Every continuation rechecks native access. Cursor errors and missing anchors require a fresh history window. Concurrent deletion, retention and timestamp changes can invalidate continuation.
+
+Native withheld collections return nodes:null and pageInfo:null. If native collection filtering removes every row while native metadata reports older history, nodes is[] and pageInfo is null because no permitted anchor can advance. Null pageInfo means continuation is unavailable, rather than complete. An ordinary empty native terminal page has nodes[] and terminal pageInfo. Do not repeatedly retry unavailable pagination.
+
+Native threading, forced threads, readonly category denial, deleted original moderation and anonymous preview rules apply. A deleted anchor during anonymous preview currently exposes the documented native MessageExistence defect. The adapter returns a generic INTERNAL_ERROR without diagnostics. Recovery remains an unresolved native dependency.
+
+The optional capability is chat.threadMessageHistory. Disabled Chat returns FEATURE_DISABLED at the nullable root, preserving siblings. Absent Chat contributes no field or type. Read credentials can use GET. Cost is 100 plus last multiplied by 20 plus selected children. Message renderers are selected without replacing native restrictions or eager query preparation.
+
+The complete SQL growth check observes 32 queries at last 1 and 50 with distinct authors, reactions and user status enabled. This includes authorization. Constant SQL does not establish final allocation, latency, memory or concurrent throughput budgets.

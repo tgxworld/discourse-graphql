@@ -32,6 +32,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
           "chatMessages",
           "chatReactionUsers",
           "chatThread",
+          "chatThreadMessages",
           "chatChannelThreads",
           "currentUserChatThreads",
         )
@@ -50,6 +51,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
           "ChatThreadMembershipPayload",
           "ChatThreadNotificationLevel",
           "ChatThreadPage",
+          "ChatThreadMessagePage",
           "ChatThreadTracking",
         )
         expected_capabilities.concat(
@@ -59,6 +61,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
             chat.reactionUsers
             chat.threadLookup
             chat.threadLists
+            chat.threadMessageHistory
             chat.messageCreation
             chat.membershipAndReading
             chat.reactionChanges
@@ -72,6 +75,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
           "chatMessages",
           "chatReactionUsers",
           "chatThread",
+          "chatThreadMessages",
           "chatChannelThreads",
           "currentUserChatThreads",
         )

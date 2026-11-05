@@ -6,7 +6,7 @@ This is the required scope and delivery ledger. Every row starts incomplete. Ope
 
 Core and plugin implementations remain authoritative for permissions, validation, rate limiting, filtering, persistence and side effects. Existing signed provider callbacks and browser rendering are preserved through their native flows. Their compatibility still requires verification.
 
-The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 56 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
+The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 57 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
 
 ## Core
 
@@ -225,3 +225,6 @@ Typed native lookup and creation have focused HTTP coverage for original message
 ## Thread list increment
 
 Channel and current user thread pages preserve distinct native membership filters, unread ordering, tracking maps and protected offsets. Real cross site HTTP requests with the same actor ID and credential prove that a cursor cannot cross sites. Native collection omission returns unknown pagination, while retained rows determine page length. Selected serialization preserves native restrictions and skips unused node rendering. Complete user_option batches remove status SQL growth without replacing native privacy decisions. Full native preparation, thread history, drafts, clients and protected live delivery remain required.
+
+
+Thread message history now uses the native channel thread endpoint, with latest entry, backward chronological pages, precise signed cursor context, current access checks and retained native collection filtering. The dedicated page distinguishes unavailable data and pagination from an ordinary empty terminal page. Normal permission, forced thread, deleted original moderation, anonymous preview, read credential and disabled plugin paths are covered through HTTP. The anonymous deleted anchor native defect remains unresolved. Complete SQL remains 32 queries for 1 and 50 messages with distinct authors, reactions and status enabled. Native eager preparation and final total performance budgets remain incomplete.

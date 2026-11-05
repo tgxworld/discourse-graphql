@@ -8,6 +8,7 @@ module DiscourseGraphQL
           Chat::ReactionQueryFields,
           Chat::ThreadQueryFields,
           Chat::ThreadListQueryFields,
+          Chat::ThreadHistoryQueryFields,
         ]
       else
         []
