@@ -42,7 +42,31 @@ The implementation must demonstrate that rejected operations do not perform thei
 
 The intended discovery field is `capabilities`, exposing capability IDs, availability and supported operation names without revealing protected settings or resource details. Plugin fields are registered only when their owning plugin is installed and loaded. A loaded plugin's fields remain stable while its site setting changes. Disabled execution returns `FEATURE_DISABLED`, with nullable results preserving unrelated selections. Disabling the GraphQL plugin itself disables the endpoint.
 
-This is a required future slice. No optional adapter is verified until its schema, discovery, enabled, disabled and absent installation cases pass.
+`capabilities` returns `id`, `available`, `queryFields` and `mutationFields` for implemented adapters. Availability reflects global plugin enablement, not the actor's permission to execute an operation. Core discovery lists only fields actually exposed by this schema. The first Chat capability is `chat.channelDiscovery`. It does not imply coverage of direct messages or other Chat operations.
+
+Extensions declare their fields through a query module selected only when the owning plugin is loaded. Disabled plugins keep their fields. An absent plugin contributes no fields or reachable types. No optional adapter is verified until its schema, discovery, enabled, disabled and absent installation cases pass.
+
+## Public Chat channel discovery
+
+`chatChannels(first: Int, after: String, filter: String)` discovers permitted public channels through the native Chat channel index. It excludes direct message channels. Nodes expose `id`, `title`, `slug`, `description`, `status`, `threadingEnabled` and `membershipsCount` from native serialization. Native login, Chat group restrictions, category permissions, serializer modifiers and public channel enablement remain authoritative.
+
+The adapter selects only these declared scalar attributes through the native serializer's `only` option. It intersects any existing `only` restriction and preserves `except` and inclusion predicates. This avoids evaluating unused permission metadata and message associations. A suppressed required field fails through GraphQL nullability rather than being recovered from a model.
+
+Omitted or null `first` uses 25, with a maximum of 50 and minimum of 1. Omitted or null `filter` applies no text filter. A supplied filter follows native channel discovery matching, including category names. Continuation retains the exact filter and page size.
+
+The signed cursor binds native offset, filter, page size, actor and site. Invalid, tampered or mismatched cursors return `BAD_USER_INPUT` at the nullable connection. To recover, restart without `after` using the intended filters and page size. Every request checks current authorization.
+
+`hasNextPage` indicates an offered continuation. Native discovery provides no total, so a full page offers continuation even when the next page is empty. An empty terminal page returns no cursor and false `hasNextPage`. A short page also ends continuation. Ordering is native and may change between requests. Clients reconcile repeated channel IDs.
+
+Disabling Chat returns `FEATURE_DISABLED` for this connection and preserves permitted sibling fields. Capability availability does not imply actor access. For example, Chat may be enabled while a member outside the allowed groups receives `FORBIDDEN`.
+
+The absent plugin boot check is reproducible in the supported Discourse checkout:
+
+```bash
+RAILS_ENV=test LOAD_PLUGINS=discourse-graphql bin/rails runner plugins/discourse-graphql/script/verify_optional_schema.rb
+```
+
+It eagerly loads the application and exercises schema discovery through a real HTTP request. The ordinary request suite runs with `LOAD_PLUGINS=1`.
 
 ## Uploads and live delivery
 

@@ -3,6 +3,9 @@
 module DiscourseGraphQL
   module Types
     class QueryType < Types::BaseObject
+      Extensions.query_modules.each { |extension| include extension }
+
+      field :capabilities, [CapabilityType], null: false
       field :current_user, UserType, null: true
 
       field :topic, TopicType, null: true do
@@ -53,6 +56,10 @@ module DiscourseGraphQL
 
       def current_user
         context[:guardian].user.presence
+      end
+
+      def capabilities
+        Extensions.capabilities
       end
 
       def topic(id:)
