@@ -2,13 +2,17 @@
 
 module DiscourseGraphQL
   class Schema < GraphQL::Schema
-    # mutation(Types::MutationType)
+    mutation(Types::MutationType)
     query(Types::QueryType)
 
     use GraphQL::Dataloader
     complexity_cost_calculation_mode :future
     query_analyzer Analysis::Complexity
     query_analyzer Analysis::Depth
+
+    def self.count_introspection_fields
+      false
+    end
 
     rescue_from(Discourse::NotLoggedIn) do
       raise GraphQL::ExecutionError.new(

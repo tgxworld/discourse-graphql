@@ -8,6 +8,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
   let(:identity_query) { "query { currentUser { id username } }" }
 
   describe "#execute" do
+    it "supports the standard client schema discovery query" do
+      post "/discourse-graphql/graphql",
+           params: { query: GraphQL::Introspection::INTROSPECTION_QUERY },
+           headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body["errors"]).to be_blank
+      expect(response.parsed_body.dig("data", "__schema", "queryType", "name")).to eq("Query")
+    end
+
     it "identifies the API actor without exposing private user attributes" do
       post "/discourse-graphql/graphql", params: { query: identity_query }, headers: headers
 
