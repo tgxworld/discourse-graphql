@@ -352,3 +352,36 @@ The installed capabilities are chat.reactionChanges and chat.reactionUsers. Disa
 Mutation cost is 1000 plus selected payload fields. Popup cost is 1000 plus requested first multiplied by five plus selected row cost. Aggregate page cost is 100 plus first multiplied by selected child cost, and sampled user cost accounts for five actors. Parent history multiplies that work by its requested message count. Dense selections can require smaller message or reaction pages.
 
 The reaction request suite verifies native private thread publication, row ownership, duplicate behavior, exact filtering, membership cleanup, protected continuations, more than 30 stored groups, native name inclusion, browser CSRF and query cost rejection. Warmed SQL counts are 12 versus 12 for one versus 50 popup rows, and 25 versus 25 for one versus 50 message summaries with distinct reactors. These counts include the request permission work. They do not establish allocation, memory or concurrent workload budgets. Native reaction publication is verified separately from the required protected GraphQL live delivery.
+
+
+## Chat thread controls
+
+`updateChatThreadTitle(threadId:, title:)` updates a thread through its native controller. The title is nullable, and both omission and null clear it. Native length validation, silence checks, original author or staff permission and access to the actual owning channel remain authoritative. It takes no channel ID because the native update service addresses the thread directly. Closed channel status does not itself prevent native title updates. Disabled threading returns NOT_FOUND. The payload is ActionPayload, with success and typed errors.
+
+`markChatThreadRead(channelId:, threadId:, messageId:)` invokes native reading progress. Omission and null select the thread's native latest message. An explicit ID must belong to that thread and channel. Native processing accepts deleted messages, requires existing actor membership, prevents backwards progress, marks applicable mentions and publishes private tracking state. It does not create membership and does not require threading to remain enabled. Missing membership and backwards progress retain the native failed action mapped to BAD_USER_INPUT. Success returns an acknowledgement, with no invented membership state.
+
+`updateChatThreadNotifications(channelId:, threadId:, notificationLevel:)` accepts ChatThreadNotificationLevel values MUTED, NORMAL, TRACKING and WATCHING. Native integer zero remains MUTED. Native processing can create membership and, on creation, initializes last read to the native latest message. Updating an existing membership preserves its reading state and title prompt acknowledgement.
+
+`markChatThreadTitlePromptSeen(channelId:, threadId:)` marks the native prompt flag. It can create NORMAL membership without marking messages read. Repeated acknowledgement retains existing notification and read values. Both preference controls require native channel and thread matching, preview permission and enabled threading. Native first membership publication remains active.
+
+Preference payloads expose success, nullable membership and errors. ChatThreadMembership has nullable threadId, lastReadMessageId, notificationLevel and threadTitlePromptSeen. Native omissions remain null. Only requested native membership fields are evaluated, preserving existing serializer restrictions and inclusion predicates. No model fallback or copied membership algorithm is used.
+
+```graphql
+mutation {
+  updateChatThreadNotifications(
+    channelId: "42"
+    threadId: "7"
+    notificationLevel: WATCHING
+  ) {
+    success
+    membership { threadId notificationLevel lastReadMessageId }
+    errors { code message }
+  }
+}
+```
+
+All four fields belong to the optional chat.threadControls capability. Loaded disabled Chat returns FEATURE_DISABLED at nullable roots and retains siblings. Absent Chat contributes no fields or membership types. Native controllers retain authentication, channel permission and validation. Outer credentials, browser CSRF, readonly and archived site guards remain enforced. Title, reading and notification controls use native PUT semantics, while prompt acknowledgement uses POST. GET never performs a mutation. Each root costs 1000 plus selected payload complexity, and excessive combined cost is rejected before effects.
+
+Failure or a lost response does not establish rollback. Do not automatically replay an ambiguous result. For example, retrying a latest read after a new message arrives can mark additional content read. Until typed thread reads are available, inspect the permitted native thread GET response or existing Discourse client. Native lookup can be unavailable after permission or threading changes, in which case completion remains unknown. Preference mutations are unsuitable as probes because they can create membership and change reading state.
+
+Native title publication retains its existing preview payload and audience. It does not add a title field. Native private tracking and first membership publications are verified separately from the required GraphQL live delivery. Full thread discovery, creation, history, drafts, client journeys and final performance budgets remain incomplete.

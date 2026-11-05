@@ -6,7 +6,7 @@ This is the required scope and delivery ledger. Every row starts incomplete. Ope
 
 Core and plugin implementations remain authoritative for permissions, validation, rate limiting, filtering, persistence and side effects. Existing signed provider callbacks and browser rendering are preserved through their native flows. Their compatibility still requires verification.
 
-The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 48 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
+The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 52 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
 
 ## Core
 
@@ -210,3 +210,8 @@ The reproducible case is `spec/requests/discourse_graphql/bundled_settings_spec.
 Native reaction changes, summary pages in message history and reactor popup pages are implemented. Native row ownership, unicode normalization, exact popup filtering, ignored users, private and thread publication, channel policy, serializer omissions and protected continuations are exercised through real HTTP. Summary paging supports stored state above the mutation limit. History serialization selects requested attributes while retaining native restrictions. The shared array pager preserves existing metadata cursor bindings.
 
 The warmed request comparisons record 12 SQL queries for one and 50 reactor rows, and 25 queries for one and 50 message summaries with distinct reactors. A separate committed probe confirms that native history still loads unselected reaction associations. Total work budgets, complete Chat clients and protected GraphQL live delivery remain incomplete. Publication alone does not complete live delivery acceptance.
+
+
+## Chat thread control increment
+
+Native title changes, reading progress, notification levels and prompt acknowledgements are implemented. HTTP evidence covers actual owner permissions, native channel and thread matching, distinct membership creation and reading behavior, deleted progress targets, first membership and private tracking publications, serializer omissions, selected attributes and outer request guards. Title publications match native payload and audience. GraphQL live delivery, complete thread reads and creation, client reconciliation and final performance budgets remain incomplete.

@@ -14,7 +14,7 @@ module DiscourseGraphQL
       end
 
       def render_serialized(object, serializer, options = nil)
-        return super unless serializer == ::Chat::UserChannelMembershipSerializer
+        return super unless serializer == ::Chat::UserChannelMembershipSerializer || serializer == ::Chat::BaseThreadMembershipSerializer
 
         super(object, serializer, NativeSerialization.options(options: options || {}, fields: @membership_fields))
       end

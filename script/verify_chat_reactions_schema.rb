@@ -15,7 +15,7 @@ result = JSON.parse(session.response.body)
 abort result.fetch("errors").inspect if result["errors"].present?
 data = result.fetch("data")
 capabilities = data.fetch("capabilities")
-expected = %w[discourse chat.channelDiscovery chat.messageHistory chat.reactionUsers chat.messageCreation chat.membershipAndReading chat.reactionChanges]
+expected = %w[discourse chat.channelDiscovery chat.messageHistory chat.reactionUsers chat.messageCreation chat.membershipAndReading chat.reactionChanges chat.threadControls]
 abort "Unexpected optional capabilities." unless capabilities.map { |capability| capability.fetch("id") } == expected
 abort "Unexpected Chat availability." unless capabilities.drop(1).all? { |capability| capability.fetch("available") == !disabled }
 types = data.dig("__schema", "types").map { |type| type.fetch("name") }
@@ -25,6 +25,8 @@ fields = data.dig("__schema", "queryType", "fields").map { |field| field.fetch("
 mutations = data.dig("__schema", "mutationType", "fields").map { |field| field.fetch("name") }
 abort "Reaction query missing." unless fields.include?("chatReactionUsers")
 abort "Reaction mutation missing." unless mutations.include?("updateChatReaction")
+abort "Thread membership types missing." unless %w[ChatThreadMembership ChatThreadMembershipPayload ChatThreadNotificationLevel].all? { |name| types.include?(name) }
+abort "Thread controls missing." unless %w[updateChatThreadTitle markChatThreadRead updateChatThreadNotifications markChatThreadTitlePromptSeen].all? { |name| mutations.include?(name) }
 query = '{ chatReactionUsers(channelId: "0", messageId: "0") { totalCount } __typename }'
 session.get("/discourse-graphql/graphql", params: { query: query }, headers: { "HTTP_HOST" => "test.localhost" })
 abort "Unexpected reactor HTTP status." unless session.response.status == 200
@@ -42,6 +44,16 @@ else
   abort result.inspect unless result.dig("data", "updateChatReaction", "errors", 0, "code") == expected_error
 end
 abort "Mutation lost its sibling." unless result.dig("data", "__typename") == "Mutation"
+mutation = 'mutation { markChatThreadRead(channelId: "0", threadId: "0") { success errors { code } } __typename }'
+session.post("/discourse-graphql/graphql", params: { query: mutation }, headers: { "HTTP_HOST" => "test.localhost" }, as: :json)
+abort "Unexpected thread control HTTP status." unless session.response.status == 200
+result = JSON.parse(session.response.body)
+if disabled
+  abort result.inspect unless result.dig("errors", 0, "extensions", "code") == expected_error && result.dig("data", "markChatThreadRead").nil?
+else
+  abort result.inspect unless result.dig("data", "markChatThreadRead", "errors", 0, "code") == expected_error
+end
+abort "Thread control lost its sibling." unless result.dig("data", "__typename") == "Mutation"
 abort "Native Checklist loaded unexpectedly." if defined?(::Checklist)
 abort "Native Data Explorer loaded unexpectedly." if defined?(::DiscourseDataExplorer)
 puts JSON.generate(status: "passed", eager_loaded: true, chat_available: !disabled, reaction_error: expected_error, capabilities: capabilities.map { |capability| capability.fetch("id") })

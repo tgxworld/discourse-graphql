@@ -24,11 +24,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       if Discourse.plugins_by_name.key?("chat")
         expect(fields).to include("chatChannels", "chatMessages", "chatReactionUsers")
         expect(types).to include("ChatChannel", "ChatChannelPage")
-        expect(mutations).to include("createChatMessage", "updateChatReaction")
-        expected_capabilities.concat(["chat.channelDiscovery", "chat.messageHistory", "chat.reactionUsers", "chat.messageCreation", "chat.membershipAndReading", "chat.reactionChanges"])
+        expect(mutations).to include("createChatMessage", "updateChatReaction", "updateChatThreadTitle", "markChatThreadRead", "updateChatThreadNotifications", "markChatThreadTitlePromptSeen")
+        expect(types).to include("ChatThreadMembership", "ChatThreadMembershipPayload", "ChatThreadNotificationLevel")
+        expected_capabilities.concat(["chat.channelDiscovery", "chat.messageHistory", "chat.reactionUsers", "chat.messageCreation", "chat.membershipAndReading", "chat.reactionChanges", "chat.threadControls"])
       else
         expect(fields).not_to include("chatChannels", "chatMessages", "chatReactionUsers")
-        expect(mutations).not_to include("createChatMessage", "updateChatReaction")
+        expect(mutations).not_to include("createChatMessage", "updateChatReaction", "updateChatThreadTitle", "markChatThreadRead", "updateChatThreadNotifications", "markChatThreadTitlePromptSeen")
         expect(types.grep(/^Chat/)).to be_empty
         expect(defined?(::Chat)).to be_nil
       end

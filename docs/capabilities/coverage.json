@@ -1126,6 +1126,114 @@
         "Complete client pagination recovery after concurrent changes",
         "Final concurrent allocation, memory and throughput budgets"
       ]
+    },
+    "chat/api/channel_threads#update": {
+      "graphql_operations": [
+        "mutation.updateChatThreadTitle"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_controls_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpdateThread"
+      ],
+      "authorization_requirements": [
+        "Native actual owning channel preview permission",
+        "Native original author or staff edit and silence guard",
+        "Native threading and title validation",
+        "Inherited native authentication and Chat access",
+        "Outer credential, CSRF, readonly, archived and GET restrictions"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete thread discovery, creation, history and client reconciliation",
+        "Protected GraphQL live delivery and final total work budgets"
+      ]
+    },
+    "chat/api/channels_threads_read#update": {
+      "graphql_operations": [
+        "mutation.markChatThreadRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_controls_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpdateUserThreadLastRead"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread identity binding",
+        "Native existing actor membership and monotonic message progress",
+        "Native mention and private tracking effects",
+        "Inherited native authentication and Chat access",
+        "Outer credential, CSRF, readonly, archived and GET restrictions"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete thread discovery, creation, history and client reconciliation",
+        "Protected GraphQL live delivery and final total work budgets"
+      ]
+    },
+    "chat/api/channel_threads_current_user_notifications_settings#update": {
+      "graphql_operations": [
+        "mutation.updateChatThreadNotifications"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_controls_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpdateThreadNotificationSettings"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread identity binding",
+        "Native channel preview and threading guards",
+        "Native actor membership creation and existing read state preservation",
+        "Inherited native authentication and Chat access",
+        "Outer credential, CSRF, readonly, archived and GET restrictions"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete thread discovery, creation, history and client reconciliation",
+        "Protected GraphQL live delivery and final total work budgets"
+      ]
+    },
+    "chat/api/channel_threads_current_user_title_prompt_seen#update": {
+      "graphql_operations": [
+        "mutation.markChatThreadTitlePromptSeen"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_controls_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::MarkThreadTitlePromptSeen"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread identity binding",
+        "Native preview and threading guards",
+        "Native actor membership creation without advancing read state",
+        "Inherited native authentication and Chat access",
+        "Outer credential, CSRF, readonly, archived and GET restrictions"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete thread discovery, creation, history and client reconciliation",
+        "Protected GraphQL live delivery and final total work budgets"
+      ]
     }
   },
   "shared_plugin_assessments": {

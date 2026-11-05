@@ -7,7 +7,7 @@ session = ActionDispatch::Integration::Session.new(Rails.application)
 session.get(
   "/discourse-graphql/graphql",
   params: {
-    query: "{ capabilities { id queryFields mutationFields } __schema { queryType { fields { name } } types { name } } __type(name: \"BookmarkTarget\") { enumValues { name } } postType: __type(name: \"Post\") { fields { name } } }",
+    query: "{ capabilities { id queryFields mutationFields } __schema { queryType { fields { name } } mutationType { fields { name } } types { name } } __type(name: \"BookmarkTarget\") { enumValues { name } } postType: __type(name: \"Post\") { fields { name } } }",
   },
   headers: { "HTTP_HOST" => "test.localhost" },
 )
@@ -17,6 +17,7 @@ payload = JSON.parse(session.response.body)
 abort payload.fetch("errors").inspect if payload["errors"].present?
 data = payload.fetch("data")
 fields = data.dig("__schema", "queryType", "fields").map { |field| field.fetch("name") }
+mutations = data.dig("__schema", "mutationType", "fields").map { |field| field.fetch("name") }
 types = data.dig("__schema", "types").map { |type| type.fetch("name") }
 abort "Core setting metadata types missing without optional plugins." unless %w[SiteSettingDefinition SiteSettingChoicePage SiteSettingDependencyPage SiteSettingObjectSchema SiteSettingJsonSchema].all? { |name| types.include?(name) }
 capabilities = data.fetch("capabilities")
@@ -24,6 +25,8 @@ targets = data.fetch("__type").fetch("enumValues").map { |value| value.fetch("na
 abort "Optional bookmark targets leaked into the schema." unless targets.sort == %w[POST TOPIC]
 abort "Unexpected optional capabilities." unless capabilities.map { |capability| capability.fetch("id") } == ["discourse"]
 abort "Capability fields do not match the schema." unless capabilities.first.fetch("queryFields").sort == fields.sort
+abort "Capability mutations do not match the schema." unless capabilities.first.fetch("mutationFields").sort == mutations.sort
+abort "Chat mutations leaked into the schema." if mutations.any? { |name| name.include?("Chat") }
 abort "Chat fields leaked into the schema." if fields.include?("chatChannels")
 abort "Chat types leaked into the schema." if types.any? { |name| name.start_with?("Chat") }
 abort "Native Chat constants were loaded." if defined?(::Chat)

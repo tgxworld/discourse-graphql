@@ -36,7 +36,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       messages = publications.select { |entry| entry.channel.start_with?("/chat/") }
       expect(messages.map { |entry| [entry.channel, entry.user_ids, entry.group_ids] }).to eq(native_messages.map { |entry| [entry.channel, entry.user_ids, entry.group_ids] })
       expect(messages).to be_present
-      expect(messages.map(&:data).to_json).to include(private_thread.title)
+      expect(messages.map(&:data)).to eq(native_messages.map(&:data))
     end
 
     it "clears titles with null and omission and retains native length validation" do
@@ -61,7 +61,8 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = action("updateChatThreadTitle(threadId: \"#{other_thread.id}\", title: \"Staff title\")")
       expect(result.dig("data", "updateChatThreadTitle", "success")).to eq(true)
       expect(other_thread.reload.title).to eq("Staff title")
-      UserSilencer.new(user).silence
+      user.update!(moderator: false)
+      expect(UserSilencer.new(user).silence).to eq(true)
       result = action("updateChatThreadTitle(threadId: \"#{thread.id}\", title: \"Silenced\")")
       expect(result.dig("data", "updateChatThreadTitle", "errors", 0, "code")).to eq("FORBIDDEN")
       expect(thread.reload.title).to be_nil
@@ -71,7 +72,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       channel.update!(status: :closed)
       expect(action("updateChatThreadTitle(threadId: \"#{thread.id}\", title: \"Closed title\")").dig("data", "updateChatThreadTitle", "success")).to eq(true)
       channel.update!(threading_enabled: false)
-      expect(action("updateChatThreadTitle(threadId: \"#{thread.id}\", title: \"Denied\")").dig("data", "updateChatThreadTitle", "errors", 0, "code")).to eq("FORBIDDEN")
+      expect(action("updateChatThreadTitle(threadId: \"#{thread.id}\", title: \"Denied\")").dig("data", "updateChatThreadTitle", "errors", 0, "code")).to eq("NOT_FOUND")
       result = action("markChatThreadRead(channelId: \"#{channel.id}\", threadId: \"#{thread.id}\")")
       expect(result.dig("data", "markChatThreadRead", "success")).to eq(true)
       expect(thread.membership_for(user).last_read_message_id).to eq(reply.id)
@@ -116,7 +117,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       end
       result = response.parsed_body
       expect(result.dig("data", "markChatThreadTitlePromptSeen", "membership")).to eq("threadId" => thread.id.to_s, "lastReadMessageId" => nil, "notificationLevel" => "NORMAL", "threadTitlePromptSeen" => true)
-      expect(publications).to include(have_attributes(user_ids: [user.id], data: { "has_threads" => true }))
+      expect(publications).to include(have_attributes(user_ids: [user.id], data: { has_threads: true }))
       actor_membership = thread.membership_for(user)
       actor_membership.update!(notification_level: :watching, last_read_message_id: thread.original_message_id)
       expect { membership("markChatThreadTitlePromptSeen(channelId: \"#{channel.id}\", threadId: \"#{thread.id}\")") }.not_to change(Chat::UserChatThreadMembership, :count)
@@ -145,6 +146,11 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(thread.membership_for(user).last_read_message_id).to eq(reply.id)
       expect(notification.reload.read).to eq(true)
       expect(publications).to include(have_attributes(user_ids: [user.id], data: include("thread_id" => thread.id, "last_read_message_id" => reply.id)))
+      native_publications = MessageBus.track_publish("/chat/user-tracking-state/#{user.id}") do
+        put "/chat/api/channels/#{channel.id}/threads/#{thread.id}/read.json", params: { message_id: reply.id }, headers: headers
+      end
+      expect(response.status).to eq(200)
+      expect(publications.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] }).to eq(native_publications.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] })
       newer = Fabricate(:chat_message, chat_channel: channel, thread: thread)
       thread.update!(last_message: newer)
       result = action("markChatThreadRead(channelId: \"#{channel.id}\", threadId: \"#{thread.id}\", messageId: null)")
@@ -156,6 +162,19 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = action("markChatThreadRead(channelId: \"#{channel.id}\", threadId: \"#{thread.id}\")")
       expect(result.dig("data", "markChatThreadRead", "success")).to eq(true)
       expect(thread.membership_for(user).last_read_message_id).to eq(newest.id)
+    end
+
+    it "avoids evaluating unselected native membership fields" do
+      Chat::BaseThreadMembershipSerializer.any_instance.stubs(:notification_level).raises("Notification rendering unavailable")
+      operation = "updateChatThreadNotifications(channelId: \"#{channel.id}\", threadId: \"#{thread.id}\", notificationLevel: WATCHING)"
+      result = graphql(query: "mutation { #{operation} { success membership { threadId } } }")
+      expect(result["errors"]).to be_blank
+      expect(result.dig("data", "updateChatThreadNotifications", "membership")).to eq("threadId" => thread.id.to_s)
+      expect(thread.membership_for(user).notification_level).to eq("watching")
+      result = graphql(query: "mutation { #{operation} { success membership { notificationLevel } } }")
+      expect(result.dig("errors", 0, "extensions", "code")).to eq("INTERNAL_ERROR")
+      expect(result.dig("data", "updateChatThreadNotifications")).to be_nil
+      expect(thread.membership_for(user).notification_level).to eq("watching")
     end
 
     it "retains missing membership and backward reading failures without new membership" do
@@ -224,10 +243,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       get "/discourse-graphql/graphql", params: { query: "mutation { #{operation} { success } }" }, headers: headers
       expect(response.status).to eq(400)
       SiteSetting.chat_enabled = false
-      result = graphql(query: "mutation { #{operation} { success } __typename }")
-      expect(result.dig("data", "markChatThreadRead")).to be_nil
+      result = graphql(query: "mutation { #{operation} { success } updateChatThreadTitle(threadId: \"#{thread.id}\", title: \"Disabled\") { success } updateChatThreadNotifications(channelId: \"#{channel.id}\", threadId: \"#{thread.id}\", notificationLevel: NORMAL) { success } markChatThreadTitlePromptSeen(channelId: \"#{channel.id}\", threadId: \"#{thread.id}\") { success } __typename }")
+      expect(result.fetch("data").except("__typename")).to eq("markChatThreadRead" => nil, "updateChatThreadTitle" => nil, "updateChatThreadNotifications" => nil, "markChatThreadTitlePromptSeen" => nil)
       expect(result.dig("data", "__typename")).to eq("Mutation")
-      expect(result.dig("errors", 0, "extensions", "code")).to eq("FEATURE_DISABLED")
+      expect(result.fetch("errors").map { |error| error.dig("extensions", "code") }).to eq(["FEATURE_DISABLED"] * 4)
+      expect(thread.reload.title).to be_nil
+      expect(thread.membership_for(user).thread_title_prompt_seen).to eq(false)
     end
 
     it "retains readonly, archived and read credential restrictions before native effects" do
