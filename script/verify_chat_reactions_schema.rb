@@ -15,7 +15,7 @@ result = JSON.parse(session.response.body)
 abort result.fetch("errors").inspect if result["errors"].present?
 data = result.fetch("data")
 capabilities = data.fetch("capabilities")
-expected = %w[discourse chat.channelDiscovery chat.messageHistory chat.reactionUsers chat.messageCreation chat.membershipAndReading chat.reactionChanges chat.threadControls]
+expected = %w[discourse chat.channelDiscovery chat.messageHistory chat.reactionUsers chat.threadLookup chat.messageCreation chat.membershipAndReading chat.reactionChanges chat.threadControls chat.threadCreation]
 abort "Unexpected optional capabilities." unless capabilities.map { |capability| capability.fetch("id") } == expected
 abort "Unexpected Chat availability." unless capabilities.drop(1).all? { |capability| capability.fetch("available") == !disabled }
 types = data.dig("__schema", "types").map { |type| type.fetch("name") }
@@ -26,6 +26,9 @@ mutations = data.dig("__schema", "mutationType", "fields").map { |field| field.f
 abort "Reaction query missing." unless fields.include?("chatReactionUsers")
 abort "Reaction mutation missing." unless mutations.include?("updateChatReaction")
 abort "Thread membership types missing." unless %w[ChatThreadMembership ChatThreadMembershipPayload ChatThreadNotificationLevel].all? { |name| types.include?(name) }
+abort "Thread lookup missing." unless fields.include?("chatThread")
+abort "Thread creation missing." unless mutations.include?("createChatThread")
+abort "Thread types missing." unless %w[ChatThread ChatThreadOriginalMessage ChatThreadPreview ChatThreadCreateInput ChatThreadCreatePayload].all? { |name| types.include?(name) }
 abort "Thread controls missing." unless %w[updateChatThreadTitle markChatThreadRead updateChatThreadNotifications markChatThreadTitlePromptSeen].all? { |name| mutations.include?(name) }
 query = '{ chatReactionUsers(channelId: "0", messageId: "0") { totalCount } __typename }'
 session.get("/discourse-graphql/graphql", params: { query: query }, headers: { "HTTP_HOST" => "test.localhost" })

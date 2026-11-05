@@ -385,3 +385,28 @@ All four fields belong to the optional chat.threadControls capability. Loaded di
 Failure or a lost response does not establish rollback. Do not automatically replay an ambiguous result. For example, retrying a latest read after a new message arrives can mark additional content read. Until typed thread reads are available, inspect the permitted native thread GET response or existing Discourse client. Native lookup can be unavailable after permission or threading changes, in which case completion remains unknown. Preference mutations are unsuitable as probes because they can create membership and change reading state.
 
 Native title publication retains its existing preview payload and audience. It does not add a title field. Native private tracking and first membership publications are verified separately from the required GraphQL live delivery. Full thread discovery, creation, history, drafts, client journeys and final performance budgets remain incomplete.
+
+
+## Thread lookup and creation
+
+`chatThread(channelId:, threadId:)` invokes the native thread lookup. It preserves native channel binding, join or anonymous preview permission, forced thread behavior and deleted original message moderation. Reading does not join the thread or advance its read state. The nullable root retains permitted siblings on errors.
+
+ChatThread exposes nullable id, title, status, channelId, replyCount, lastMessageId, force, originalMessage, preview, currentUserMembership and meta. Status follows the native thread enum. Counts and native bus positions use BigInt. Membership reuses ChatThreadMembership. Missing native fields remain null.
+
+The distinct ChatThreadOriginalMessage exposes id, raw, cooked, excerpt, createdAt, deletedAt, channelId, author and mentionedUsers. Original timestamps retain native JSON fractional precision. Missing native authors stay null. The adapter does not introduce the channel history deleted user fallback. Author identity fields are nullable native id, username, name and avatarTemplate.
+
+Mentioned users page the native serialized list, already bounded by max_mentions_per_chat_message, with nodes, totalCount and pageInfo. totalCount counts that serialized list. first defaults to25 with maximum50. Signed continuations bind the actor, site, page size, full native serialized contents and available native message/channel identities. Changed contents require restart. No model lookup restores identities omitted by native serialization.
+
+ChatThreadPreview exposes native lastReplyCreatedAt, lastReplyExcerpt, lastReplyId, participantCount, replyCount, participantUsers and lastReplyUser. Participant users are the native sample of at most10 actors in native order. participantCount describes all qualifying participants. The sample is not a complete participant list.
+
+meta.messageBusLastIds.threadMessageBusLastId retains the native numeric position. It is diagnostic metadata and does not establish a GraphQL delivery cursor, replay guarantee or live authorization.
+
+`createChatThread(input: ChatThreadCreateInput!)` accepts channelId, originalMessageId and nullable title. The payload exposes success, nullable thread and typed errors. Native creation retains permission, silence, threading and title validation, original message association, transactions, publication and the chat_thread_created event. Repeated creation can return an existing thread without replacing its title, while repeating events and publication. No idempotence or rollback guarantee is added.
+
+Creation retains native omissions of preview and current membership. Query chatThread afterward to inspect permitted current state. Do not automatically replay ambiguous responses. If permission or threading changes prevent inspection, completion remains unknown.
+
+Root projection decorates the native serializer instance's inclusion check and retains native only, except and inclusion predicates. It does not propagate GraphQL root field names as an only restriction onto embedded original messages. Unselected preview and original message renderers are not evaluated. Native association loading and complete nested rendering remain separate performance obligations.
+
+The optional capabilities are chat.threadLookup and chat.threadCreation. Query and mutation roots cost1000 plus selected children, mention page complexity multiplies first and participant sample complexity accounts for10 users. Creation clears request loaders before and after native processing. Credentials, CSRF, readonly, archive and GET mutation protections remain in effect. Disabled Chat returns FEATURE_DISABLED with nullable roots. Absent Chat contributes no thread fields or types.
+
+Channel and user thread lists, thread message history, drafts, complete clients, protected GraphQL live delivery and final total work budgets remain required.

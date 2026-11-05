@@ -1234,6 +1234,64 @@
         "Complete thread discovery, creation, history and client reconciliation",
         "Protected GraphQL live delivery and final total work budgets"
       ]
+    },
+    "chat/api/channel_threads#show": {
+      "graphql_operations": [
+        "query.chatThread"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_threads_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb",
+        "script/measure_thread_lookup_loading_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::LookupThread",
+        "Chat::ThreadSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread or original message identity binding",
+        "Native access and threading policies",
+        "Native deleted original moderation or creation silence and title validation",
+        "Inherited native authentication and outer request protections"
+      ],
+      "authorization_audit": "partial, declared adapter paths and fresh optional states exercised",
+      "status": "partial",
+      "remaining": [
+        "Thread lists, history, drafts and complete client reconciliation",
+        "Native nested rendering and total loading budgets",
+        "Protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/channel_threads#create": {
+      "graphql_operations": [
+        "mutation.createChatThread"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_threads_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb",
+        "script/measure_thread_lookup_loading_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::CreateThread",
+        "Chat::ThreadSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread or original message identity binding",
+        "Native access and threading policies",
+        "Native deleted original moderation or creation silence and title validation",
+        "Inherited native authentication and outer request protections"
+      ],
+      "authorization_audit": "partial, declared adapter paths and fresh optional states exercised",
+      "status": "partial",
+      "remaining": [
+        "Thread lists, history, drafts and complete client reconciliation",
+        "Native nested rendering and total loading budgets",
+        "Protected GraphQL live delivery"
+      ]
     }
   },
   "shared_plugin_assessments": {

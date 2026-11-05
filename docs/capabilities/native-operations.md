@@ -74,6 +74,8 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `categories#index` | `query.categories` | partial |
 | `chat/api/channel_messages#create` | `mutation.createChatMessage` | partial |
 | `chat/api/channel_messages#index` | `query.chatMessages` | partial |
+| `chat/api/channel_threads#create` | `mutation.createChatThread` | partial |
+| `chat/api/channel_threads#show` | `query.chatThread` | partial |
 | `chat/api/channel_threads#update` | `mutation.updateChatThreadTitle` | partial |
 | `chat/api/channel_threads_current_user_notifications_settings#update` | `mutation.updateChatThreadNotifications` | partial |
 | `chat/api/channel_threads_current_user_title_prompt_seen#update` | `mutation.markChatThreadTitlePromptSeen` | partial |

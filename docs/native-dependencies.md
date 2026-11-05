@@ -99,3 +99,13 @@ The committed `script/measure_chat_reaction_loading_spec.rb` drives native HTTP,
 Reproduce with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --seed 23293 plugins/discourse-graphql/script/measure_chat_reaction_loading_spec.rb`. This is a characterization of the remaining work, not a passing total work budget.
 
 The native owner needs a supported service or controller selection hook that chooses required preloads before loading messages, with native summary preparation retaining emoji filtering, full counts, actor state and sampled users. Existing native defaults and callers must keep their behavior. The plugin must consume that boundary before claiming that omitted reaction fields avoid their associated loading. Native total allocation, memory and concurrent budgets remain required.
+
+## Unselected thread original message preparation
+
+Status: unresolved native performance dependency. Root projection does not select native lookup preparation.
+
+`Chat::LookupThread` preloads original message mentions, their users and user options before serialization, and prepares participants independently of selected output. The adapter retains the native query rather than replacing its preparation or supplying partial association caches.
+
+`script/measure_thread_lookup_loading_spec.rb` characterizes a stored fixture of50 mentions with the current native serialized limit set to its supported maximum10. Both the ID only GraphQL lookup and the selected mention page load50 Chat::UserMention,52 User and52 UserOption records. The selected mention response contains the native first10 actors. The ID only response contains only its requested ID. Both GraphQL selections use19 SQL queries in the recorded run. Native HTTP also loads all50 mentions. These are record loading observations, not a fair latency comparison or a completed total work budget.
+
+The native owner needs a supported preparation boundary that accepts requested thread components before loading original message associations and participants, while retaining native defaults, policies and serializer behavior. The plugin must consume that boundary before claiming that omitted mentions avoid their associated loading. Reproduce with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --seed 23293 plugins/discourse-graphql/script/measure_thread_lookup_loading_spec.rb`.
