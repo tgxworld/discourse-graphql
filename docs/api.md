@@ -95,3 +95,15 @@ Creation preserves NewPostManager, plugin parameter and actor modifiers, validat
 The adapter processes one fixed native action and accepts only explicitly typed creation inputs. The outer GraphQL controller owns notification clearing and session refresh. Native child processing skips those two shared callbacks while retaining the native action's other callbacks and owned logic. Browser cookie and server session objects remain attached to the real request lifecycle. The adapter explicitly delegates login requirement metadata to its native superclass because the native class instance metadata is not inherited automatically. All request dependent owner behavior used by this action must have an HTTP contract.
 
 Request loader caches clear between serial creation mutations. Native validation and policy failures become typed payload errors, including retry guidance when native rate limiting supplies it. An outer transport rejection, including CSRF or readonly rejection, keeps its native HTTP status.
+
+## Chat message creation
+
+`createChatMessage(input: CreateChatMessageInput!)` accepts required `channelId` and `message`, with optional `inReplyToId`, `threadId` and `stagedId`. Its nullable payload exposes `status`, `messageId` and typed `errors`. `CREATED` means the native action returned success and a message ID. `FAILED` means the native action returned an error, with native error messages and retry guidance where supplied.
+
+This is a text creation contract. Upload inputs, GraphQL message reading and other Chat operations remain required later slices. Clients can currently inspect authoritative history through the native Chat message endpoint.
+
+The adapter invokes the native Chat message creation action. Native Chat groups, silencing, membership, channel status, recipient preferences, reply and thread consistency, validation, rate limiting, automatic silencing, persistence, tracking, publishing and jobs remain authoritative. No caller controlled service options or bypass flags are accepted. Root and thread replies preserve their native reading state and channel activity effects. Request loader state clears around each mutation.
+
+The installed capability is `chat.messageCreation`, with `createChatMessage` as its mutation field. Global availability remains distinct from actor permission. Disabled Chat returns `FEATURE_DISABLED` at this nullable field and permits unrelated mutation results. Creation carries a base complexity of 1,000, so ten creations cannot execute in one request.
+
+`stagedId` provides native event correlation. It is not a persisted unique key and does not provide deduplication. Native event processing follows persistence, so a failed or lost response does not prove that no message was committed. Do not retry automatically after an ambiguous outcome. Inspect authoritative history and keep uncertainty visible when identical messages cannot be distinguished. A `RATE_LIMITED` retry delay does not turn an otherwise ambiguous failure into a safe retry.

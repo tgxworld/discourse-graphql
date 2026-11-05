@@ -1,17 +1,9 @@
 module DiscourseGraphQL
   class PostCreation < ::PostsController
-    skip_before_action :clear_notifications
-    skip_after_action :perform_refresh_session
+    include NativeRequest
 
     def self.requires_login_arg
       superclass.requires_login_arg
-    end
-
-    def initialize(request:)
-      super()
-      set_request!(ActionDispatch::Request.new(request.env.dup))
-      set_response!(ActionDispatch::Response.new)
-      self.request.format = :json
     end
 
     def call(parameters:)

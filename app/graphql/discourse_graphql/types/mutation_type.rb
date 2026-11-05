@@ -1,6 +1,8 @@
 module DiscourseGraphQL
   module Types
     class MutationType < Types::BaseObject
+      Extensions.mutation_modules.each { |extension| include extension }
+
       field :create_topic, PostCreationPayloadType, null: false, complexity: 1000 do
         argument :input, CreateTopicInput, required: true
       end

@@ -1,15 +1,7 @@
 module DiscourseGraphQL
   module Chat
     class Channels < ::Chat::Api::ChannelsController
-      skip_before_action :clear_notifications
-      skip_after_action :perform_refresh_session
-
-      def initialize(request:)
-        super()
-        set_request!(ActionDispatch::Request.new(request.env.dup))
-        set_response!(ActionDispatch::Response.new)
-        self.request.format = :json
-      end
+      include NativeRequest
 
       def call(first:, after: nil, filter: nil)
         raise Discourse::InvalidParameters unless first.between?(1, 50)
