@@ -187,7 +187,9 @@
         "query.chatMessages"
       ],
       "graphql_tests": [
-        "spec/requests/discourse_graphql/chat_history_spec.rb"
+        "spec/requests/discourse_graphql/chat_history_spec.rb",
+        "spec/requests/discourse_graphql/chat_reactions_spec.rb",
+        "script/measure_chat_reaction_loading_spec.rb"
       ],
       "native_entry_points": [
         "Chat::Api::ChannelMessagesController#index",
@@ -204,7 +206,8 @@
       "status": "partial",
       "remaining": [
         "Anonymous deleted anchor dependency",
-        "Attachments, reactions, thread previews and remaining message or tracking fields"
+        "Attachments, thread previews and remaining message or tracking fields",
+        "Native unselected association loading dependency and final workload budgets"
       ]
     },
     "chat/api/channels#show": {
@@ -1066,6 +1069,62 @@
       "status": "partial",
       "remaining": [
         "Complete user preference administration journeys"
+      ]
+    },
+    "chat/chat#react": {
+      "graphql_operations": [
+        "mutation.updateChatReaction"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_reactions_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_optional_schema.rb",
+        "script/verify_chat_reactions_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::ChatController#react",
+        "Chat::MessageReactor#react!",
+        "Chat::Publisher.publish_reaction!"
+      ],
+      "authorization_requirements": [
+        "Native Chat enablement, login and allowed groups",
+        "Native channel and message scope, channel status, silence and following checks",
+        "Native emoji validation, distinct count rules, transaction and actor owned reaction writes",
+        "Native private and thread publication audience, CSRF, credential, readonly and archived guards"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete executable Chat journey and protected live delivery",
+        "Final concurrent allocation, memory and throughput budgets"
+      ]
+    },
+    "chat/chat#message_reactions_users": {
+      "graphql_operations": [
+        "query.chatReactionUsers"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_reactions_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_optional_schema.rb",
+        "script/verify_chat_reactions_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::ChatController#message_reactions_users",
+        "Chat::MessageReactionUsersQuery.call",
+        "Chat::ReactionUserSerializer"
+      ],
+      "authorization_requirements": [
+        "Native login, allowed groups and current channel permission",
+        "Native message and channel scope, deleted message denial",
+        "Native ignored user filters, chronological row order and serializer inclusion",
+        "Signed actor, site, first, channel, message and emoji cursor context"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete client pagination recovery after concurrent changes",
+        "Final concurrent allocation, memory and throughput budgets"
       ]
     }
   },

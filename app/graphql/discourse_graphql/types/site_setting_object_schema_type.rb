@@ -10,7 +10,7 @@ module DiscourseGraphQL
       end
 
       def properties(first:, lookahead:, after: nil)
-        SiteSettingMetadataPage.call(source: object["properties"], kind: "object_properties", context: context, lookahead: lookahead, first: first, after: after)
+        NativeArrayPage.call(source: object["properties"], kind: "object_properties", context: context, lookahead: lookahead, first: first, after: after)
       end
     end
   end

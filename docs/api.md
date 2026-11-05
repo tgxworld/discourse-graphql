@@ -120,6 +120,8 @@ Nodes expose native serialized content, timestamps, channel and thread IDs, stre
 
 The installed capability is `chat.messageHistory`. Disabled Chat returns `FEATURE_DISABLED` while permitted sibling fields remain available. Native serializer field selection preserves inclusion predicates and existing restrictions. Unexpected field failures are logged on the server and return a generic `INTERNAL_ERROR` without diagnostics. They provide no rollback or retry guarantee.
 
+History selects requested message attributes through native serialization. Unselected reaction rendering is skipped. Native query preloads remain unchanged, so omitting a field does not imply that all associated database loading is avoided. The unresolved native loading boundary is recorded in [native dependencies](native-dependencies.md).
+
 The pinned native implementation has a reproduced defect when an anonymous reader continues after deletion of its anchor. The native endpoint returns HTTP 500 from `Chat::Channel::Policy::MessageExistence`. GraphQL contains that failure as `INTERNAL_ERROR`, and clients may restart this reading query without `before`. Containment does not repair the native defect. This case remains incomplete for final acceptance and requires a native correction. The native reproduction and dependency are recorded in `docs/native-dependencies.md`.
 
 ## Chat membership and reading preferences
@@ -313,3 +315,40 @@ Keywords, dependency allowed values, JSON schema required names and enum literal
 Signed metadata cursors bind the administrator, site, collection kind, requested page size and full native content fingerprint. Fingerprints include ordering and omitted keys independently of selected output fields. Identical collections of the same kind have equivalent cursor meaning. Changed, reordered or removed contents require restarting that collection. Source fingerprints and dependency projections are cached only within the request. Fingerprinting is skipped when neither a continuation nor a selected cursor needs it. Schema property pages convert only the selected entries to output nodes, and count only selections do not construct nodes.
 
 Reproduce allocation and SQL growth measurements with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --env ENABLE_LOGSTASH_LOGGER=0 --seed 23293 plugins/discourse-graphql/script/measure_setting_metadata_spec.rb`. The probe verifies every selected value and compares one versus40 aliases over an approximately800KB native choice fixture. It also records direct native endpoint allocations. This bounds alias growth without claiming that native catalog construction meets final workload budgets.
+
+
+## Chat reactions
+
+`updateChatReaction(input: ChatReactionChangeInput!)` accepts channelId, messageId, emoji and a fixed ADD or REMOVE action. It invokes the native Chat reaction action through PUT semantics. The native controller and MessageReactor retain channel visibility, following, channel status, silence, emoji validation, normalization, distinct emoji limits, transactions and publication. Emoji strings are bounded to 512 bytes as a transport limit.
+
+The payload acknowledges native processing with success and typed errors. It returns no invented state. Repeated adds retain one actor row, and missing removes can succeed. Native publication can repeat for both cases. Failure or a lost response does not establish rollback or make automatic retries safe. Requery native summaries to reconcile state.
+
+```graphql
+mutation {
+  updateChatReaction(input: {
+    channelId: "42"
+    messageId: "99"
+    emoji: "👍"
+    action: ADD
+  }) {
+    success
+    errors { code message }
+  }
+}
+```
+
+`ChatMessage.reactions(first: 30, after:)` pages the native serialized summary array, with a maximum of 50 groups. Nodes expose emoji, count, reacted and sampled users. Count is BigInt. Native user samples contain at most five actors. Actor fields are nullable native id, username, name and avatarTemplate. Native omissions stay omitted rather than being recovered from models. No stored reaction rows yields null when native serialization omits the attribute. A native empty summary array yields an empty page. Legacy or concurrent state above the native mutation limit remains readable through pagination.
+
+Aggregate cursors bind actor, site, page size, collection kind, native message and channel identities when serialized, and the full native summary contents. Native identity omissions are preserved. Changed contents or identity require restarting that summary collection. Hashing is independent of selected children, so a count change invalidates continuation even if the client selected only emoji. Unselected nodes and unused cursors avoid their associated preparation. Existing native serializer only, except and inclusion restrictions remain authoritative.
+
+`chatReactionUsers(channelId:, messageId:, emoji:, first: 25, after:)` invokes the native reactor popup action with GET semantics and a maximum of 50 rows. Nodes retain native BasicUser fields plus reaction. totalCount is the native BigInt row count, so one user can appear once per emoji. Rows retain native chronological ordering and ignored user filtering. Message summaries retain their own native sampling behavior, which can differ from the popup filter.
+
+Mutation normalization and popup filtering intentionally follow different native protocols. Adding 👍 stores +1. Filtering reactors with 👍 can return no rows, while +1 finds the stored reaction. Use the exact emoji value returned by native summaries when filtering. The adapter adds no normalization policy.
+
+Popup cursors bind native page index, first, channel input, message input, emoji filter, actor and site. Invalid or changed context returns BAD_USER_INPUT. Every page rechecks native access, including after private membership revocation. A page without rows ends pagination. Native offset pagination can shift after changes, so restart affected popup pages after reaction activity rather than assuming a stable snapshot.
+
+The installed capabilities are chat.reactionChanges and chat.reactionUsers. Disabled Chat returns FEATURE_DISABLED at nullable roots. An absent Chat plugin contributes no reaction fields or types. Public anonymous history can expose native summaries when Chat allows it, while the reactor popup and mutation retain their native login requirement. Browser CSRF, credentials, readonly and archived site guards remain applicable. GET never executes the mutation.
+
+Mutation cost is 1000 plus selected payload fields. Popup cost is 1000 plus requested first multiplied by five plus selected row cost. Aggregate page cost is 100 plus first multiplied by selected child cost, and sampled user cost accounts for five actors. Parent history multiplies that work by its requested message count. Dense selections can require smaller message or reaction pages.
+
+The reaction request suite verifies native private thread publication, row ownership, duplicate behavior, exact filtering, membership cleanup, protected continuations, more than 30 stored groups, native name inclusion, browser CSRF and query cost rejection. Warmed SQL counts are 12 versus 12 for one versus 50 popup rows, and 25 versus 25 for one versus 50 message summaries with distinct reactors. These counts include the request permission work. They do not establish allocation, memory or concurrent workload budgets. Native reaction publication is verified separately from the required protected GraphQL live delivery.

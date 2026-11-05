@@ -87,3 +87,15 @@ The committed `script/measure_setting_metadata_spec.rb` profiles real native HTT
 The GraphQL metadata cache bounds additional alias allocation to about1.3MB when each alias selects its cursor in this workload. A control run without fingerprint reuse allocates about33.3MB more across40 aliases and fails its growth check. The cache is restored and the passing measurement is reproducible. It does not fix native catalog construction.
 
 The native owner needs an efficient catalog or named definition boundary with explicit default snapshot semantics and preserved default and result modifiers. The existing catalog enumerator already obtains defaults before repeatedly looking them up, but the adapter must not replace those calls or bypass modifier behavior. Record and verify the smallest upstream improvement before claiming the full concurrent performance budgets are met.
+
+## Unselected Chat reaction association loading
+
+Status: unresolved native performance dependency. Selection aware serialization does not establish selection aware database loading.
+
+`Chat::MessagesQuery.base_query` preloads reactions and their users before native message serialization. The GraphQL bridge can omit unselected attributes through native serializer options, but those options arrive after the query has loaded associations. Replacing that query or supplying partial association caches would duplicate native ownership and risk changing reaction counts, samples or actor state.
+
+The committed `script/measure_chat_reaction_loading_spec.rb` drives native HTTP, an ID only GraphQL history read and a selected reaction summary read. With one message and 50 distinct reactors, all three requests instantiate 50 Chat::MessageReaction records and 52 User records. The selected summary retains the native count of 50 and sample of five. The ID only response contains only its requested ID while still loading the associations. The probe emits `unselected_loading_budget_met: false` and records model counts separately from SQL counts.
+
+Reproduce with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --seed 23293 plugins/discourse-graphql/script/measure_chat_reaction_loading_spec.rb`. This is a characterization of the remaining work, not a passing total work budget.
+
+The native owner needs a supported service or controller selection hook that chooses required preloads before loading messages, with native summary preparation retaining emoji filtering, full counts, actor state and sampled users. Existing native defaults and callers must keep their behavior. The plugin must consume that boundary before claiming that omitted reaction fields avoid their associated loading. Native total allocation, memory and concurrent budgets remain required.

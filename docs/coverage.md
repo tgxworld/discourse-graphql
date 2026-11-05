@@ -6,7 +6,7 @@ This is the required scope and delivery ledger. Every row starts incomplete. Ope
 
 Core and plugin implementations remain authoritative for permissions, validation, rate limiting, filtering, persistence and side effects. Existing signed provider callbacks and browser rendering are preserved through their native flows. Their compatibility still requires verification.
 
-The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 46 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
+The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 48 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
 
 ## Core
 
@@ -203,3 +203,10 @@ Administrator queries now expose native setting definitions, exact lookup and af
 The shared settings adapter matches the native administrator index for all 47 bundled plugins in a real HTTP comparison. The observed test state contains736 visible definitions. Every definition and selected scalar editor hint matches native output, including plugins requiring multiple pages. The verifier follows native ordering to exact terminal pages and rejects repeated cursors. The scope comes from the pinned core tracked plugin entries, with loaded plugin presence asserted.
 
 The reproducible case is `spec/requests/discourse_graphql/bundled_settings_spec.rb`. The value free observation is [plugin-settings.json](capabilities/plugin-settings.json). Counts describe that test state and can change with native configurability and visibility. Per plugin writes, provider flows, rendering, feature actions, live delivery and final performance budgets remain required. Every broad plugin family remains incomplete.
+
+
+## Chat reaction increment
+
+Native reaction changes, summary pages in message history and reactor popup pages are implemented. Native row ownership, unicode normalization, exact popup filtering, ignored users, private and thread publication, channel policy, serializer omissions and protected continuations are exercised through real HTTP. Summary paging supports stored state above the mutation limit. History serialization selects requested attributes while retaining native restrictions. The shared array pager preserves existing metadata cursor bindings.
+
+The warmed request comparisons record 12 SQL queries for one and 50 reactor rows, and 25 queries for one and 50 message summaries with distinct reactors. A separate committed probe confirms that native history still loads unselected reaction associations. Total work budgets, complete Chat clients and protected GraphQL live delivery remain incomplete. Publication alone does not complete live delivery acceptance.

@@ -54,11 +54,11 @@ module DiscourseGraphQL
       end
 
       def choices(first:, lookahead:, after: nil)
-        SiteSettingMetadataPage.call(source: object["choices"], kind: "choices", context: context, lookahead: lookahead, first: first, after: after)
+        NativeArrayPage.call(source: object["choices"], kind: "choices", context: context, lookahead: lookahead, first: first, after: after)
       end
 
       def valid_values(first:, lookahead:, after: nil)
-        SiteSettingMetadataPage.call(source: object["valid_values"], kind: "valid_values", context: context, lookahead: lookahead, first: first, after: after)
+        NativeArrayPage.call(source: object["valid_values"], kind: "valid_values", context: context, lookahead: lookahead, first: first, after: after)
       end
 
       def dependencies(first:, lookahead:, after: nil)
@@ -70,7 +70,7 @@ module DiscourseGraphQL
             { name: name, display_name: object["depends_on_humanized_names"]&.[](index), allowed_values: object["depends_on_values"]&.[](name) }
           end
         end
-        SiteSettingMetadataPage.call(source: values, kind: "dependencies", context: context, lookahead: lookahead, first: first, after: after)
+        NativeArrayPage.call(source: values, kind: "dependencies", context: context, lookahead: lookahead, first: first, after: after)
       end
     end
   end

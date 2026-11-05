@@ -3,8 +3,10 @@ module DiscourseGraphQL
     class MessageHistory < ::Chat::Api::ChannelMessagesController
       include NativeRequest
 
-      def call(channel_id:, last:, before: nil)
+      def call(channel_id:, last:, fields:, before: nil)
         raise Discourse::InvalidParameters unless last.between?(1, 50)
+        @message_fields = fields
+        @message_fields |= %i[id chat_channel_id] if fields.include?(:reactions)
 
         @before_boundary = before.nil? ? nil : cursor_boundary(cursor: before, channel_id: channel_id, last: last)
         self.params = ActionController::Parameters.new(
@@ -46,7 +48,7 @@ module DiscourseGraphQL
         oldest = object.messages.first
         @next_boundary = { message_id: oldest.id, created_at: oldest.created_at } if oldest
 
-        super(object, MessagePageSerializer, options)
+        super(object, MessagePageSerializer, (options || {}).merge(graphql_message_fields: @message_fields))
       end
 
       def cursor_boundary(cursor:, channel_id:, last:)

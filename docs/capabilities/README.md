@@ -65,3 +65,10 @@ PY
 ## Bundled configuration discovery
 
 [plugin-settings.json](plugin-settings.json) records a value free native HTTP comparison for every bundled plugin. Reproduce it with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --seed 23293 plugins/discourse-graphql/spec/requests/discourse_graphql/bundled_settings_spec.rb`. The case derives its 47 plugin inputs from the pinned core tracked files, verifies every loaded owner and compares all visible definitions through complete GraphQL page traversal. It emits counts and setting type names without saving current values. This establishes shared configuration discovery. Configuration writes and plugin feature completion remain separately required.
+
+
+## Isolated reaction verification
+
+Run the reaction schema verifier in fresh test processes with `LOAD_PLUGINS=automation,chat,discourse-graphql`. Native Chat registers an Automation script during boot at the pinned revision, so Automation is a native prerequisite for this filtered setup. The GraphQL adapter does not add that dependency. Use `dv run --name <owned-container> -- env RAILS_ENV=test LOAD_PLUGINS=automation,chat,discourse-graphql bin/rails runner plugins/discourse-graphql/script/verify_chat_reactions_schema.rb`. Append `disabled` to verify the loaded disabled state, then run without an argument to restore enabled test state.
+
+Each process eagerly loads the application, verifies explicit reaction types and capability registration, and exercises anonymous native denial or disabled errors with preserved siblings. The core only verifier remains `script/verify_optional_schema.rb` with `LOAD_PLUGINS=discourse-graphql`, proving that Chat fields, types and native constants remain absent.

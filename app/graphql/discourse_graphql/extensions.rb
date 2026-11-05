@@ -1,11 +1,11 @@
 module DiscourseGraphQL
   module Extensions
     def self.query_modules
-      Discourse.plugins_by_name.key?("chat") ? [Chat::QueryFields, Chat::HistoryQueryFields] : []
+      Discourse.plugins_by_name.key?("chat") ? [Chat::QueryFields, Chat::HistoryQueryFields, Chat::ReactionQueryFields] : []
     end
 
     def self.mutation_modules
-      modules = Discourse.plugins_by_name.key?("chat") ? [Chat::MutationFields, Chat::MembershipMutationFields] : []
+      modules = Discourse.plugins_by_name.key?("chat") ? [Chat::MutationFields, Chat::MembershipMutationFields, Chat::ReactionMutationFields] : []
       modules << Checklist::MutationFields if Discourse.plugins_by_name.key?("checklist")
       modules
     end

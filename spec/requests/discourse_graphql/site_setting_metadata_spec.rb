@@ -220,6 +220,18 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(result.dig("data", "adminSiteSetting", "choices")).to be_nil
       expect(result.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
     end
+
+    it "accepts the established metadata cursor format after shared paging changes" do
+      values = %w[first second third]
+      with_modifier { |setting| setting[:setting].to_s == "title" ? setting.merge(choices: values) : setting }
+      payload = { "kind" => "choices", "digest" => Digest::SHA256.hexdigest(JSON.generate(values)), "first" => 1, "actor_id" => admin.id, "site" => RailsMultisite::ConnectionManagement.current_db, "offset" => 1 }
+      cursor = Rails.application.message_verifier("discourse_graphql_setting_metadata").generate(payload)
+
+      result = graphql(query: choice_query, variables: { name: "title", first: 1, after: cursor })
+
+      expect(result["errors"]).to be_blank
+      expect(result.dig("data", "adminSiteSetting", "choices", "nodes").map { |choice| choice["valueWire"] }).to eq(["second"])
+    end
   end
 
   after do

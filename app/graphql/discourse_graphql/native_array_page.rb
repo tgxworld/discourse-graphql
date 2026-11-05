@@ -1,19 +1,20 @@
 module DiscourseGraphQL
-  class SiteSettingMetadataPage
-    def self.call(source:, kind:, context:, lookahead:, first:, after: nil)
-      raise Discourse::InvalidParameters unless first.between?(1, 100)
+  class NativeArrayPage
+    def self.call(source:, kind:, context:, lookahead:, first:, after: nil, maximum_first: 100, scope: nil)
+      raise Discourse::InvalidParameters unless first.between?(1, maximum_first)
       if source.nil?
         raise Discourse::InvalidParameters if after
         return nil
       end
       raise Discourse::InvalidParameters unless source.is_a?(Array) || source.is_a?(Hash)
 
-      cache = context.namespace(:site_setting_metadata_collections).compare_by_identity
+      cache = context.namespace(:native_array_page_sources).compare_by_identity
       collection = cache[source] ||= {}
       cursor_selected = lookahead.selection(:page_info).selects?(:end_cursor)
       if after || cursor_selected
         digest = collection[:digest] ||= Digest::SHA256.hexdigest(JSON.generate(source))
-        binding = { "kind" => kind, "digest" => digest, "first" => first, "actor_id" => context[:guardian].user.id, "site" => RailsMultisite::ConnectionManagement.current_db }
+        binding = { "kind" => kind, "digest" => digest, "first" => first, "actor_id" => context[:guardian].user&.id, "site" => RailsMultisite::ConnectionManagement.current_db }
+        binding["scope"] = scope unless scope.nil?
         verifier = Rails.application.message_verifier("discourse_graphql_setting_metadata")
       end
       offset = 0
