@@ -9,6 +9,15 @@ module DiscourseGraphQL
         argument :id, ID, required: true
       end
 
+      field :topic_posts, PostPageType, null: true do
+        argument :topic_id, ID, required: true
+        argument :first, Int, required: false, default_value: 20, replace_null_with_default: true
+        argument :after, String, required: false
+        complexity ->(_context, arguments, child_complexity) do
+          1 + arguments[:first].clamp(1, 50) * child_complexity
+        end
+      end
+
       field :categories, [CategoryType], null: false do
         description 'List of categories that user has access to'
       end
@@ -48,6 +57,14 @@ module DiscourseGraphQL
 
       def topic(id:)
         dataloader.with(Loaders::RecordLoader, Topic).load(id)
+      end
+
+      def topic_posts(topic_id:, first:, after: nil)
+        TopicPosts.new(guardian: context[:guardian]).call(
+          topic_id: topic_id,
+          first: first,
+          after: after,
+        )
       end
 
       def latest_topics(page: 0, category_id: nil, limit:)

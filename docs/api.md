@@ -51,3 +51,11 @@ The live contract remains incomplete. Before live implementation, define transpo
 ## Topic lookup
 
 `topic(id: ID!)` returns typed topic metadata. Missing and inaccessible resources both return null without exposing existence or interrupting permitted sibling fields. Personal messages return a null category. Record loading and authorization are batched separately through the existing ActiveRecord source and Guardian bulk topic permission interface. Authorization results are cached within one request only, and a later request rechecks changed membership. Mutation slices must invalidate affected loader state before a subsequent mutation or selection can observe it.
+
+## Topic post pages
+
+`topicPosts(topicId: ID!, first: Int, after: String)` returns `nodes` and `pageInfo`. It uses the native TopicView page ordering and filters. The default page size is 20, the maximum is 50, and omitted or null size uses the default. Invalid sizes return BAD_USER_INPUT.
+
+The end cursor is signed and binds the native next page number, page size, topic, actor and site. Continuing requires the same page size. A cursor for another topic or actor, a malformed cursor, or a changed page size returns BAD_USER_INPUT. An empty terminal page has no cursor and hasNextPage is false. Native filtering can produce a page with fewer visible nodes, so clients follow hasNextPage rather than assuming a short page is terminal.
+
+Every page constructs the native topic view and rechecks its access. Inaccessible topic pages retain native access errors, represented by GraphQL errors at topicPosts. Permitted sibling selections can still succeed. Post content, raw visibility and displayed author fields delegate to the existing serializers. Hidden or ignored content and whispers retain their native protections.

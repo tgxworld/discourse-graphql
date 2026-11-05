@@ -7,7 +7,7 @@ module DiscourseGraphQL
           if @model_class == Topic
             [:category, :shared_draft]
           elsif @model_class == Post
-            [{ topic: [:category, :shared_draft] }]
+            [:user, { topic: [:category, :shared_draft] }]
           end
 
         if associations

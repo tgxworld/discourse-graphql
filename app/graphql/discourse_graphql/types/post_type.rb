@@ -6,11 +6,14 @@ module DiscourseGraphQL
       field :id, ID, null: false
       field :name, String, null: true
       field :username, String, null: true
-      field :avatar_template, String, null: false
+      field :avatar_template, String, null: true
       field :like_count, Int, null: false
       field :post_number, Int, null: false
       field :created_at, String, null: false
       field :cooked, String, null: false
+      field :raw, String, null: true
+      field :author, UserType, null: true
+      field :reply_to_post_number, Int, null: true
       field :topic, TopicType, null: false
 
       def self.authorized?(object, context)
@@ -18,21 +21,41 @@ module DiscourseGraphQL
       end
 
       def name
-        if SiteSetting.enable_names?
-          object.user&.name
-        end
+        serializer.name if serializer.include_name?
       end
 
       def username
-        object.user&.username
+        serializer.username
       end
 
       def avatar_template
-        object.user&.avatar_template
+        serializer.avatar_template
+      end
+
+      def cooked
+        serializer.cooked
+      end
+
+      def raw
+        serializer.raw if serializer.include_raw?
+      end
+
+      def author
+        return object.user if object.association(:user).loaded?
+
+        dataloader.with(Loaders::RecordLoader, User).load(object.user_id)
       end
 
       def topic
+        return object.topic if object.association(:topic).loaded?
+
         dataloader.with(Loaders::RecordLoader, Topic).load(object.topic_id)
+      end
+
+      private
+
+      def serializer
+        @serializer ||= PostSerializer.new(object, scope: context[:guardian], root: false, add_raw: true)
       end
     end
   end
