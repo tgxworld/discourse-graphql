@@ -22,13 +22,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expected_capabilities = ["discourse"]
 
       if Discourse.plugins_by_name.key?("chat")
-        expect(fields).to include("chatChannels", "chatMessages", "chatReactionUsers", "chatThread")
+        expect(fields).to include("chatChannels", "chatMessages", "chatReactionUsers", "chatThread", "chatChannelThreads", "currentUserChatThreads")
         expect(types).to include("ChatChannel", "ChatChannelPage")
         expect(mutations).to include("createChatMessage", "updateChatReaction", "createChatThread", "updateChatThreadTitle", "markChatThreadRead", "updateChatThreadNotifications", "markChatThreadTitlePromptSeen")
-        expect(types).to include("ChatThreadMembership", "ChatThreadMembershipPayload", "ChatThreadNotificationLevel")
-        expected_capabilities.concat(["chat.channelDiscovery", "chat.messageHistory", "chat.reactionUsers", "chat.threadLookup", "chat.messageCreation", "chat.membershipAndReading", "chat.reactionChanges", "chat.threadControls", "chat.threadCreation"])
+        expect(types).to include("ChatThreadMembership", "ChatThreadMembershipPayload", "ChatThreadNotificationLevel", "ChatThreadPage", "ChatThreadTracking")
+        expected_capabilities.concat(["chat.channelDiscovery", "chat.messageHistory", "chat.reactionUsers", "chat.threadLookup", "chat.threadLists", "chat.messageCreation", "chat.membershipAndReading", "chat.reactionChanges", "chat.threadControls", "chat.threadCreation"])
       else
-        expect(fields).not_to include("chatChannels", "chatMessages", "chatReactionUsers", "chatThread")
+        expect(fields).not_to include("chatChannels", "chatMessages", "chatReactionUsers", "chatThread", "chatChannelThreads", "currentUserChatThreads")
         expect(mutations).not_to include("createChatMessage", "updateChatReaction", "createChatThread", "updateChatThreadTitle", "markChatThreadRead", "updateChatThreadNotifications", "markChatThreadTitlePromptSeen")
         expect(types.grep(/^Chat/)).to be_empty
         expect(defined?(::Chat)).to be_nil

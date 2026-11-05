@@ -1292,6 +1292,72 @@
         "Native nested rendering and total loading budgets",
         "Protected GraphQL live delivery"
       ]
+    },
+    "chat/api/channel_threads#index": {
+      "graphql_operations": [
+        "query.chatChannelThreads"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_lists_spec.rb",
+        "spec/requests/discourse_graphql/chat_thread_list_multisite_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/measure_thread_list_status_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::LookupChannelThreads",
+        "Chat::ThreadListSerializer",
+        "Chat::ThreadSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel or secured channel scope and list membership rules",
+        "Native login and Chat access",
+        "Current permission check on every continuation",
+        "Signed actor, site, list kind, first and channel cursor context",
+        "Native root and node serializer restrictions",
+        "Native profile privacy after complete association batching"
+      ],
+      "authorization_audit": "partial, focused declared HTTP contracts and status SQL growth pass",
+      "status": "partial",
+      "remaining": [
+        "Native preparation total work and final concurrent budgets",
+        "Complete thread history, drafts, user status fields and client journeys",
+        "Protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/current_user_threads#index": {
+      "graphql_operations": [
+        "query.currentUserChatThreads"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_lists_spec.rb",
+        "spec/requests/discourse_graphql/chat_thread_list_multisite_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/measure_thread_list_status_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::LookupUserThreads",
+        "Chat::ThreadListSerializer",
+        "Chat::ThreadSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel or secured channel scope and list membership rules",
+        "Native login and Chat access",
+        "Current permission check on every continuation",
+        "Signed actor, site, list kind, first and channel cursor context",
+        "Native root and node serializer restrictions",
+        "Native profile privacy after complete association batching"
+      ],
+      "authorization_audit": "partial, focused declared HTTP contracts and status SQL growth pass",
+      "status": "partial",
+      "remaining": [
+        "Native preparation total work and final concurrent budgets",
+        "Complete thread history, drafts, user status fields and client journeys",
+        "Protected GraphQL live delivery"
+      ]
     }
   },
   "shared_plugin_assessments": {

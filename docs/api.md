@@ -410,3 +410,24 @@ Root projection decorates the native serializer instance's inclusion check and r
 The optional capabilities are chat.threadLookup and chat.threadCreation. Query and mutation roots cost1000 plus selected children, mention page complexity multiplies first and participant sample complexity accounts for10 users. Creation clears request loaders before and after native processing. Credentials, CSRF, readonly, archive and GET mutation protections remain in effect. Disabled Chat returns FEATURE_DISABLED with nullable roots. Absent Chat contributes no thread fields or types.
 
 Channel and user thread lists, thread message history, drafts, complete clients, protected GraphQL live delivery and final total work budgets remain required.
+
+
+## Thread lists
+
+`chatChannelThreads(channelId:, first: 10, after:)` and `currentUserChatThreads(first: 10, after:)` return ChatThreadPage. first ranges from 1 through 10. Both queries use native GET actions and require login even when public thread lookup is available. Nodes reuse ChatThread.
+
+The lists have distinct native membership rules. A channel list can contain nonmembers and muted members. The current user list requires nonmuted thread membership in followed, open channels and retains native secured channel filtering. Both preserve native unread priority, latest reply ordering and original/last message visibility. The adapter adds no tie breaker or list filtering policy.
+
+tracking is a nullable typed array projected from the native tracking map. Its native keys become threadId. Each row retains nullable channelId, mentionCount, unreadCount and watchedThreadsUnreadCount. Counts use BigInt. An absent map returns null, while an empty native map returns `[]`. Tracking is not a membership list and counts are never recalculated.
+
+Signed cursors bind query kind, actor, site, requested first and channel input. Every request rechecks current native permissions. Full pages indicate possible continuation. Short or empty pages are terminal. An exact full final page may require an empty terminal request. Native offsets can shift after reading, replies, deletion and membership changes, so restart affected lists after activity rather than assuming a snapshot or silently deduplicating results.
+
+A native empty response has nodes `[]` and terminal pageInfo. If native serialization withholds the whole collection, nodes and pageInfo are null. Independently allowed tracking remains available. Per node omissions preserve rows and never recover hidden identities. Pagination length comes from the native serializer's retained collection, preserving its filtering. The adapter builds that collection once and reuses its native serializer instances. PageInfo only selections avoid unused node attribute rendering. Unselected tracking is not serialized. Unused cursors are not signed.
+
+When status is enabled and an original message remains selected and allowed by native serialization, the adapter batches complete user_option associations through Active Record's supported preloader. Native profile privacy, status and Guardian checks remain authoritative. It does not replace queries, filter records or seed partial association caches. Original message and mention associations are already prepared by the native owner. Their total loading remains a separate performance obligation.
+
+The reproducible status probe is `script/measure_thread_list_status_spec.rb`. Warmed GraphQL SQL counts for one and 10 distinct threads are 26/26 for channel pages and 15/15 for the current user list. The latter previously grew 16/34 before the additional association batch. With status disabled, the request contract records 25/25 and 14/14 respectively. These counts include request authorization and selected nested author, mention and preview fields. They do not establish latency, memory, allocation or concurrent throughput budgets.
+
+The optional capability is chat.threadLists. Disabled Chat returns FEATURE_DISABLED at nullable roots and preserves siblings. Absent Chat contributes no fields or types. Read credentials can use GET. Cost is 1000 plus first multiplied by 20 plus selected page children, accounting for both node and tracking collections. Excessive combined work is rejected before native actions.
+
+Thread message history, drafts, remaining user status fields, complete clients and protected GraphQL live delivery remain required.

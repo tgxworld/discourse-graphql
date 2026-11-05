@@ -6,7 +6,7 @@ This is the required scope and delivery ledger. Every row starts incomplete. Ope
 
 Core and plugin implementations remain authoritative for permissions, validation, rate limiting, filtering, persistence and side effects. Existing signed provider callbacks and browser rendering are preserved through their native flows. Their compatibility still requires verification.
 
-The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 54 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
+The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 56 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
 
 ## Core
 
@@ -220,3 +220,8 @@ Native title changes, reading progress, notification levels and prompt acknowled
 ## Thread lookup and creation increment
 
 Typed native lookup and creation have focused HTTP coverage for original message shape, JSON timestamps, nullable authors, sampled participants, membership omissions, mentions, permissions and repeat creation effects. Root serializer selection preserves native restrictions without propagating root field names onto embedded children. Native query preparation and complete nested rendering remain separate required performance work. Full289 regression examples and the separate native loading characterization pass. Fresh enabled, disabled, restored and absent Chat boots pass. Native lookup still loads unselected original message associations, documented as a required performance dependency.
+
+
+## Thread list increment
+
+Channel and current user thread pages preserve distinct native membership filters, unread ordering, tracking maps and protected offsets. Real cross site HTTP requests with the same actor ID and credential prove that a cursor cannot cross sites. Native collection omission returns unknown pagination, while retained rows determine page length. Selected serialization preserves native restrictions and skips unused node rendering. Complete user_option batches remove status SQL growth without replacing native privacy decisions. Full native preparation, thread history, drafts, clients and protected live delivery remain required.

@@ -75,6 +75,7 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `chat/api/channel_messages#create` | `mutation.createChatMessage` | partial |
 | `chat/api/channel_messages#index` | `query.chatMessages` | partial |
 | `chat/api/channel_threads#create` | `mutation.createChatThread` | partial |
+| `chat/api/channel_threads#index` | `query.chatChannelThreads` | partial |
 | `chat/api/channel_threads#show` | `query.chatThread` | partial |
 | `chat/api/channel_threads#update` | `mutation.updateChatThreadTitle` | partial |
 | `chat/api/channel_threads_current_user_notifications_settings#update` | `mutation.updateChatThreadNotifications` | partial |
@@ -89,6 +90,7 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `chat/api/channels_read#update` | `mutation.markChatRead` | partial |
 | `chat/api/channels_read#update_all` | `mutation.markAllChatRead` | partial |
 | `chat/api/channels_threads_read#update` | `mutation.markChatThreadRead` | partial |
+| `chat/api/current_user_threads#index` | `query.currentUserChatThreads` | partial |
 | `chat/chat#message_reactions_users` | `query.chatReactionUsers` | partial |
 | `chat/chat#react` | `mutation.updateChatReaction` | partial |
 | `checklist/checkboxes#toggle` | `mutation.updateChecklist` | partial |

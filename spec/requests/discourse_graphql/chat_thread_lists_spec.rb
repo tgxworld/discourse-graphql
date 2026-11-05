@@ -184,6 +184,38 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       end
     end
 
+    it "uses rows retained by the native collection getter for pagination" do
+      make_thread
+      filtered = Class.new(Chat::ThreadListSerializer) do
+        def threads
+          []
+        end
+      end
+      stub_const(Chat, :ThreadListSerializer, filtered) do
+        result = list(first: 1)
+        expect(result["errors"]).to be_blank
+        expect(result.dig("data", "chatChannelThreads", "nodes")).to eq([])
+        expect(result.dig("data", "chatChannelThreads", "pageInfo")).to eq("endCursor" => nil, "hasNextPage" => false)
+      end
+    end
+
+    it "keeps native hidden profile status outside the serialized response" do
+      SiteSetting.enable_user_status = true
+      actor = Fabricate(:user)
+      mentioned = Fabricate(:user)
+      actor.set_status!("Hidden author status", "computer")
+      mentioned.set_status!("Hidden mention status", "bulb")
+      actor.user_option.update!(hide_profile: true)
+      mentioned.user_option.update!(hide_profile: true)
+      entry = make_thread(author: actor)
+      entry.add(user)
+      Fabricate(:user_chat_mention, chat_message: entry.original_message, user: mentioned)
+      UserStatusSerializer.any_instance.stubs(:as_json).raises("Hidden status renderer evaluated")
+      result = list(kind: :current, selection: "nodes { id originalMessage { author { id username } mentionedUsers { nodes { id username } } } }")
+      expect(result["errors"]).to be_blank
+      expect(result.dig("data", "currentUserChatThreads", "nodes").map { |node| node.fetch("id") }).to eq([entry.id.to_s])
+    end
+
     it "retains native login, read credentials and disabled sibling results" do
       make_thread
       SiteSetting.chat_allowed_groups = "#{Group::AUTO_GROUPS[:everyone]}|#{Group::AUTO_GROUPS[:anonymous_users]}"
@@ -197,28 +229,6 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       get "/discourse-graphql/graphql", params: { query: query }, headers: headers
       expect(response.parsed_body.fetch("data")).to eq("chatChannelThreads" => nil, "currentUserChatThreads" => nil, "currentUser" => { "id" => user.id.to_s })
       expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to eq(["FEATURE_DISABLED"] * 2)
-    end
-
-    it "rejects cursor reuse on another site with the same actor and credential", type: %i[multisite request] do
-      entry = make_thread
-      entry.add(user)
-      cursor = list(kind: :current, first: 1).dig("data", "currentUserChatThreads", "pageInfo", "endCursor")
-      expect(cursor).to be_present
-      actor_id = user.id
-      username = user.username
-      key_hash = api_key.key_hash
-      request_headers = headers
-      test_multisite_connection("second") do
-        actor = Fabricate(:user, id: actor_id, username: username, refresh_auto_groups: true)
-        Fabricate(:api_key, user: actor, key_hash: key_hash)
-        SiteSetting.chat_enabled = true
-        SiteSetting.chat_allowed_groups = Group::AUTO_GROUPS[:everyone]
-        query = "{ currentUserChatThreads(first: 1, after: #{cursor.to_json}) { nodes { id } } currentUser { id } }"
-        get "http://test2.localhost/discourse-graphql/graphql", params: { query: query }, headers: request_headers
-        expect(response.status).to eq(200)
-        expect(response.parsed_body.dig("data", "currentUser", "id")).to eq(actor_id.to_s)
-        expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
-      end
     end
 
     it "rejects excessive combined list work before evaluating native renderers" do
