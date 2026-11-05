@@ -5,20 +5,21 @@ module DiscourseGraphQL
     skip_before_action :check_xhr, :preload_json
 
     def execute
-      if params[:_json].present? || !params[:query].is_a?(String) || params[:query].blank?
+      parameters = MultipartRequest.parameters(params)
+      if parameters[:_json].present? || !parameters[:query].is_a?(String) || parameters[:query].blank?
         return render_bad_request
       end
 
-      variables = params[:variables]
+      variables = parameters[:variables]
       variables = JSON.parse(variables) if variables.is_a?(String) && variables.present?
       variables = {} if variables.nil? || variables == ""
       variables = variables.to_unsafe_h if variables.is_a?(ActionController::Parameters)
       return render_bad_request unless variables.is_a?(Hash)
 
-      operation_name = params[:operationName]
+      operation_name = parameters[:operationName]
       return render_bad_request if operation_name && !operation_name.is_a?(String)
 
-      document = GraphQL.parse(params[:query])
+      document = GraphQL.parse(parameters[:query])
       query =
         GraphQL::Query.new(
           DiscourseGraphQL::Schema,
@@ -39,7 +40,7 @@ module DiscourseGraphQL
       end
 
       render json: result
-    rescue JSON::ParserError
+    rescue JSON::ParserError, Discourse::InvalidParameters
       render_bad_request
     rescue GraphQL::ParseError
       render json: {

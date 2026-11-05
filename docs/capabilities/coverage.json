@@ -759,6 +759,74 @@
       "remaining": [
         "Concurrent writer outcomes and empty batch semantics"
       ]
+    },
+    "uploads#create": {
+      "graphql_operations": [
+        "mutation.createUpload"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/uploads_spec.rb",
+        "spec/requests/discourse_graphql/upload_ingress_spec.rb"
+      ],
+      "native_entry_points": [
+        "UploadsController#create -> UploadCreator"
+      ],
+      "authorization_requirements": [
+        "Native login, API credentials, credential scopes and CSRF",
+        "Native upload access checks, validation, rate allowance and events",
+        "Raw ingress bounds before parsing and cleanup from source creation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Direct storage lifecycle, large transfers and remaining native serialization"
+      ]
+    },
+    "uploads#metadata": {
+      "graphql_operations": [
+        "query.uploadMetadata"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/uploads_spec.rb",
+        "spec/requests/discourse_graphql/upload_ingress_spec.rb"
+      ],
+      "native_entry_points": [
+        "UploadsController#metadata -> SecureUploadEndpointHelpers#check_secure_upload_permission"
+      ],
+      "authorization_requirements": [
+        "Native login, API credentials, credential scopes and CSRF",
+        "Native upload access checks, validation, rate allowance and events",
+        "Raw ingress bounds before parsing and cleanup from source creation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "All upload relationship and download protocol journeys"
+      ]
+    },
+    "uploads#lookup_urls": {
+      "graphql_operations": [
+        "query.lookupUploadUrls"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/uploads_spec.rb",
+        "spec/requests/discourse_graphql/upload_ingress_spec.rb",
+        "script/measure_upload_lookup_spec.rb"
+      ],
+      "native_entry_points": [
+        "UploadsController#lookup_urls -> PrettyText::Helpers.lookup_upload_urls"
+      ],
+      "authorization_requirements": [
+        "Native login, API credentials, credential scopes and CSRF",
+        "Native upload access checks, validation, rate allowance and events",
+        "Raw ingress bounds before parsing and cleanup from source creation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete native upload family and measured concurrent workloads",
+        "Measured native N+1: GraphQL14/158 and native11/158 SQL for1 versus50 permitted private message uploads. Native batch authorization extraction required."
+      ]
     }
   },
   "shared_plugin_assessments": {

@@ -3,6 +3,11 @@ module DiscourseGraphQL
     engine_name "DiscourseGraphQL".freeze
     isolate_namespace DiscourseGraphQL
 
+    initializer "discourse_graphql.request_body_limit" do |application|
+      require_relative "request_body_limit"
+      application.config.middleware.insert_before Rack::MethodOverride, RequestBodyLimit
+    end
+
     initializer "discourse_graphql.optional_adapters", before: :setup_main_autoloader do
       if !Discourse.plugins_by_name.key?("chat")
         Rails.autoloaders.main.ignore(config.root.join("app/graphql/discourse_graphql/chat"))

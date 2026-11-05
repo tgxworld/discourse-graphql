@@ -95,6 +95,9 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `topics#set_notifications` | `mutation.updateTopicNotifications` | partial |
 | `topics#show` | `query.topic`, `query.topicPosts` | partial |
 | `topics#timings` | `mutation.recordTopicTimings` | partial |
+| `uploads#create` | `mutation.createUpload` | partial |
+| `uploads#lookup_urls` | `query.lookupUploadUrls` | partial |
+| `uploads#metadata` | `query.uploadMetadata` | partial |
 | `users#bookmarks` | `query.bookmarks` | partial |
 
 ## Native route resolution

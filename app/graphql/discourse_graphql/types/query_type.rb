@@ -8,6 +8,22 @@ module DiscourseGraphQL
       field :capabilities, [CapabilityType], null: false
       field :current_user, UserType, null: true
 
+      field :upload_metadata, UploadMetadataType, null: true, complexity: 100 do
+        argument :url, String, required: true
+      end
+      field :lookup_upload_urls, [UploadUrlType], null: true do
+        argument :short_urls, [String], required: true
+        complexity ->(_context, arguments, child) { 100 + arguments[:short_urls].size.clamp(0, 100) * (20 + child) }
+      end
+
+      def upload_metadata(url:)
+        UploadMetadata.new(request: context[:request], request_method: "POST").call(url: url)
+      end
+
+      def lookup_upload_urls(short_urls:)
+        UploadUrls.new(request: context[:request], request_method: "POST").call(short_urls: short_urls)
+      end
+
       field :draft, DraftReadType, null: true, complexity: 100 do
         argument :key, String, required: true
         argument :sequence, GraphQL::Types::BigInt, required: false

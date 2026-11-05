@@ -5,6 +5,7 @@ en:
       internal_error: "An unexpected error prevented this operation from completing."
       operation_failed: "This operation could not be completed."
       invalid_request: "Provide one query and a variables object."
+      request_too_large: "Request body is too large."
       invalid_parameters: "Check the arguments for this operation."
       invalid_query: "The GraphQL query could not be parsed."
       invalid_page: "Choose a page of zero or greater and a limit between 1 and 50."

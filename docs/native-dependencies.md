@@ -52,3 +52,15 @@ Status: unresolved legacy compatibility limitation.
 The native POST `/drafts.json` accepts `data: "[]"` and returns HTTP 200. A subsequent GET `/drafts.json` returns HTTP 500. `Draft.preload_data` calls `Draft#post_id`, which indexes the parsed array using the string `postId`, raising `TypeError` at line 177.
 
 The real native HTTP reproduction is `tmp/discourse-task/native_draft_array_spec.rb`. Typed GraphQL creation accepts an object of declared composer fields and cannot create that root shape. Explicit key lookup reports `$format`, and native deletion can remove a known malformed draft and restore listing. Error containment and that recovery path do not repair the native index. Keep legacy listing compatibility incomplete until the native owner handles its accepted data safely.
+
+
+## Protected upload URL lookup query growth
+
+At the pinned revision, `UploadsController#lookup_urls` loads matching uploads in one query but evaluates `Guardian#can_see_upload?` separately for each protected upload. Native post and topic loading and private message membership checks grow with distinct referenced posts. A batch of 50 permitted private message uploads returns all 50 expected URLs but does not meet the required query growth budget.
+
+The HTTP probe `script/measure_upload_lookup_spec.rb` clears query caches, measures one and 50 distinct permitted private message uploads and asserts every returned short URL. GraphQL records 14 and 158 SQL queries. Direct native POST `/uploads/lookup-urls.json` records 11 and 158. These are observed development test counts, not final latency benchmarks. The committed measurement spec prints counts and whether the required growth budget is met. A passing identity check does not establish that budget.
+
+No access policy has been copied or bypassed. Native lookup performance remains incomplete. Resolution requires an existing native batch hook or the smallest upstream extraction that preserves post visibility, private message checks, plugin permission modifiers and revocation. Batching topic visibility alone is insufficient evidence of equivalent upload authorization. Keep the full lookup breadth and required performance criterion intact.
+
+
+Reproduce the upload measurement with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --seed 23293 plugins/discourse-graphql/script/measure_upload_lookup_spec.rb`. The measurement asserts complete permitted results and emits `growth_budget_met`. The current result is false.

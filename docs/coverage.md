@@ -6,7 +6,7 @@ This is the required scope and delivery ledger. Every row starts incomplete. Ope
 
 Core and plugin implementations remain authoritative for permissions, validation, rate limiting, filtering, persistence and side effects. Existing signed provider callbacks and browser rendering are preserved through their native flows. Their compatibility still requires verification.
 
-The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 33 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
+The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 36 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
 
 ## Core
 
@@ -159,3 +159,15 @@ The request evidence includes current actor isolation, private references, nativ
 The SQL growth fixture reads 50 permitted topics and posts with distinct authors and verifies every returned author. It permits at most two extra queries between one and 50 rows with cleared query caches. No additional preload code was required for this measured fixture. This does not establish final latency or allocation budgets.
 
 Native listing after an accepted array draft remains an independently reproduced compatibility limitation. Lookup and deliberate deletion can recover a known malformed key, while generic error containment preserves permitted siblings. Plugin draft fields represented by unmapped metadata, additional native list fields, concurrency recovery and full composer journeys remain required.
+
+
+## Upload operation evidence
+
+`uploads_spec.rb` exercises real multipart file creation through native storage, reference reuse after rejected reply validation, corrected post attachment and native cooking. It verifies reused source files, native rate allowance, avatar restrictions, invalid files, API only remote import, private metadata and URL lookup, access revocation, browser CSRF, revoked credentials, GET and readonly restrictions, malformed maps and query work rejection. Native SVG sanitization and private attachment option forwarding have dedicated cases.
+
+`upload_ingress_spec.rb` exercises raw body limits, missing lengths, downstream exception handling, relative paths and format suffixes, malformed parser cleanup, response closure, duplicate file names and partial streaming overflow. Native Rack parsing remains responsible for multipart grammar. The endpoint tracks files from factory creation rather than relying on Rack registration after parsing.
+
+Direct storage workflows, large transfers, remaining native serialization and measured parsing, copying, memory and concurrent load budgets remain incomplete. This slice does not complete the upload family or full forum client journey.
+
+
+Protected URL lookup has a measured native N+1 dependency. One and 50 distinct permitted private message uploads produce 14 and 158 GraphQL SQL queries, versus 11 and 158 at the native HTTP endpoint. All returned identities are asserted and query caches are cleared. This does not satisfy the query growth requirement. No synthetic preload or copied policy is used to conceal that gap. See [native dependencies](native-dependencies.md).

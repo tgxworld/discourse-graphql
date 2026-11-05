@@ -14,7 +14,7 @@ Authenticated responses are private. A disabled GraphQL plugin returns HTTP 404.
 
 ## Errors and partial results
 
-GraphQL errors expose a human readable message and a stable `extensions.code`. Initial codes are `BAD_REQUEST`, `GRAPHQL_PARSE_FAILED`, `GRAPHQL_VALIDATION_FAILED`, `BAD_USER_INPUT`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `FEATURE_DISABLED`, `QUERY_TOO_COMPLEX`, `QUERY_TOO_DEEP`, `RATE_LIMITED`, `CONFLICT`, `UNAVAILABLE`, and `INTERNAL_ERROR`. Error responses must not expose backtraces, exception class names, secrets or hidden resource details.
+GraphQL errors expose a human readable message and a stable `extensions.code`. Initial codes are `BAD_REQUEST`, `PAYLOAD_TOO_LARGE`, `GRAPHQL_PARSE_FAILED`, `GRAPHQL_VALIDATION_FAILED`, `BAD_USER_INPUT`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `FEATURE_DISABLED`, `QUERY_TOO_COMPLEX`, `QUERY_TOO_DEEP`, `RATE_LIMITED`, `CONFLICT`, `UNAVAILABLE`, and `INTERNAL_ERROR`. Error responses must not expose backtraces, exception class names, secrets or hidden resource details.
 
 Execution errors include the GraphQL response path where available. A denied resource follows the existing Discourse distinction between forbidden and not found. Nullable fields allow unrelated permitted selections to succeed. A required field propagates null according to GraphQL semantics. Validation and cost rejection occur before execution and return no data.
 
@@ -204,3 +204,22 @@ A successful save returns the native sequence, which clients retain for their ne
 Draft mutation base costs are 1,000, with another 20 per bulk reference. Loader state clears around writes, and credential, CSRF, GET and readonly protections remain applicable. Native error descriptions are exposed as optional typed `description` values. Neither an error nor a lost response implies rollback. Native backup work can precede sequence rejection, and replaying deletion can affect a newer draft under the same key. Reconcile authoritative state before recovery.
 
 Native listing currently fails for some legacy nonobject roots, including an accepted array draft. A known malformed key can still be looked up and explicitly deleted through native actions, after which listing recovers. Typed creation prevents those root shapes. This does not repair the native index dependency documented in `docs/native-dependencies.md`.
+
+
+## Uploads
+
+`createUpload(input: CreateUploadInput!)` invokes native upload creation and returns `success`, nullable `upload` and typed `errors`. The `UploadedFile` object exposes native scalar metadata, including `id`, `shortUrl`, `url`, filename, dimensions and byte size. Native upload type normalization, avatar restrictions, rate allowance, validation, processing, storage, deduplication and plugin events remain authoritative. Upload byte size uses the same lossless `BigInt` decimal string convention as draft sequences.
+
+Inputs accept required `uploadType` and exactly one of `file` or `url`, plus optional `pasted`, `forPrivateMessage`, `forSiteSetting`, `siteSettingName` and `retainHours`. Boolean values retain false and are forwarded using native parameter representations. Remote URL import retains native API credential requirements and download protections. Supplied URLs have a 4096 byte bound.
+
+File transfer uses multipart form fields `operations` and `map` plus file parts. `operations` contains one JSON operation object. For example, variables contain `{"input":{"uploadType":"composer","file":null}}`, and `map` contains `{"0":["variables.input.file"]}`. File part `0` carries the bytes. The input scalar is `Upload`. There is no base64 encoding. A mapped file may populate several distinct null variable placeholders. Repeated variable uses receive independent streamed copies because native image processing can rewrite or remove its input. Copies are removed after native success or failure. Native login callbacks run before the resolver copy.
+
+The endpoint limits nonmultipart bodies to 1 MiB and raw multipart bodies to 101 MiB before parameter parsing. Multipart requests admit at most 10 file parts, 100 MiB total mapped file bytes and 1 MiB aggregate form text. Limits include unknown parts. Duplicate part names, unknown parts, repeated map destinations, missing files, nonnull destinations and invalid variable paths are rejected. Paths must reference existing placeholders below `variables`, with at most 12 segments. Request arrays remain unsupported. These are admission bounds, not measured concurrency or memory budgets.
+
+Body overflow returns HTTP 413 with `PAYLOAD_TOO_LARGE`. Malformed multipart input returns HTTP 400 with `BAD_REQUEST`. Early rejection, parsing failure and response closure clean tracked source files. Browser CSRF, credential scopes, readonly mode and GET mutation rejection still apply. Upload creation carries base query cost 1000 before selected output.
+
+Upload success establishes native upload creation, not post attachment. Retain `shortUrl` and use it in Markdown such as `![image](upload://...)`. If reply validation fails, reuse that reference in the corrected submission without uploading again. Native cooking and upload references establish the eventual attachment. If an upload response is lost before its reference arrives, completion remains unknown. Preserve local bytes and let the user explicitly choose a fresh upload with possible duplication. Native deduplication is conditional and does not establish safe automatic retries.
+
+`uploadMetadata(url: String!)` returns native `originalFilename`, `width`, `height` and `humanFilesize` through the native access check. `lookupUploadUrls(shortUrls: [String!]!)` resolves at most 100 short URLs, each at most 4096 bytes, through native lookup and permission filtering. Unknown or inaccessible uploads are omitted. Returned fields are `shortUrl`, `url` and `shortPath`. These queries require native login and recheck current access. They introduce no arbitrary lookup by upload ID. Native download endpoints remain responsible for actual file delivery and current access checks.
+
+Direct storage initiation, completion, multipart storage, abort, presigning, large transfers, rich upload relationships and final performance budgets remain required coverage.
