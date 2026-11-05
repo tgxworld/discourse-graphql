@@ -16,8 +16,8 @@ module DiscourseGraphQL
         argument :ids, [GraphQL::Types::ID], required: true
         argument :operation, Types::BookmarkBulkOperation, required: true
         complexity ->(_context, arguments, child_complexity) do
-          1000 + arguments[:ids].size.clamp(0, 50) * 20 + child_complexity
-        end
+                     1000 + arguments[:ids].size.clamp(0, 50) * 20 + child_complexity
+                   end
       end
     end
 
@@ -43,7 +43,16 @@ module DiscourseGraphQL
     def bulk_bookmarks(ids:, operation:)
       raise Discourse::InvalidParameters if ids.size > 50
 
-      change_bookmark(adapter: BookmarkBulk, parameters: { bookmark_ids: ids, operation: { type: operation } }, request_method: "PUT")
+      change_bookmark(
+        adapter: BookmarkBulk,
+        parameters: {
+          bookmark_ids: ids,
+          operation: {
+            type: operation,
+          },
+        },
+        request_method: "PUT",
+      )
     end
 
     private
@@ -51,7 +60,9 @@ module DiscourseGraphQL
     def change_bookmark(adapter:, parameters:, request_method:)
       context.dataloader.clear_cache
       parameters[:reminder_at] = parameters[:reminder_at].iso8601(6) if parameters[:reminder_at]
-      adapter.new(request: context[:request], request_method: request_method).call(parameters: parameters)
+      adapter.new(request: context[:request], request_method: request_method).call(
+        parameters: parameters,
+      )
     ensure
       context.dataloader.clear_cache
     end

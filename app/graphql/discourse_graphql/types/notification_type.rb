@@ -10,7 +10,10 @@ module DiscourseGraphQL
       field :fancy_title, String, null: true, hash_key: "fancy_title"
       field :slug, String, null: true, hash_key: "slug"
       field :acting_user_name, String, null: true, hash_key: "acting_user_name"
-      field :acting_user_avatar_template, String, null: true, hash_key: "acting_user_avatar_template"
+      field :acting_user_avatar_template,
+            String,
+            null: true,
+            hash_key: "acting_user_avatar_template"
     end
   end
 end

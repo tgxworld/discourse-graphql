@@ -4,7 +4,10 @@ module DiscourseGraphQL
       field :id, ID, null: false, hash_key: "id"
       field :name, String, null: true, hash_key: "name"
       field :reminder_at, ReminderTime, null: true, hash_key: "reminder_at"
-      field :auto_delete_preference, BookmarkAutoDeletePreference, null: true, hash_key: "auto_delete_preference"
+      field :auto_delete_preference,
+            BookmarkAutoDeletePreference,
+            null: true,
+            hash_key: "auto_delete_preference"
       field :pinned, Boolean, null: true, hash_key: "pinned"
       field :title, String, null: true, hash_key: "title"
       field :fancy_title, String, null: true, hash_key: "fancy_title"

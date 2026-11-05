@@ -1,11 +1,34 @@
 module DiscourseGraphQL
   module Extensions
     def self.query_modules
-      Discourse.plugins_by_name.key?("chat") ? [Chat::QueryFields, Chat::HistoryQueryFields, Chat::ReactionQueryFields, Chat::ThreadQueryFields, Chat::ThreadListQueryFields] : []
+      if Discourse.plugins_by_name.key?("chat")
+        [
+          Chat::QueryFields,
+          Chat::HistoryQueryFields,
+          Chat::ReactionQueryFields,
+          Chat::ThreadQueryFields,
+          Chat::ThreadListQueryFields,
+        ]
+      else
+        []
+      end
     end
 
     def self.mutation_modules
-      modules = Discourse.plugins_by_name.key?("chat") ? [Chat::MutationFields, Chat::MembershipMutationFields, Chat::ReactionMutationFields, Chat::ThreadControlMutationFields, Chat::ThreadMutationFields] : []
+      modules =
+        (
+          if Discourse.plugins_by_name.key?("chat")
+            [
+              Chat::MutationFields,
+              Chat::MembershipMutationFields,
+              Chat::ReactionMutationFields,
+              Chat::ThreadControlMutationFields,
+              Chat::ThreadMutationFields,
+            ]
+          else
+            []
+          end
+        )
       modules << Checklist::MutationFields if Discourse.plugins_by_name.key?("checklist")
       modules
     end
@@ -13,9 +36,11 @@ module DiscourseGraphQL
     def self.ensure_enabled!(plugin_name)
       if !Discourse.plugins_by_name.fetch(plugin_name).enabled?
         raise GraphQL::ExecutionError.new(
-          I18n.t("discourse_graphql.errors.feature_disabled"),
-          extensions: { code: "FEATURE_DISABLED" },
-        )
+                I18n.t("discourse_graphql.errors.feature_disabled"),
+                extensions: {
+                  code: "FEATURE_DISABLED",
+                },
+              )
       end
     end
 

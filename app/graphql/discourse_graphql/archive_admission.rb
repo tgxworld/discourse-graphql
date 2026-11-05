@@ -11,20 +11,25 @@ module DiscourseGraphQL
       until pending.empty?
         node = pending.pop
         next unless visited.add?(node.object_id)
-        next unless GraphQL::Execution::DirectiveChecks.include?(node.directives, query)
+        included = GraphQL::Execution::DirectiveChecks.include?(node.directives, query)
+        next unless included
 
         case node
         when GraphQL::Language::Nodes::Field
           next if node.name == "__typename"
           field = query.get_field(root, node.name)
-          return false unless field&.respond_to?(:allows_archived_requests?) && field.allows_archived_requests?
+          unless field.respond_to?(:allows_archived_requests?) && field.allows_archived_requests?
+            return false
+          end
           substantive = true
         when GraphQL::Language::Nodes::FragmentSpread
           pending << query.fragments.fetch(node.name) if fragments.add?(node.name)
         when GraphQL::Language::Nodes::InlineFragment, GraphQL::Language::Nodes::FragmentDefinition
           if node.type
             type = query.get_type(node.type.name)
-            next unless type == root || type&.kind&.abstract? && query.possible_types(type).include?(root)
+            compatible =
+              type == root || (type&.kind&.abstract? && query.possible_types(type).include?(root))
+            next unless compatible
           end
           pending.concat(node.selections)
         end

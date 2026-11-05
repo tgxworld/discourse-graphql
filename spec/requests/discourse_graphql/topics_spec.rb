@@ -28,7 +28,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         "public" => {
           "id" => topic.id.to_s,
           "fancyTitle" => topic.fancy_title,
-          "category" => { "id" => topic.category_id.to_s },
+          "category" => {
+            "id" => topic.category_id.to_s,
+          },
         },
         "personal" => {
           "id" => message.id.to_s,
@@ -54,7 +56,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(response.parsed_body.fetch("data")).to eq(
         "restricted" => nil,
         "missing" => nil,
-        "currentUser" => { "id" => user.id.to_s },
+        "currentUser" => {
+          "id" => user.id.to_s,
+        },
       )
       expect(response.body).not_to include(private_topic.title)
     end

@@ -3,15 +3,30 @@ module DiscourseGraphQL
     MAX_TAGS = 100
     MAX_UNMAPPED_FIELDS = 100
     NATIVE_KEYS = {
-      reply: "reply", title: "title", action: "action", category_id: "categoryId",
-      post_id: "postId", archetype_id: "archetypeId", recipients: "recipients",
-      whisper: "whisper", composer_time_ms: "composerTime", typing_time_ms: "typingTime",
-      original_text: "original_text", original_title: "original_title",
-      tags: "tags", original_tags: "original_tags", locale: "locale",
-      reply_to_post_number: "reply_to_post_number", reply_to_user: "reply_to_user",
+      reply: "reply",
+      title: "title",
+      action: "action",
+      category_id: "categoryId",
+      post_id: "postId",
+      archetype_id: "archetypeId",
+      recipients: "recipients",
+      whisper: "whisper",
+      composer_time_ms: "composerTime",
+      typing_time_ms: "typingTime",
+      original_text: "original_text",
+      original_title: "original_title",
+      tags: "tags",
+      original_tags: "original_tags",
+      locale: "locale",
+      reply_to_post_number: "reply_to_post_number",
+      reply_to_user: "reply_to_user",
       admin_onboarding_topic_option: "adminOnboardingTopicOption",
     }.freeze
-    ALIASES = { "originalText" => "original_text", "originalTitle" => "original_title", "originalTags" => "original_tags" }.freeze
+    ALIASES = {
+      "originalText" => "original_text",
+      "originalTitle" => "original_title",
+      "originalTags" => "original_tags",
+    }.freeze
     TAG_KEYS = %w[id name slug isNew].freeze
     REPLY_USER_KEYS = %w[id username name avatar_template].freeze
     private_constant :NATIVE_KEYS, :ALIASES, :TAG_KEYS, :REPLY_USER_KEYS
@@ -26,7 +41,9 @@ module DiscourseGraphQL
             raise Discourse::InvalidParameters unless tag[:name].is_a?(String)
             tag[:name]
           else
-            tag.except(:format).to_h { |name, value| [name == :is_new ? "isNew" : name.to_s, value] }
+            tag
+              .except(:format)
+              .to_h { |name, value| [name == :is_new ? "isNew" : name.to_s, value] }
           end
         end
       end
@@ -51,7 +68,8 @@ module DiscourseGraphQL
       %w[tags original_tags].each do |key|
         next if content[key].nil?
         tags = content[key]
-        if !tags.is_a?(Array) || tags.size > MAX_TAGS || tags.any? { |tag| !tag.is_a?(String) && !tag.is_a?(Hash) }
+        if !tags.is_a?(Array) || tags.size > MAX_TAGS ||
+             tags.any? { |tag| !tag.is_a?(String) && !tag.is_a?(Hash) }
           content.delete(key)
           unmapped << key
           next
@@ -66,14 +84,17 @@ module DiscourseGraphQL
         end
       end
       if content["reply_to_user"].is_a?(Hash)
-        unmapped.concat((content["reply_to_user"].keys - REPLY_USER_KEYS).map { |name| "reply_to_user.#{name}" })
+        unmapped.concat(
+          (content["reply_to_user"].keys - REPLY_USER_KEYS).map { |name| "reply_to_user.#{name}" },
+        )
         content["reply_to_user"] = content["reply_to_user"].slice(*REPLY_USER_KEYS)
       elsif content["reply_to_user"]
         content.delete("reply_to_user")
         unmapped << "reply_to_user"
       end
       unmapped = unmapped.uniq.sort
-      unmapped = unmapped.first(MAX_UNMAPPED_FIELDS - 1) + ["$more"] if unmapped.size > MAX_UNMAPPED_FIELDS
+      unmapped = unmapped.first(MAX_UNMAPPED_FIELDS - 1) + ["$more"] if unmapped.size >
+        MAX_UNMAPPED_FIELDS
       content.merge("unmapped_fields" => unmapped)
     rescue JSON::ParserError
       { "unmapped_fields" => ["$format"] }

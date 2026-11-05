@@ -11,7 +11,11 @@ module DiscourseGraphQL
       field :enum_values_wire, [String, null: true], null: true, complexity: 100
       field :default_wire, String, null: true
       field :properties, SiteSettingJsonPropertyPageType, null: true, extras: [:lookahead] do
-        argument :first, Integer, required: false, default_value: 25, replace_null_with_default: true
+        argument :first,
+                 Integer,
+                 required: false,
+                 default_value: 25,
+                 replace_null_with_default: true
         argument :after, String, required: false
         complexity ->(_context, arguments, child) { 100 + arguments[:first].clamp(1, 100) * child }
       end
@@ -29,7 +33,14 @@ module DiscourseGraphQL
       end
 
       def properties(first:, lookahead:, after: nil)
-        NativeArrayPage.call(source: object["properties"], kind: "json_properties", context: context, lookahead: lookahead, first: first, after: after)
+        NativeArrayPage.call(
+          source: object["properties"],
+          kind: "json_properties",
+          context: context,
+          lookahead: lookahead,
+          first: first,
+          after: after,
+        )
       end
     end
   end

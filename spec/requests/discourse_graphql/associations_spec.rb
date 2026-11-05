@@ -27,9 +27,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       post "/discourse-graphql/graphql", params: { query: query }, headers: headers
 
       expect(response.status).to eq(200)
-      category = response.parsed_body.fetch("data").fetch("categories").find do |entry|
-        entry.fetch("id") == public_category.id.to_s
-      end
+      category =
+        response
+          .parsed_body
+          .fetch("data")
+          .fetch("categories")
+          .find { |entry| entry.fetch("id") == public_category.id.to_s }
       expect(category).to eq(
         "id" => public_category.id.to_s,
         "latestTopic" => nil,

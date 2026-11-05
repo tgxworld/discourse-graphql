@@ -3,15 +3,12 @@ require "rails_helper"
 RSpec.describe DiscourseGraphQL::GraphQLController do
   fab!(:user)
   fab!(:topics) do
-    Array.new(50) do
-      Fabricate(:topic, category: Fabricate(:category), user: Fabricate(:user))
-    end
+    Array.new(50) { Fabricate(:topic, category: Fabricate(:category), user: Fabricate(:user)) }
   end
 
   let!(:api_key) { Fabricate(:api_key, user: user) }
   let(:headers) { { "Api-Key" => api_key.key, "Api-Username" => user.username } }
-  let(:query) do
-    <<~GRAPHQL
+  let(:query) { <<~GRAPHQL }
       query Topics($limit: Int!) {
         latestTopics(limit: $limit) {
           id
@@ -20,27 +17,33 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         }
       }
     GRAPHQL
-  end
 
   describe "#execute" do
     it "batches permission checks for distinct personal messages" do
       messages = Fabricate.times(50, :private_message_topic, user: user)
       query_counts =
         [1, 50].map do |limit|
-          selections = messages.first(limit).map do |message|
-            "topic#{message.id}: topic(id: \"#{message.id}\") { id fancyTitle }"
-          end
+          selections =
+            messages
+              .first(limit)
+              .map do |message|
+                "topic#{message.id}: topic(id: \"#{message.id}\") { id fancyTitle }"
+              end
 
           queries =
             track_sql_queries do
               post "/discourse-graphql/graphql",
-                   params: { query: "query { #{selections.join(" ")} }" },
+                   params: {
+                     query: "query { #{selections.join(" ")} }",
+                   },
                    headers: headers
             end
 
           expect(response.status).to eq(200)
           expect(response.parsed_body["errors"]).to be_blank
-          expect(response.parsed_body.fetch("data").values.map { |entry| entry.fetch("id") }).to match_array(messages.first(limit).map { |message| message.id.to_s })
+          expect(
+            response.parsed_body.fetch("data").values.map { |entry| entry.fetch("id") },
+          ).to match_array(messages.first(limit).map { |message| message.id.to_s })
           queries.size
         end
 
@@ -49,7 +52,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "bounds database query growth for 50 topics with distinct categories and authors" do
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { limit: 1 } },
+           params: {
+             query: query,
+             variables: {
+               limit: 1,
+             },
+           },
            headers: headers,
            as: :json
 
@@ -58,7 +66,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
           queries =
             track_sql_queries do
               post "/discourse-graphql/graphql",
-                   params: { query: query, variables: { limit: limit } },
+                   params: {
+                     query: query,
+                     variables: {
+                       limit: limit,
+                     },
+                   },
                    headers: headers,
                    as: :json
             end

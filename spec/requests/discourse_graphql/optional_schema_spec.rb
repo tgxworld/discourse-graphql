@@ -7,7 +7,8 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
       get "/discourse-graphql/graphql",
           params: {
-            query: "{ capabilities { id available queryFields mutationFields } __schema { queryType { fields { name } } mutationType { fields { name } } types { name } } }",
+            query:
+              "{ capabilities { id available queryFields mutationFields } __schema { queryType { fields { name } } mutationType { fields { name } } types { name } } }",
           }
 
       expect(response.status).to eq(200)
@@ -17,19 +18,72 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       mutations = data.dig("__schema", "mutationType", "fields").map { |field| field.fetch("name") }
       types = data.dig("__schema", "types").map { |type| type.fetch("name") }
       capabilities = data.fetch("capabilities")
-      expect(capabilities.flat_map { |capability| capability.fetch("queryFields") }).to match_array(fields)
-      expect(capabilities.flat_map { |capability| capability.fetch("mutationFields") }).to match_array(mutations)
+      expect(capabilities.flat_map { |capability| capability.fetch("queryFields") }).to match_array(
+        fields,
+      )
+      expect(
+        capabilities.flat_map { |capability| capability.fetch("mutationFields") },
+      ).to match_array(mutations)
       expected_capabilities = ["discourse"]
 
       if Discourse.plugins_by_name.key?("chat")
-        expect(fields).to include("chatChannels", "chatMessages", "chatReactionUsers", "chatThread", "chatChannelThreads", "currentUserChatThreads")
+        expect(fields).to include(
+          "chatChannels",
+          "chatMessages",
+          "chatReactionUsers",
+          "chatThread",
+          "chatChannelThreads",
+          "currentUserChatThreads",
+        )
         expect(types).to include("ChatChannel", "ChatChannelPage")
-        expect(mutations).to include("createChatMessage", "updateChatReaction", "createChatThread", "updateChatThreadTitle", "markChatThreadRead", "updateChatThreadNotifications", "markChatThreadTitlePromptSeen")
-        expect(types).to include("ChatThreadMembership", "ChatThreadMembershipPayload", "ChatThreadNotificationLevel", "ChatThreadPage", "ChatThreadTracking")
-        expected_capabilities.concat(["chat.channelDiscovery", "chat.messageHistory", "chat.reactionUsers", "chat.threadLookup", "chat.threadLists", "chat.messageCreation", "chat.membershipAndReading", "chat.reactionChanges", "chat.threadControls", "chat.threadCreation"])
+        expect(mutations).to include(
+          "createChatMessage",
+          "updateChatReaction",
+          "createChatThread",
+          "updateChatThreadTitle",
+          "markChatThreadRead",
+          "updateChatThreadNotifications",
+          "markChatThreadTitlePromptSeen",
+        )
+        expect(types).to include(
+          "ChatThreadMembership",
+          "ChatThreadMembershipPayload",
+          "ChatThreadNotificationLevel",
+          "ChatThreadPage",
+          "ChatThreadTracking",
+        )
+        expected_capabilities.concat(
+          %w[
+            chat.channelDiscovery
+            chat.messageHistory
+            chat.reactionUsers
+            chat.threadLookup
+            chat.threadLists
+            chat.messageCreation
+            chat.membershipAndReading
+            chat.reactionChanges
+            chat.threadControls
+            chat.threadCreation
+          ],
+        )
       else
-        expect(fields).not_to include("chatChannels", "chatMessages", "chatReactionUsers", "chatThread", "chatChannelThreads", "currentUserChatThreads")
-        expect(mutations).not_to include("createChatMessage", "updateChatReaction", "createChatThread", "updateChatThreadTitle", "markChatThreadRead", "updateChatThreadNotifications", "markChatThreadTitlePromptSeen")
+        expect(fields).not_to include(
+          "chatChannels",
+          "chatMessages",
+          "chatReactionUsers",
+          "chatThread",
+          "chatChannelThreads",
+          "currentUserChatThreads",
+        )
+        expect(mutations).not_to include(
+          "createChatMessage",
+          "updateChatReaction",
+          "createChatThread",
+          "updateChatThreadTitle",
+          "markChatThreadRead",
+          "updateChatThreadNotifications",
+          "markChatThreadTitlePromptSeen",
+        )
         expect(types.grep(/^Chat/)).to be_empty
         expect(defined?(::Chat)).to be_nil
       end

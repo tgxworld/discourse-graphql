@@ -42,7 +42,12 @@ module DiscourseGraphQL
       end
 
       def updated_at
-        PostSerializer.new(object, scope: context[:guardian], root: false, only: [:updated_at]).as_json.as_json["updated_at"]
+        PostSerializer
+          .new(object, scope: context[:guardian], root: false, only: [:updated_at])
+          .as_json
+          .as_json[
+          "updated_at"
+        ]
       end
 
       def author
@@ -60,7 +65,8 @@ module DiscourseGraphQL
       private
 
       def serializer
-        @serializer ||= PostSerializer.new(object, scope: context[:guardian], root: false, add_raw: true)
+        @serializer ||=
+          PostSerializer.new(object, scope: context[:guardian], root: false, add_raw: true)
       end
     end
   end

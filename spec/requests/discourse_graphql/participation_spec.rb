@@ -15,8 +15,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       categoryId: category.id,
     }
   end
-  let(:query) do
-    <<~GRAPHQL
+  let(:query) { <<~GRAPHQL }
       mutation Create($input: CreateTopicInput!) {
         createTopic(input: $input) {
           status
@@ -27,12 +26,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         }
       }
     GRAPHQL
-  end
 
   describe "#execute" do
     it "creates a discussion that can be read through the API" do
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { input: input } },
+           params: {
+             query: query,
+             variables: {
+               input: input,
+             },
+           },
            headers: headers,
            as: :json
 
@@ -46,7 +49,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(topic_id).to be_present
 
       get "/discourse-graphql/graphql",
-          params: { query: "query { topic(id: \"#{topic_id}\") { fancyTitle } }" },
+          params: {
+            query: "query { topic(id: \"#{topic_id}\") { fancyTitle } }",
+          },
           headers: headers
 
       expect(response.parsed_body.dig("data", "topic", "fancyTitle")).to eq(input.fetch(:title))
@@ -57,7 +62,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
       expect do
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: { input: input } },
+             params: {
+               query: query,
+               variables: {
+                 input: input,
+               },
+             },
              headers: headers,
              as: :json
       end.to change { ReviewableQueuedPost.where(target_created_by: user).count }.by(1)
@@ -76,7 +86,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "returns typed native validation errors without creating a discussion" do
       expect do
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: { input: input.merge(raw: "a") } },
+             params: {
+               query: query,
+               variables: {
+                 input: input.merge(raw: "a"),
+               },
+             },
              headers: headers,
              as: :json
       end.not_to change(Post, :count)
@@ -85,28 +100,42 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = response.parsed_body.fetch("data").fetch("createTopic")
       expect(result.fetch("status")).to eq("FAILED")
       expect(result.fetch("post")).to be_nil
-      expect(result.fetch("errors").map { |error| error.fetch("code") }).to all(eq("BAD_USER_INPUT"))
+      expect(result.fetch("errors").map { |error| error.fetch("code") }).to all(
+        eq("BAD_USER_INPUT"),
+      )
       expect(result.fetch("errors")).to be_present
     end
 
     it "keeps anonymous actors from publishing" do
       expect do
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: { input: input } },
+             params: {
+               query: query,
+               variables: {
+                 input: input,
+               },
+             },
              as: :json
       end.not_to change(Post, :count)
 
       expect(response.status).to eq(200)
       result = response.parsed_body.fetch("data").fetch("createTopic")
       expect(result.fetch("status")).to eq("FAILED")
-      expect(result.fetch("errors").map { |error| error.fetch("code") }).to include("UNAUTHENTICATED")
+      expect(result.fetch("errors").map { |error| error.fetch("code") }).to include(
+        "UNAUTHENTICATED",
+      )
     end
 
     it "preserves native API retry memoization" do
       post_ids =
         2.times.map do
           post "/discourse-graphql/graphql",
-               params: { query: query, variables: { input: input } },
+               params: {
+                 query: query,
+                 variables: {
+                   input: input,
+                 },
+               },
                headers: headers,
                as: :json
 
@@ -138,7 +167,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = response.parsed_body.fetch("data")
       expect(result.dig("first", "status")).to eq("PUBLISHED")
       expect(result.dig("second", "status")).to eq("PUBLISHED")
-      expect(result.dig("second", "post", "topic", "postsCount")).to eq(result.dig("first", "post", "topic", "postsCount") + 1)
+      expect(result.dig("second", "post", "topic", "postsCount")).to eq(
+        result.dig("first", "post", "topic", "postsCount") + 1,
+      )
     end
 
     it "keeps notification clearing owned by the outer request" do
@@ -154,13 +185,17 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       messages =
         MessageBus.track_publish("/notification/#{user.id}") do
           post "/discourse-graphql/graphql",
-               params: { query: mutation },
+               params: {
+                 query: mutation,
+               },
                headers: headers.merge("Discourse-Clear-Notifications" => notification.id.to_s)
         end
 
       expect(response.status).to eq(200)
       expect(response.parsed_body["errors"]).to be_blank
-      expect(response.parsed_body.fetch("data").values.map { |entry| entry.fetch("status") }).to eq(["PUBLISHED", "PUBLISHED"])
+      expect(response.parsed_body.fetch("data").values.map { |entry| entry.fetch("status") }).to eq(
+        %w[PUBLISHED PUBLISHED],
+      )
       expect(notification.reload.read).to eq(true)
       expect(messages.size).to eq(1)
     end
@@ -173,7 +208,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       events =
         DiscourseEvent.track_events(:user_session_refreshed) do
           post "/discourse-graphql/graphql",
-               params: { query: query, variables: { input: input } },
+               params: {
+                 query: query,
+                 variables: {
+                   input: input,
+                 },
+               },
                as: :json
         end
 
@@ -192,13 +232,23 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       SiteSetting.max_topics_per_day = 1
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { input: input } },
+           params: {
+             query: query,
+             variables: {
+               input: input,
+             },
+           },
            headers: headers,
            as: :json
       expect(response.parsed_body.dig("data", "createTopic", "status")).to eq("PUBLISHED")
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { input: input.merge(title: "A second detailed observation from the community") } },
+           params: {
+             query: query,
+             variables: {
+               input: input.merge(title: "A second detailed observation from the community"),
+             },
+           },
            headers: headers,
            as: :json
 
@@ -214,7 +264,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
       expect do
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: { input: input } },
+             params: {
+               query: query,
+               variables: {
+                 input: input,
+               },
+             },
              headers: headers,
              as: :json
       end.not_to change(Post, :count)
@@ -229,7 +284,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         post "/discourse-graphql/graphql",
              params: {
                query: query,
-               variables: { input: input.merge(raw: "a") },
+               variables: {
+                 input: input.merge(raw: "a"),
+               },
                skip_validations: true,
                import_mode: true,
              },
@@ -242,24 +299,25 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     end
 
     it "rejects excessive native creation work before publishing any post" do
-      selections =
-        10.times.map do |index|
-          <<~GRAPHQL
+      selections = 10.times.map { |index| <<~GRAPHQL }
             topic#{index}: createTopic(input: {
               title: "A detailed community observation number #{index}",
               raw: "A detailed and unique observation number #{index} with enough content for a discussion."
             }) { status }
           GRAPHQL
-        end
 
       expect do
         post "/discourse-graphql/graphql",
-             params: { query: "mutation { #{selections.join(" ")} }" },
+             params: {
+               query: "mutation { #{selections.join(" ")} }",
+             },
              headers: headers
       end.not_to change(Post, :count)
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("QUERY_TOO_COMPLEX")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("QUERY_TOO_COMPLEX")
       expect(response.parsed_body["data"]).to be_blank
     end
 
@@ -274,7 +332,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       it "requires a valid token and accepts the native session token" do
         expect do
           post "/discourse-graphql/graphql",
-               params: { query: query, variables: { input: input } },
+               params: {
+                 query: query,
+                 variables: {
+                   input: input,
+                 },
+               },
                as: :json
         end.not_to change(Post, :count)
         expect(response.status).to eq(403)
@@ -283,8 +346,15 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         get "/session/csrf.json"
         token = response.parsed_body.fetch("csrf")
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: { input: input } },
-             headers: { "X-CSRF-Token" => token },
+             params: {
+               query: query,
+               variables: {
+                 input: input,
+               },
+             },
+             headers: {
+               "X-CSRF-Token" => token,
+             },
              as: :json
 
         expect(response.status).to eq(200)

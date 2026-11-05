@@ -3,7 +3,9 @@ require "rails_helper"
 RSpec.describe DiscourseGraphQL::GraphQLController do
   fab!(:user)
   fab!(:public_post) do
-    with_search_indexer_enabled { Fabricate(:post, raw: "A nebula observation from this community") }
+    with_search_indexer_enabled do
+      Fabricate(:post, raw: "A nebula observation from this community")
+    end
   end
   fab!(:private_group, :group)
   fab!(:private_category) { Fabricate(:private_category, group: private_group) }
@@ -19,8 +21,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
   let!(:api_key) { Fabricate(:api_key, user: user) }
   let(:headers) { { "Api-Key" => api_key.key, "Api-Username" => user.username } }
-  let(:query) do
-    <<~GRAPHQL
+  let(:query) { <<~GRAPHQL }
       query Search($term: String!, $page: Int) {
         search(term: $term, page: $page) {
           id
@@ -30,7 +31,6 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         }
       }
     GRAPHQL
-  end
 
   describe "#execute" do
     it "returns permitted search results and records the existing search side effects" do
@@ -38,7 +38,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       events =
         DiscourseEvent.track_events(:user_search) do
           post "/discourse-graphql/graphql",
-               params: { query: query, variables: { term: "nebula", page: 1 } },
+               params: {
+                 query: query,
+                 variables: {
+                   term: "nebula",
+                   page: 1,
+                 },
+               },
                headers: headers.merge("User-Agent" => "GraphQL search contract"),
                as: :json
         end
@@ -59,32 +65,53 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "rejects invalid search inputs with a stable error" do
       ["\u0000nebula", "a"].each do |term|
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: { term: term, page: 1 } },
+             params: {
+               query: query,
+               variables: {
+                 term: term,
+                 page: 1,
+               },
+             },
              headers: headers,
              as: :json
 
         expect(response.status).to eq(200)
-        expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("BAD_USER_INPUT")
+        expect(
+          response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+        ).to include("BAD_USER_INPUT")
         expect(response.parsed_body.dig("data", "search")).to be_nil
       end
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { term: "nebula", page: 11 } },
+           params: {
+             query: query,
+             variables: {
+               term: "nebula",
+               page: 11,
+             },
+           },
            headers: headers,
            as: :json
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("BAD_USER_INPUT")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("BAD_USER_INPUT")
     end
 
     it "preserves the existing anonymous search restriction" do
       SiteSetting.allow_anonymous_search = false
 
       get "/discourse-graphql/graphql",
-          params: { query: query, variables: { term: "nebula" }.to_json }
+          params: {
+            query: query,
+            variables: { term: "nebula" }.to_json,
+          }
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("UNAUTHENTICATED")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("UNAUTHENTICATED")
       expect(response.parsed_body.dig("data", "search")).to be_nil
     end
 
@@ -97,13 +124,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
       post "/discourse-graphql/graphql",
            params: {
-             query: 'query { first: search(term: "nebula") { id } second: search(term: "nebula") { id } }',
+             query:
+               'query { first: search(term: "nebula") { id } second: search(term: "nebula") { id } }',
            },
            headers: headers
 
       expect(response.status).to eq(200)
       errors = response.parsed_body.fetch("errors")
-      expect(errors.map { |error| error.dig("extensions", "code") }).to eq(["RATE_LIMITED", "RATE_LIMITED"])
+      expect(errors.map { |error| error.dig("extensions", "code") }).to eq(
+        %w[RATE_LIMITED RATE_LIMITED],
+      )
       expect(errors.map { |error| error.dig("extensions", "retryAfterSeconds") }).to all(be > 0)
       expect(response.parsed_body.fetch("data")).to eq("first" => nil, "second" => nil)
     end
@@ -114,13 +144,20 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
       expect do
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: { term: "nebula" } },
+             params: {
+               query: query,
+               variables: {
+                 term: "nebula",
+               },
+             },
              headers: headers.merge("HTTP_X_REQUEST_START" => "t=#{1.second.ago.to_f}"),
              as: :json
       end.not_to change { SearchLog.where(user_id: user.id).count }
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("UNAVAILABLE")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("UNAVAILABLE")
       expect(response.parsed_body.dig("data", "search")).to be_nil
     end
   end

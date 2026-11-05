@@ -7,7 +7,17 @@ module DiscourseGraphQL
         self.params = ActionController::Parameters.new(parameters)
         process(:toggle)
         result = NativeResponse.new(response)
-        result.action_payload.merge(result.payload.slice("raw", "cooked", "updated_at", "last_editor_id", "version", "revised", "retryable"))
+        result.action_payload.merge(
+          result.payload.slice(
+            "raw",
+            "cooked",
+            "updated_at",
+            "last_editor_id",
+            "version",
+            "revised",
+            "retryable",
+          ),
+        )
       end
     end
   end

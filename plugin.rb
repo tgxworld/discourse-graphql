@@ -16,11 +16,6 @@ module ::DiscourseGraphQL
   PLUGIN_NAME = "discourse-graphql"
 end
 
-ActiveSupport::Inflector.inflections(:en) do |inflect|
-  inflect.acronym("GraphQL")
-end
+ActiveSupport::Inflector.inflections(:en) { |inflect| inflect.acronym("GraphQL") }
 
-load File.expand_path('lib/discourse_graphql/engine.rb', __dir__)
-
-after_initialize do
-end
+require_relative "lib/discourse_graphql/engine"

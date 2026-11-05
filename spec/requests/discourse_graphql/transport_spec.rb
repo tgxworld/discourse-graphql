@@ -8,9 +8,20 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
   let(:identity_query) { "query { currentUser { id username } }" }
 
   describe "#execute" do
+    it "uses the compiled parser for real HTTP requests" do
+      get "/discourse-graphql/graphql", params: { query: "{ __typename }" }
+
+      expect(response.parsed_body).to eq("data" => { "__typename" => "Query" })
+      expect(GraphQL.default_parser).to eq(GraphQL::CParser)
+      extension = "/graphql_c_parser_ext.#{RbConfig::CONFIG.fetch("DLEXT")}"
+      expect($LOADED_FEATURES.any? { |feature| feature.end_with?(extension) }).to eq(true)
+    end
+
     it "supports the standard client schema discovery query" do
       post "/discourse-graphql/graphql",
-           params: { query: GraphQL::Introspection::INTROSPECTION_QUERY },
+           params: {
+             query: GraphQL::Introspection::INTROSPECTION_QUERY,
+           },
            headers: headers
 
       expect(response.status).to eq(200)
@@ -23,14 +34,24 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
       expect(response.status).to eq(200)
       expect(response.parsed_body).to eq(
-        "data" => { "currentUser" => { "id" => user.id.to_s, "username" => user.username } },
+        "data" => {
+          "currentUser" => {
+            "id" => user.id.to_s,
+            "username" => user.username,
+          },
+        },
       )
     end
 
     it "rejects invalid and revoked API credentials" do
       post "/discourse-graphql/graphql",
-           params: { query: identity_query },
-           headers: { "Api-Key" => "invalid", "Api-Username" => user.username }
+           params: {
+             query: identity_query,
+           },
+           headers: {
+             "Api-Key" => "invalid",
+             "Api-Username" => user.username,
+           }
 
       expect(response.status).to eq(403)
 
@@ -55,11 +76,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "rejects malformed variables without leaking server diagnostics" do
       post "/discourse-graphql/graphql",
-           params: { query: identity_query, variables: "{" },
+           params: {
+             query: identity_query,
+             variables: "{",
+           },
            headers: headers
 
       expect(response.status).to eq(400)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("BAD_REQUEST")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("BAD_REQUEST")
       expect(response.parsed_body.to_s).not_to match(/backtrace|JSON::ParserError/)
     end
 
@@ -117,11 +143,15 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "rejects mutation documents sent through GET" do
       get "/discourse-graphql/graphql",
-          params: { query: "mutation { __typename }" },
+          params: {
+            query: "mutation { __typename }",
+          },
           headers: headers
 
       expect(response.status).to eq(400)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("BAD_REQUEST")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("BAD_REQUEST")
     end
 
     it "rejects an unavailable plugin endpoint" do

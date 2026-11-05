@@ -6,7 +6,9 @@ module DiscourseGraphQL
 
         GraphQL::AnalysisError.new(
           I18n.t("discourse_graphql.errors.query_too_complex"),
-          extensions: { code: "QUERY_TOO_COMPLEX" },
+          extensions: {
+            code: "QUERY_TOO_COMPLEX",
+          },
         )
       end
     end

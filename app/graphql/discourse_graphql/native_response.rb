@@ -14,9 +14,15 @@ module DiscourseGraphQL
     def errors
       return [] if successful?
 
-      messages = Array(payload["errors"]).presence || [I18n.t("discourse_graphql.errors.operation_failed")]
+      messages =
+        Array(payload["errors"]).presence || [I18n.t("discourse_graphql.errors.operation_failed")]
       messages.map do |message|
-        { code: error_code, message: message.to_s, retry_after_seconds: payload.dig("extras", "wait_seconds"), description: payload.dig("extras", "description") }
+        {
+          code: error_code,
+          message: message.to_s,
+          retry_after_seconds: payload.dig("extras", "wait_seconds"),
+          description: payload.dig("extras", "description"),
+        }
       end
     end
 

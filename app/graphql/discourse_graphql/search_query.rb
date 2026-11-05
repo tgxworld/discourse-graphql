@@ -11,8 +11,9 @@ module DiscourseGraphQL
       ensure_can_search
 
       if term.include?("\u0000") ||
-           (term.length < SiteSetting.min_search_term_length && !::Search.min_length_bypass?(term)) ||
-           page > ::SearchController::PAGE_LIMIT
+           (
+             term.length < SiteSetting.min_search_term_length && !::Search.min_length_bypass?(term)
+           ) || page > ::SearchController::PAGE_LIMIT
         raise Discourse::InvalidParameters
       end
 
@@ -21,9 +22,11 @@ module DiscourseGraphQL
 
       if site_overloaded?
         raise GraphQL::ExecutionError.new(
-          I18n.t("search.extreme_load_error"),
-          extensions: { code: "UNAVAILABLE" },
-        )
+                I18n.t("search.extreme_load_error"),
+                extensions: {
+                  code: "UNAVAILABLE",
+                },
+              )
       end
 
       result =

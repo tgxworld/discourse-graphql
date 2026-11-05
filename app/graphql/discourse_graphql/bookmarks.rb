@@ -8,14 +8,26 @@ module DiscourseGraphQL
       @fields = fields
       @search = search
       page = after.nil? ? 0 : cursor_page(cursor: after, first: first)
-      self.params = ActionController::Parameters.new(username: current_user&.username, limit: first, page: page, q: search)
+      self.params =
+        ActionController::Parameters.new(
+          username: current_user&.username,
+          limit: first,
+          page: page,
+          q: search,
+        )
       process(:bookmarks)
       result = NativeResponse.new(response)
       result.raise_error!
       payload = result.payload.fetch("user_bookmark_list", result.payload)
       has_next_page = payload["more_bookmarks_url"].present?
       cursor = verifier.generate(cursor_payload(page: page + 1, first: first)) if has_next_page
-      { nodes: payload.fetch("bookmarks"), page_info: { end_cursor: cursor, has_next_page: has_next_page } }
+      {
+        nodes: payload.fetch("bookmarks"),
+        page_info: {
+          end_cursor: cursor,
+          has_next_page: has_next_page,
+        },
+      }
     end
 
     private
@@ -23,7 +35,11 @@ module DiscourseGraphQL
     def serialize_data(object, serializer, options = nil)
       return super unless serializer == ::UserBookmarkListSerializer
 
-      options = NativeSerialization.options(options: options || {}, fields: [:bookmarks, :more_bookmarks_url])
+      options =
+        NativeSerialization.options(
+          options: options || {},
+          fields: %i[bookmarks more_bookmarks_url],
+        )
       options = { root: "user_bookmark_list" }.merge(options).merge(bookmark_fields: @fields)
       super(object, BookmarkListSerializer, options)
     end

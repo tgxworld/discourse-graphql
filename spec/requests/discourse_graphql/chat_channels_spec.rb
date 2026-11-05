@@ -8,8 +8,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
   let!(:api_key) { Fabricate(:api_key, user: user) }
   let(:headers) { { "Api-Key" => api_key.key, "Api-Username" => user.username } }
-  let(:query) do
-    <<~GRAPHQL
+  let(:query) { <<~GRAPHQL }
       query Channels($first: Int, $after: String, $filter: String) {
         chatChannels(first: $first, after: $after, filter: $filter) {
           nodes { id title slug description status threadingEnabled membershipsCount }
@@ -18,7 +17,6 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         currentUser { id }
       }
     GRAPHQL
-  end
 
   before do
     SiteSetting.chat_enabled = true
@@ -55,22 +53,38 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "continues a full page to an empty terminal page" do
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { first: 1 } },
+           params: {
+             query: query,
+             variables: {
+               first: 1,
+             },
+           },
            headers: headers,
            as: :json
       cursor = response.parsed_body.dig("data", "chatChannels", "pageInfo", "endCursor")
       expect(cursor).to be_present
-      expect(response.parsed_body.dig("data", "chatChannels", "pageInfo", "hasNextPage")).to eq(true)
+      expect(response.parsed_body.dig("data", "chatChannels", "pageInfo", "hasNextPage")).to eq(
+        true,
+      )
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { first: 1, after: cursor } },
+           params: {
+             query: query,
+             variables: {
+               first: 1,
+               after: cursor,
+             },
+           },
            headers: headers,
            as: :json
 
       expect(response.parsed_body["errors"]).to be_blank
       expect(response.parsed_body.dig("data", "chatChannels")).to eq(
         "nodes" => [],
-        "pageInfo" => { "endCursor" => nil, "hasNextPage" => false },
+        "pageInfo" => {
+          "endCursor" => nil,
+          "hasNextPage" => false,
+        },
       )
     end
 
@@ -82,12 +96,21 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(native_ids).to eq([channel.id.to_s])
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { first: nil, after: nil, filter: filter } },
+           params: {
+             query: query,
+             variables: {
+               first: nil,
+               after: nil,
+               filter: filter,
+             },
+           },
            headers: headers,
            as: :json
 
       expect(response.parsed_body["errors"]).to be_blank
-      expect(response.parsed_body.dig("data", "chatChannels", "nodes").map { |entry| entry.fetch("id") }).to eq(native_ids)
+      expect(
+        response.parsed_body.dig("data", "chatChannels", "nodes").map { |entry| entry.fetch("id") },
+      ).to eq(native_ids)
       expect(response.parsed_body.dig("data", "chatChannels", "pageInfo")).to eq(
         "endCursor" => nil,
         "hasNextPage" => false,
@@ -96,7 +119,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "rejects invalid bounds and changed cursor filters before channel loading" do
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { first: 1 } },
+           params: {
+             query: query,
+             variables: {
+               first: 1,
+             },
+           },
            headers: headers,
            as: :json
       cursor = response.parsed_body.dig("data", "chatChannels", "pageInfo", "endCursor")
@@ -110,13 +138,18 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         { first: 1, after: cursor, filter: channel.name },
       ].each do |variables|
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: variables },
+             params: {
+               query: query,
+               variables: variables,
+             },
              headers: headers,
              as: :json
 
         expect(response.parsed_body.dig("data", "chatChannels")).to be_nil
         expect(response.parsed_body.dig("data", "currentUser", "id")).to eq(user.id.to_s)
-        expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to eq(["BAD_USER_INPUT"])
+        expect(
+          response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+        ).to eq(["BAD_USER_INPUT"])
       end
     end
 
@@ -136,18 +169,27 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "rechecks restricted category membership between requests" do
       private_group.add(user)
       post "/discourse-graphql/graphql", params: { query: query }, headers: headers
-      expect(response.parsed_body.dig("data", "chatChannels", "nodes").map { |entry| entry.fetch("id") }).to match_array([channel.id.to_s, private_channel.id.to_s])
+      expect(
+        response.parsed_body.dig("data", "chatChannels", "nodes").map { |entry| entry.fetch("id") },
+      ).to match_array([channel.id.to_s, private_channel.id.to_s])
 
       private_group.remove(user)
       post "/discourse-graphql/graphql", params: { query: query }, headers: headers
 
-      expect(response.parsed_body.dig("data", "chatChannels", "nodes").map { |entry| entry.fetch("id") }).to eq([channel.id.to_s])
+      expect(
+        response.parsed_body.dig("data", "chatChannels", "nodes").map { |entry| entry.fetch("id") },
+      ).to eq([channel.id.to_s])
     end
 
     it "rejects another actor's cursor and retains current membership on valid continuation" do
       private_group.add(user)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { first: 1 } },
+           params: {
+             query: query,
+             variables: {
+               first: 1,
+             },
+           },
            headers: headers,
            as: :json
       cursor = response.parsed_body.dig("data", "chatChannels", "pageInfo", "endCursor")
@@ -156,14 +198,29 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       other_user = Fabricate(:user)
       other_key = Fabricate(:api_key, user: other_user)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { first: 1, after: cursor } },
-           headers: { "Api-Key" => other_key.key, "Api-Username" => other_user.username },
+           params: {
+             query: query,
+             variables: {
+               first: 1,
+               after: cursor,
+             },
+           },
+           headers: {
+             "Api-Key" => other_key.key,
+             "Api-Username" => other_user.username,
+           },
            as: :json
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
 
       private_group.remove(user)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { first: 1, after: cursor } },
+           params: {
+             query: query,
+             variables: {
+               first: 1,
+               after: cursor,
+             },
+           },
            headers: headers,
            as: :json
 
@@ -175,7 +232,10 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "reports disabled Chat without removing its fields or permitted siblings" do
       SiteSetting.chat_enabled = false
       post "/discourse-graphql/graphql",
-           params: { query: "{ capabilities { id available queryFields mutationFields } chatChannels { nodes { id } } currentUser { id } }" },
+           params: {
+             query:
+               "{ capabilities { id available queryFields mutationFields } chatChannels { nodes { id } } currentUser { id } }",
+           },
            headers: headers
 
       expect(response.status).to eq(200)
@@ -185,18 +245,20 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(response.parsed_body.dig("data", "capabilities")).to include(
         "id" => "chat.channelDiscovery",
         "available" => false,
-        "queryFields" => ["chatChannels", "chatChannel"],
+        "queryFields" => %w[chatChannels chatChannel],
         "mutationFields" => [],
       )
 
       SiteSetting.chat_enabled = true
       post "/discourse-graphql/graphql",
-           params: { query: "{ capabilities { id available queryFields mutationFields } }" },
+           params: {
+             query: "{ capabilities { id available queryFields mutationFields } }",
+           },
            headers: headers
       expect(response.parsed_body.dig("data", "capabilities")).to include(
         "id" => "chat.channelDiscovery",
         "available" => true,
-        "queryFields" => ["chatChannels", "chatChannel"],
+        "queryFields" => %w[chatChannels chatChannel],
         "mutationFields" => [],
       )
     end
@@ -213,7 +275,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
           queries =
             track_sql_queries do
               post "/discourse-graphql/graphql",
-                   params: { query: query, variables: { first: limit } },
+                   params: {
+                     query: query,
+                     variables: {
+                       first: limit,
+                     },
+                   },
                    headers: headers,
                    as: :json
             end
@@ -228,15 +295,21 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "preserves native serializer option restrictions" do
       channel.update!(description: "A channel description with enough text")
       plugin = Discourse.plugins_by_name.fetch("discourse-graphql")
-      fields = [:id, :title, :slug, :status, :threading_enabled, :memberships_count]
+      fields = %i[id title slug status threading_enabled memberships_count]
       modifier = ->(options, _guardian) { options.merge(except: [:slug], only: fields) }
-      DiscoursePluginRegistry.register_modifier(plugin, :chat_channel_serializer_public_options, &modifier)
+      DiscoursePluginRegistry.register_modifier(
+        plugin,
+        :chat_channel_serializer_public_options,
+        &modifier
+      )
 
       begin
         post "/discourse-graphql/graphql", params: { query: query }, headers: headers
 
         expect(response.parsed_body["errors"]).to be_blank
-        expect(response.parsed_body.dig("data", "chatChannels", "nodes", 0, "description")).to be_nil
+        expect(
+          response.parsed_body.dig("data", "chatChannels", "nodes", 0, "description"),
+        ).to be_nil
         expect(response.parsed_body.dig("data", "chatChannels", "nodes", 0, "slug")).to be_nil
         expect(response.body).not_to include(channel.description)
 
@@ -245,9 +318,15 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
         expect(response.parsed_body.dig("data", "chatChannels")).to be_nil
         expect(response.parsed_body.dig("data", "currentUser", "id")).to eq(user.id.to_s)
-        expect(response.parsed_body.fetch("errors").map { |error| error.fetch("path") }).to eq([["chatChannels", "nodes", 0, "title"]])
+        expect(response.parsed_body.fetch("errors").map { |error| error.fetch("path") }).to eq(
+          [["chatChannels", "nodes", 0, "title"]],
+        )
       ensure
-        DiscoursePluginRegistry.unregister_modifier(plugin, :chat_channel_serializer_public_options, &modifier)
+        DiscoursePluginRegistry.unregister_modifier(
+          plugin,
+          :chat_channel_serializer_public_options,
+          &modifier
+        )
       end
     end
   end

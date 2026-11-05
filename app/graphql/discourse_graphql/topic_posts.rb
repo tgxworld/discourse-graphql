@@ -22,7 +22,9 @@ module DiscourseGraphQL
       posts = view.posts.to_a
       ActiveRecord::Associations::Preloader.new(
         records: posts,
-        associations: { topic: [:category, :shared_draft] },
+        associations: {
+          topic: %i[category shared_draft],
+        },
       ).call
       nodes = posts.select { |post| view.guardian.can_see_post?(post) }
       cursor =
@@ -30,10 +32,7 @@ module DiscourseGraphQL
           verifier.generate(cursor_payload(topic_id: topic_id, first: first, page: page + 1))
         end
 
-      {
-        nodes: nodes,
-        page_info: { end_cursor: cursor, has_next_page: view.next_page.present? },
-      }
+      { nodes: nodes, page_info: { end_cursor: cursor, has_next_page: view.next_page.present? } }
     end
 
     private

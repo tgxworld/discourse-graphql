@@ -18,10 +18,11 @@ module DiscourseGraphQL
       field :current_user_state, TopicStateType, null: true
 
       def self.authorized?(object, context)
-        super && context.dataloader.with(
-          Loaders::TopicAuthorization,
-          guardian: context[:guardian],
-        ).load(object.id)
+        super &&
+          context
+            .dataloader
+            .with(Loaders::TopicAuthorization, guardian: context[:guardian])
+            .load(object.id)
       end
 
       def current_user_state

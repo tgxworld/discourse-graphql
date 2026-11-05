@@ -10,7 +10,10 @@ module DiscourseGraphQL
       field :starred, Boolean, null: false
       field :last_read_message_id, ID, null: true, hash_key: "last_read_message_id"
       field :last_viewed_at, GraphQL::Types::ISO8601DateTime, null: true, hash_key: "last_viewed_at"
-      field :last_viewed_pins_at, GraphQL::Types::ISO8601DateTime, null: true, hash_key: "last_viewed_pins_at"
+      field :last_viewed_pins_at,
+            GraphQL::Types::ISO8601DateTime,
+            null: true,
+            hash_key: "last_viewed_pins_at"
       field :has_unseen_pins, Boolean, null: true, hash_key: "has_unseen_pins"
     end
   end

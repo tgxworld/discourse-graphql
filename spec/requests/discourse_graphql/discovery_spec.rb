@@ -30,12 +30,20 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(response.status).to eq(200)
       expect(response.parsed_body["errors"]).to be_blank
       data = response.parsed_body.fetch("data")
-      expect(data.fetch("categories").map { |entry| entry.fetch("id") }).to include(category.id.to_s)
+      expect(data.fetch("categories").map { |entry| entry.fetch("id") }).to include(
+        category.id.to_s,
+      )
       expect(data.fetch("latestTopics")).to include(
         "id" => topic.id.to_s,
         "fancyTitle" => topic.fancy_title,
-        "category" => { "id" => category.id.to_s, "name" => category.name },
-        "author" => { "id" => user.id.to_s, "username" => user.username },
+        "category" => {
+          "id" => category.id.to_s,
+          "name" => category.name,
+        },
+        "author" => {
+          "id" => user.id.to_s,
+          "username" => user.username,
+        },
       )
       expect(response.body).not_to include(private_category.name, private_topic.title)
     end
@@ -46,7 +54,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       post "/discourse-graphql/graphql", params: { query: query }, headers: headers
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("BAD_USER_INPUT")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("BAD_USER_INPUT")
       expect(response.parsed_body["data"]).to be_blank
     end
 
@@ -61,7 +71,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       pages =
         3.times.map do |page|
           post "/discourse-graphql/graphql",
-               params: { query: query, variables: { page: page }, operationName: "Page" },
+               params: {
+                 query: query,
+                 variables: {
+                   page: page,
+                 },
+                 operationName: "Page",
+               },
                headers: headers,
                as: :json
 
@@ -83,7 +99,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       baseline_queries =
         track_sql_queries do
           post "/discourse-graphql/graphql",
-               params: { query: "query { __typename }" },
+               params: {
+                 query: "query { __typename }",
+               },
                headers: headers
           expect(response.status).to eq(200)
           expect(response.parsed_body["errors"]).to be_blank
@@ -92,12 +110,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       rejected_queries =
         track_sql_queries do
           post "/discourse-graphql/graphql",
-               params: { query: "query { #{selections.join(" ")} }" },
+               params: {
+                 query: "query { #{selections.join(" ")} }",
+               },
                headers: headers
         end
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("QUERY_TOO_COMPLEX")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("QUERY_TOO_COMPLEX")
       expect(response.parsed_body["data"]).to be_blank
       expect(rejected_queries.size).to be <= baseline_queries.size
     end
@@ -108,22 +130,30 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       selections << "invalid: latestTopics(limit: -1000000) { id fancyTitle }"
 
       post "/discourse-graphql/graphql",
-           params: { query: "query { #{selections.join(" ")} }" },
+           params: {
+             query: "query { #{selections.join(" ")} }",
+           },
            headers: headers
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") }).to include("QUERY_TOO_COMPLEX")
+      expect(
+        response.parsed_body.fetch("errors").map { |error| error.dig("extensions", "code") },
+      ).to include("QUERY_TOO_COMPLEX")
       expect(response.parsed_body["data"]).to be_blank
     end
 
     it "uses the default page and size when optional page arguments are null" do
       post "/discourse-graphql/graphql",
-           params: { query: "query { latestTopics(page: null, limit: null) { id } }" },
+           params: {
+             query: "query { latestTopics(page: null, limit: null) { id } }",
+           },
            headers: headers
 
       expect(response.status).to eq(200)
       expect(response.parsed_body["errors"]).to be_blank
-      expect(response.parsed_body.fetch("data").fetch("latestTopics")).to include("id" => topic.id.to_s)
+      expect(response.parsed_body.fetch("data").fetch("latestTopics")).to include(
+        "id" => topic.id.to_s,
+      )
     end
   end
 end

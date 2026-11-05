@@ -5,9 +5,9 @@ module DiscourseGraphQL
         records = super
         associations =
           if @model_class == Topic
-            [:category, :shared_draft]
+            %i[category shared_draft]
           elsif @model_class == Post
-            [:user, { topic: [:category, :shared_draft] }]
+            [:user, { topic: %i[category shared_draft] }]
           end
 
         if associations

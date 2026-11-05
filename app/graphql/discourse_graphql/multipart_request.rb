@@ -14,8 +14,8 @@ module DiscourseGraphQL
 
       operations = JSON.parse(operations_text)
       mapping = JSON.parse(map_text)
-      unless operations.is_a?(Hash) && operations["variables"].is_a?(Hash) &&
-               mapping.is_a?(Hash) && mapping.size.between?(1, MAX_FILES)
+      unless operations.is_a?(Hash) && operations["variables"].is_a?(Hash) && mapping.is_a?(Hash) &&
+               mapping.size.between?(1, MAX_FILES)
         raise Discourse::InvalidParameters
       end
       extra_keys = parameters.keys - %w[operations map controller action format]
@@ -25,19 +25,38 @@ module DiscourseGraphQL
       total_bytes = 0
       mapping.each do |part, targets|
         file = parameters[part]
-        unless file.is_a?(ActionDispatch::Http::UploadedFile) && targets.is_a?(Array) && targets.size.between?(1, 10)
+        unless file.is_a?(ActionDispatch::Http::UploadedFile) && targets.is_a?(Array) &&
+                 targets.size.between?(1, 10)
           raise Discourse::InvalidParameters
         end
         total_bytes += file.size
         raise Discourse::InvalidParameters if total_bytes > MAX_FILE_BYTES
         targets.each do |path|
-          raise Discourse::InvalidParameters unless path.is_a?(String) && path.bytesize <= 1024 && !paths.include?(path)
+          unless path.is_a?(String) && path.bytesize <= 1024 && !paths.include?(path)
+            raise Discourse::InvalidParameters
+          end
           segments = path.split(".", -1)
-          raise Discourse::InvalidParameters unless segments.shift == "variables" && segments.size.between?(1, 12)
+          unless segments.shift == "variables" && segments.size.between?(1, 12)
+            raise Discourse::InvalidParameters
+          end
           target = operations.fetch("variables")
           segments.each_with_index do |segment, index|
-            key = target.is_a?(Array) && segment.match?(/\A(?:0|[1-9][0-9]*)\z/) ? segment.to_i : segment
-            valid = target.is_a?(Hash) ? target.key?(key) : target.is_a?(Array) && key.is_a?(Integer) && key < target.size
+            key =
+              (
+                if target.is_a?(Array) && segment.match?(/\A(?:0|[1-9][0-9]*)\z/)
+                  segment.to_i
+                else
+                  segment
+                end
+              )
+            valid =
+              (
+                if target.is_a?(Hash)
+                  target.key?(key)
+                else
+                  target.is_a?(Array) && key.is_a?(Integer) && key < target.size
+                end
+              )
             raise Discourse::InvalidParameters unless valid
             if index == segments.size - 1
               raise Discourse::InvalidParameters unless target[key].nil?

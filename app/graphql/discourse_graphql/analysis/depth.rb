@@ -6,7 +6,9 @@ module DiscourseGraphQL
 
         GraphQL::AnalysisError.new(
           I18n.t("discourse_graphql.errors.query_too_deep"),
-          extensions: { code: "QUERY_TOO_DEEP" },
+          extensions: {
+            code: "QUERY_TOO_DEEP",
+          },
         )
       end
     end

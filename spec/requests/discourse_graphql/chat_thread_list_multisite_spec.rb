@@ -13,21 +13,39 @@ RSpec.describe DiscourseGraphQL::GraphQLController, type: %i[multisite request] 
       request_headers = { "Api-Key" => api_key.key, "Api-Username" => user.username }
       SiteSetting.chat_enabled = true
       SiteSetting.chat_allowed_groups = Group::AUTO_GROUPS[:everyone]
-      get "/discourse-graphql/graphql", params: { query: "{ currentUserChatThreads(first: 1) { nodes { id } pageInfo { endCursor } } }" }, headers: request_headers
+      get "/discourse-graphql/graphql",
+          params: {
+            query: "{ currentUserChatThreads(first: 1) { nodes { id } pageInfo { endCursor } } }",
+          },
+          headers: request_headers
       expect(response.parsed_body["errors"]).to be_blank
       cursor = response.parsed_body.dig("data", "currentUserChatThreads", "pageInfo", "endCursor")
       expect(cursor).to be_present
       test_multisite_connection("second") do
         actor = Fabricate(:user, id: user.id, username: user.username, refresh_auto_groups: true)
-        Fabricate(:api_key, user: actor, key_hash: api_key.key_hash, truncated_key: api_key.truncated_key)
+        Fabricate(
+          :api_key,
+          user: actor,
+          key_hash: api_key.key_hash,
+          truncated_key: api_key.truncated_key,
+        )
         SiteSetting.chat_enabled = true
         SiteSetting.chat_allowed_groups = Group::AUTO_GROUPS[:everyone]
-        get "http://test2.localhost/discourse-graphql/graphql", params: { query: "{ currentUserChatThreads(first: 1) { nodes { id } } currentUser { id } }" }, headers: request_headers
+        get "http://test2.localhost/discourse-graphql/graphql",
+            params: {
+              query: "{ currentUserChatThreads(first: 1) { nodes { id } } currentUser { id } }",
+            },
+            headers: request_headers
         expect(response.status).to eq(200)
         expect(response.parsed_body["errors"]).to be_blank
         expect(response.parsed_body.dig("data", "currentUser", "id")).to eq(user.id.to_s)
-        query = "{ currentUserChatThreads(first: 1, after: #{cursor.to_json}) { nodes { id } } currentUser { id } }"
-        get "http://test2.localhost/discourse-graphql/graphql", params: { query: query }, headers: request_headers
+        query =
+          "{ currentUserChatThreads(first: 1, after: #{cursor.to_json}) { nodes { id } } currentUser { id } }"
+        get "http://test2.localhost/discourse-graphql/graphql",
+            params: {
+              query: query,
+            },
+            headers: request_headers
         expect(response.status).to eq(200)
         expect(response.parsed_body.dig("data", "currentUser", "id")).to eq(user.id.to_s)
         expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")

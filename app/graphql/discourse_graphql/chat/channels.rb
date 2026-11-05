@@ -32,7 +32,10 @@ module DiscourseGraphQL
              options[:json].all? { |serializer| serializer.is_a?(::Chat::ChannelSerializer) }
           nodes =
             options[:json].map do |serializer|
-              serializer.class.new(serializer.object, NativeSerialization.options(options: serializer.options, fields: @fields))
+              serializer.class.new(
+                serializer.object,
+                NativeSerialization.options(options: serializer.options, fields: @fields),
+              )
             end
           arguments[0] = options.merge(json: nodes)
         end

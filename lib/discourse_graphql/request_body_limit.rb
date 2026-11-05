@@ -75,9 +75,13 @@ module DiscourseGraphQL
 
     def call(environment)
       path = environment["PATH_INFO"].to_s
-      return @app.call(environment) unless path.match?(%r{(?:\A|/)discourse-graphql/graphql(?:\.[^/]+)?/?\z})
+      unless path.match?(%r{(?:\A|/)discourse-graphql/graphql(?:\.[^/]+)?/?\z})
+        return @app.call(environment)
+      end
 
-      environment["action_dispatch.parameter_filter"] = Array(environment["action_dispatch.parameter_filter"]) + %i[query variables operations]
+      environment["action_dispatch.parameter_filter"] = Array(
+        environment["action_dispatch.parameter_filter"],
+      ) + %i[query variables operations]
 
       multipart = environment["CONTENT_TYPE"].to_s.match?(%r{\Amultipart/form-data(?:;|\z)}i)
       limit_bytes = multipart ? MAX_BODY_BYTES : MAX_DOCUMENT_BYTES
@@ -87,12 +91,18 @@ module DiscourseGraphQL
       environment["rack.input"] = input
       files = []
       if multipart
-        factory = environment["rack.multipart.tempfile_factory"] || Rack::Multipart::Parser::TEMPFILE_FACTORY
+        factory =
+          environment["rack.multipart.tempfile_factory"] ||
+            Rack::Multipart::Parser::TEMPFILE_FACTORY
         environment["rack.multipart.tempfile_factory"] = lambda do |filename, content_type|
           raise InvalidMultipart if files.size >= MAX_FILES
           factory.call(filename, content_type).tap { |file| files << file }
         end
-        parameters = Rack::Multipart.parse_multipart(environment, MultipartParameters.new(Rack::Utils.default_query_parser))
+        parameters =
+          Rack::Multipart.parse_multipart(
+            environment,
+            MultipartParameters.new(Rack::Utils.default_query_parser),
+          )
         environment["rack.request.form_hash"] = parameters if parameters
         environment["rack.request.form_input"] = input if parameters
       end
@@ -107,7 +117,13 @@ module DiscourseGraphQL
       [status, headers, response_body]
     rescue Exceeded
       too_large
-    rescue InvalidMultipart, EOFError, Rack::QueryParser::ParameterTypeError, Rack::QueryParser::InvalidParameterError, Rack::QueryParser::ParamsTooDeepError, Rack::Multipart::MultipartPartLimitError, Rack::Multipart::MultipartTotalPartLimitError
+    rescue InvalidMultipart,
+           EOFError,
+           Rack::QueryParser::ParameterTypeError,
+           Rack::QueryParser::InvalidParameterError,
+           Rack::QueryParser::ParamsTooDeepError,
+           Rack::Multipart::MultipartPartLimitError,
+           Rack::Multipart::MultipartTotalPartLimitError
       return too_large if input&.exceeded
       error_response(status: 400, key: "invalid_request", code: "BAD_REQUEST")
     ensure
@@ -121,8 +137,16 @@ module DiscourseGraphQL
     end
 
     def error_response(status:, key:, code:)
-      payload = { errors: [{ message: I18n.t("discourse_graphql.errors.#{key}"), extensions: { code: code } }] }
-      [status, { "Content-Type" => "application/json", "Cache-Control" => "no-store" }, [JSON.generate(payload)]]
+      payload = {
+        errors: [
+          { message: I18n.t("discourse_graphql.errors.#{key}"), extensions: { code: code } },
+        ],
+      }
+      [
+        status,
+        { "Content-Type" => "application/json", "Cache-Control" => "no-store" },
+        [JSON.generate(payload)],
+      ]
     end
   end
 end

@@ -7,7 +7,8 @@ module DiscourseGraphQL
 
     def execute
       parameters = MultipartRequest.parameters(params)
-      if parameters[:_json].present? || !parameters[:query].is_a?(String) || parameters[:query].blank?
+      if parameters[:_json].present? || !parameters[:query].is_a?(String) ||
+           parameters[:query].blank?
         return render_bad_request
       end
 
@@ -27,21 +28,29 @@ module DiscourseGraphQL
           document: document,
           variables: variables,
           operation_name: operation_name,
-          context: { guardian: guardian, request: request },
+          context: {
+            guardian: guardian,
+            request: request,
+          },
         )
 
-      return render_bad_request if request.get? && query.selected_operation&.operation_type == "mutation"
+      if request.get? && query.selected_operation&.operation_type == "mutation"
+        return render_bad_request
+      end
 
-      if SiteSetting.site_archived && !request.get? && !request.head? && !ArchiveAdmission.allowed?(query)
+      if SiteSetting.site_archived && !request.get? && !request.head? &&
+           !ArchiveAdmission.allowed?(query)
         raise Discourse::SiteArchived
       end
 
       result = query.result.to_h
       if query.validation_errors.present?
-        result.fetch("errors", []).each do |error|
-          error["extensions"] ||= {}
-          error["extensions"]["code"] = "GRAPHQL_VALIDATION_FAILED"
-        end
+        result
+          .fetch("errors", [])
+          .each do |error|
+            error["extensions"] ||= {}
+            error["extensions"]["code"] = "GRAPHQL_VALIDATION_FAILED"
+          end
       end
 
       render json: result
@@ -52,7 +61,9 @@ module DiscourseGraphQL
                errors: [
                  {
                    message: I18n.t("discourse_graphql.errors.invalid_query"),
-                   extensions: { code: "GRAPHQL_PARSE_FAILED" },
+                   extensions: {
+                     code: "GRAPHQL_PARSE_FAILED",
+                   },
                  },
                ],
              }
@@ -65,7 +76,9 @@ module DiscourseGraphQL
                errors: [
                  {
                    message: I18n.t("discourse_graphql.errors.invalid_request"),
-                   extensions: { code: "BAD_REQUEST" },
+                   extensions: {
+                     code: "BAD_REQUEST",
+                   },
                  },
                ],
              },

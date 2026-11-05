@@ -30,21 +30,36 @@ module DiscourseGraphQL
       field :max_file_size_kb, GraphQL::Types::BigInt, null: true, hash_key: "max_file_size_kb"
       field :placeholder, SiteSettingPlaceholderType, null: true, hash_key: "placeholder"
       field :upload, SiteSettingUploadType, null: true, hash_key: "upload"
-      field :default_override, SiteSettingDefaultOverrideType, null: true, hash_key: "upcoming_change_default_override_metadata"
+      field :default_override,
+            SiteSettingDefaultOverrideType,
+            null: true,
+            hash_key: "upcoming_change_default_override_metadata"
       field :object_schema, SiteSettingObjectSchemaType, null: true, hash_key: "schema"
       field :json_schema, SiteSettingJsonSchemaType, null: true, hash_key: "json_schema"
       field :choices, SiteSettingChoicePageType, null: true, extras: [:lookahead] do
-        argument :first, Integer, required: false, default_value: 25, replace_null_with_default: true
+        argument :first,
+                 Integer,
+                 required: false,
+                 default_value: 25,
+                 replace_null_with_default: true
         argument :after, String, required: false
         complexity ->(_context, arguments, child) { 100 + arguments[:first].clamp(1, 100) * child }
       end
       field :valid_values, SiteSettingChoicePageType, null: true, extras: [:lookahead] do
-        argument :first, Integer, required: false, default_value: 25, replace_null_with_default: true
+        argument :first,
+                 Integer,
+                 required: false,
+                 default_value: 25,
+                 replace_null_with_default: true
         argument :after, String, required: false
         complexity ->(_context, arguments, child) { 100 + arguments[:first].clamp(1, 100) * child }
       end
       field :dependencies, SiteSettingDependencyPageType, null: true, extras: [:lookahead] do
-        argument :first, Integer, required: false, default_value: 25, replace_null_with_default: true
+        argument :first,
+                 Integer,
+                 required: false,
+                 default_value: 25,
+                 replace_null_with_default: true
         argument :after, String, required: false
         complexity ->(_context, arguments, child) { 100 + arguments[:first].clamp(1, 100) * child }
       end
@@ -54,11 +69,25 @@ module DiscourseGraphQL
       end
 
       def choices(first:, lookahead:, after: nil)
-        NativeArrayPage.call(source: object["choices"], kind: "choices", context: context, lookahead: lookahead, first: first, after: after)
+        NativeArrayPage.call(
+          source: object["choices"],
+          kind: "choices",
+          context: context,
+          lookahead: lookahead,
+          first: first,
+          after: after,
+        )
       end
 
       def valid_values(first:, lookahead:, after: nil)
-        NativeArrayPage.call(source: object["valid_values"], kind: "valid_values", context: context, lookahead: lookahead, first: first, after: after)
+        NativeArrayPage.call(
+          source: object["valid_values"],
+          kind: "valid_values",
+          context: context,
+          lookahead: lookahead,
+          first: first,
+          after: after,
+        )
       end
 
       def dependencies(first:, lookahead:, after: nil)
@@ -66,11 +95,23 @@ module DiscourseGraphQL
         values = nil
         if source
           cache = context.namespace(:site_setting_dependency_descriptors).compare_by_identity
-          values = cache[object] ||= source.each_with_index.map do |name, index|
-            { name: name, display_name: object["depends_on_humanized_names"]&.[](index), allowed_values: object["depends_on_values"]&.[](name) }
-          end
+          values =
+            cache[object] ||= source.each_with_index.map do |name, index|
+              {
+                name: name,
+                display_name: object["depends_on_humanized_names"]&.[](index),
+                allowed_values: object["depends_on_values"]&.[](name),
+              }
+            end
         end
-        NativeArrayPage.call(source: values, kind: "dependencies", context: context, lookahead: lookahead, first: first, after: after)
+        NativeArrayPage.call(
+          source: values,
+          kind: "dependencies",
+          context: context,
+          lookahead: lookahead,
+          first: first,
+          after: after,
+        )
       end
     end
   end

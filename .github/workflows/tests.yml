@@ -1,0 +1,98 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    container: discourse/discourse_test@sha256:e7718b42b046bb5209dad6926a8a2b8ca1b544cf2fddf4afc2c6d646cc2238e2
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: discourse
+    env:
+      RAILS_ENV: test
+      LOAD_PLUGINS: "1"
+      ENABLE_LOGSTASH_LOGGER: "0"
+      PGUSER: discourse
+      PGPASSWORD: discourse
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: plugin
+      - name: Read supported Discourse revision
+        id: core
+        working-directory: plugin
+        shell: ruby {0}
+        run: |
+          revision = File.read(".discourse-version").strip
+          abort "Expected a complete Discourse commit ID" unless /\A[0-9a-f]{40}\z/.match?(revision)
+          File.open(ENV.fetch("GITHUB_OUTPUT"), "a") { |output| output.puts("revision=#{revision}") }
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: discourse/discourse
+          ref: ${{ steps.core.outputs.revision }}
+          path: discourse
+      - name: Install plugin checkout
+        working-directory: .
+        run: mv plugin discourse/plugins/discourse-graphql
+      - name: Start services
+        run: |
+          redis-server /etc/redis/redis.conf --daemonize yes --logfile ""
+          chown -R postgres /var/run/postgresql
+          sudo -E -u postgres script/start_test_db.rb
+          sudo -u postgres psql -c "CREATE ROLE $PGUSER LOGIN SUPERUSER PASSWORD '$PGPASSWORD';"
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
+        with:
+          path: discourse/vendor/bundle
+          key: bundle-${{ runner.os }}-${{ steps.core.outputs.revision }}-${{ hashFiles('discourse/**/Gemfile.lock') }}
+      - name: Install dependencies
+        run: |
+          bundle config --local path vendor/bundle
+          bundle config --local deployment true
+          bundle config --local without development
+          bundle install --jobs 4
+          pnpm install --frozen-lockfile
+      - name: Prepare databases and native rendering
+        run: |
+          bin/rake db:create db:migrate
+          bin/rake assets:precompile:asset_processor assets:precompile:pretty_text
+      - name: Lint plugin
+        run: bin/lint plugins/discourse-graphql/app plugins/discourse-graphql/lib plugins/discourse-graphql/spec plugins/discourse-graphql/script plugins/discourse-graphql/plugin.rb plugins/discourse-graphql/Gemfile
+      - name: Verify requests and performance contracts
+        run: bin/rspec --seed 23293 plugins/discourse-graphql/spec
+      - name: Verify absent optional plugins
+        env:
+          LOAD_PLUGINS: discourse-graphql
+        run: bin/rails runner plugins/discourse-graphql/script/verify_optional_schema.rb
+      - name: Verify Chat enabled and disabled
+        env:
+          LOAD_PLUGINS: automation,chat,discourse-graphql
+        run: |
+          bin/rails runner plugins/discourse-graphql/script/verify_chat_reactions_schema.rb
+          bin/rails runner plugins/discourse-graphql/script/verify_chat_reactions_schema.rb disabled
+          bin/rails runner plugins/discourse-graphql/script/verify_chat_reactions_schema.rb
+      - name: Verify Checklist enabled and disabled
+        env:
+          LOAD_PLUGINS: checklist,discourse-graphql
+        run: |
+          bin/rails runner plugins/discourse-graphql/script/verify_checklist_schema.rb
+          bin/rails runner plugins/discourse-graphql/script/verify_checklist_schema.rb disabled
+          bin/rails runner plugins/discourse-graphql/script/verify_checklist_schema.rb
+      - name: Verify inventory reproducibility
+        run: |
+          bin/rails runner plugins/discourse-graphql/script/inventory_capabilities.rb plugins/discourse-graphql/docs/capabilities/native-operations.jsonl
+          git -C plugins/discourse-graphql diff --exit-code -- docs/capabilities/native-operations.jsonl docs/capabilities/native-operations.md

@@ -8,7 +8,11 @@ module DiscourseGraphQL
         self.params = ActionController::Parameters.new(parameters)
         process(:create)
         result = NativeResponse.new(response)
-        { success: result.successful?, thread: result.successful? ? result.payload : nil, errors: result.errors }
+        {
+          success: result.successful?,
+          thread: result.successful? ? result.payload : nil,
+          errors: result.errors,
+        }
       end
 
       private

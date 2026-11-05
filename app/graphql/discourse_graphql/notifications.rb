@@ -13,11 +13,15 @@ module DiscourseGraphQL
       result.raise_error!
       payload = result.payload
       has_next_page = offset + first < payload.fetch("total_rows_notifications")
-      cursor = verifier.generate(cursor_payload(offset: offset + first, first: first)) if has_next_page
+      cursor =
+        verifier.generate(cursor_payload(offset: offset + first, first: first)) if has_next_page
       {
         nodes: payload.fetch("notifications"),
         seen_notification_id: payload.fetch("seen_notification_id"),
-        page_info: { end_cursor: cursor, has_next_page: has_next_page },
+        page_info: {
+          end_cursor: cursor,
+          has_next_page: has_next_page,
+        },
       }
     end
 
@@ -30,7 +34,11 @@ module DiscourseGraphQL
     def serialize_data(object, serializer, options = nil)
       return super unless serializer == ::NotificationSerializer
 
-      super(object, serializer, NativeSerialization.options(options: options || {}, fields: @fields))
+      super(
+        object,
+        serializer,
+        NativeSerialization.options(options: options || {}, fields: @fields),
+      )
     end
 
     def cursor_offset(cursor:, first:)

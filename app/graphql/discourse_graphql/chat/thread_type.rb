@@ -12,7 +12,10 @@ module DiscourseGraphQL
       field :force, Boolean, null: true, hash_key: "force"
       field :original_message, ThreadOriginalMessageType, null: true, hash_key: "original_message"
       field :preview, ThreadPreviewType, null: true, hash_key: "preview"
-      field :current_user_membership, ThreadMembershipType, null: true, hash_key: "current_user_membership"
+      field :current_user_membership,
+            ThreadMembershipType,
+            null: true,
+            hash_key: "current_user_membership"
       field :meta, ThreadMetaType, null: true, hash_key: "meta"
     end
   end

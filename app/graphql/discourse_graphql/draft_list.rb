@@ -13,7 +13,8 @@ module DiscourseGraphQL
       nodes = result.payload.fetch("drafts")
       nodes.each { |node| node["data"] = DraftContent.decode(node["data"]) if node.key?("data") }
       has_next_page = nodes.size == first
-      cursor = verifier.generate(cursor_payload(offset: offset + first, first: first)) if has_next_page
+      cursor =
+        verifier.generate(cursor_payload(offset: offset + first, first: first)) if has_next_page
       { nodes: nodes, page_info: { end_cursor: cursor, has_next_page: has_next_page } }
     end
 
@@ -22,7 +23,11 @@ module DiscourseGraphQL
     def serialize_data(object, serializer, options = nil)
       return super unless serializer == ::DraftSerializer
 
-      super(object, serializer, NativeSerialization.options(options: options || {}, fields: @fields))
+      super(
+        object,
+        serializer,
+        NativeSerialization.options(options: options || {}, fields: @fields),
+      )
     end
 
     def cursor_offset(cursor:, first:)
@@ -36,7 +41,12 @@ module DiscourseGraphQL
     end
 
     def cursor_payload(offset:, first:)
-      { "offset" => offset, "first" => first, "actor_id" => current_user&.id, "site" => RailsMultisite::ConnectionManagement.current_db }
+      {
+        "offset" => offset,
+        "first" => first,
+        "actor_id" => current_user&.id,
+        "site" => RailsMultisite::ConnectionManagement.current_db,
+      }
     end
 
     def verifier

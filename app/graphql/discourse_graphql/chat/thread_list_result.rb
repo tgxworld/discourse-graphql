@@ -6,9 +6,16 @@ module DiscourseGraphQL
       def prepare_thread_page(kind:, first:, lookahead:, channel_id: nil, after: nil)
         raise Discourse::InvalidParameters unless first.between?(1, 10)
         @first = first
-        @cursor_context = { "kind" => kind, "channel_id" => channel_id, "first" => first, "actor_id" => current_user&.id, "site" => RailsMultisite::ConnectionManagement.current_db }
+        @cursor_context = {
+          "kind" => kind,
+          "channel_id" => channel_id,
+          "first" => first,
+          "actor_id" => current_user&.id,
+          "site" => RailsMultisite::ConnectionManagement.current_db,
+        }
         @offset = after.nil? ? 0 : cursor_offset(after)
-        @node_fields = lookahead.selection(:nodes).selections.map { |selection| selection.field.method_sym }
+        @node_fields =
+          lookahead.selection(:nodes).selections.map { |selection| selection.field.method_sym }
         @list_fields = []
         @list_fields << :threads if lookahead.selects?(:nodes)
         @list_fields << :tracking if lookahead.selects?(:tracking)
@@ -24,10 +31,16 @@ module DiscourseGraphQL
         count = @thread_count || nodes&.size
         if count
           has_next_page = count == @first
-          cursor = verifier.generate(@cursor_context.merge("offset" => @offset + @first)) if has_next_page && @cursor_selected
+          cursor =
+            verifier.generate(
+              @cursor_context.merge("offset" => @offset + @first),
+            ) if has_next_page && @cursor_selected
           page_info = { end_cursor: cursor, has_next_page: has_next_page }
         end
-        tracking = result.payload["tracking"]&.map { |thread_id, value| value.merge("thread_id" => thread_id) }
+        tracking =
+          result.payload["tracking"]&.map do |thread_id, value|
+            value.merge("thread_id" => thread_id)
+          end
         { nodes: nodes, tracking: tracking, page_info: page_info }
       end
 
@@ -44,7 +57,8 @@ module DiscourseGraphQL
       def cursor_offset(cursor)
         raise Discourse::InvalidParameters if cursor.bytesize > 4096
         payload = verifier.verified(cursor)
-        unless payload.is_a?(Hash) && payload["offset"].is_a?(Integer) && payload["offset"] >= 0 && payload.except("offset") == @cursor_context
+        unless payload.is_a?(Hash) && payload["offset"].is_a?(Integer) && payload["offset"] >= 0 &&
+                 payload.except("offset") == @cursor_context
           raise Discourse::InvalidParameters
         end
         payload.fetch("offset")

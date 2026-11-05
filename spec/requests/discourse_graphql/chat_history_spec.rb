@@ -8,8 +8,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
   let!(:api_key) { Fabricate(:api_key, user: user) }
   let(:headers) { { "Api-Key" => api_key.key, "Api-Username" => user.username } }
-  let(:query) do
-    <<~GRAPHQL
+  let(:query) { <<~GRAPHQL }
       query History($channelId: ID!, $last: Int, $before: String) {
         chatMessages(channelId: $channelId, last: $last, before: $before) {
           nodes {
@@ -22,7 +21,6 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         currentUser { id }
       }
     GRAPHQL
-  end
 
   before do
     SiteSetting.chat_enabled = true
@@ -41,7 +39,14 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       pages =
         3.times.map do
           post "/discourse-graphql/graphql",
-               params: { query: query, variables: { channelId: channel.id, last: 2, before: cursor } },
+               params: {
+                 query: query,
+                 variables: {
+                   channelId: channel.id,
+                   last: 2,
+                   before: cursor,
+                 },
+               },
                headers: headers,
                as: :json
           expect(response.status).to eq(200)
@@ -54,18 +59,32 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(pages.map { |page| page.fetch("nodes").map { |message| message.fetch("id") } }).to eq(
         [messages.last(2).map { |message| message.id.to_s }, [messages.first.id.to_s], []],
       )
-      expect(pages.map { |page| page.dig("pageInfo", "hasPreviousPage") }).to eq([true, false, false])
+      expect(pages.map { |page| page.dig("pageInfo", "hasPreviousPage") }).to eq(
+        [true, false, false],
+      )
       expect(pages.map { |page| page.dig("pageInfo", "hasNextPage") }).to eq([false, false, false])
       expect(pages.last.dig("pageInfo", "startCursor")).to be_nil
-      expect(pages.first.fetch("nodes").map { |message| message.fetch("raw") }).to eq(native.map { |message| message.fetch("message") })
-      expect(pages.first.fetch("nodes").map { |message| message.fetch("cooked") }).to eq(native.map { |message| message.fetch("cooked") })
-      expect(pages.first.fetch("nodes").map { |message| message.fetch("author").fetch("username") }).to eq(native.map { |message| message.fetch("user").fetch("username") })
+      expect(pages.first.fetch("nodes").map { |message| message.fetch("raw") }).to eq(
+        native.map { |message| message.fetch("message") },
+      )
+      expect(pages.first.fetch("nodes").map { |message| message.fetch("cooked") }).to eq(
+        native.map { |message| message.fetch("cooked") },
+      )
+      expect(
+        pages.first.fetch("nodes").map { |message| message.fetch("author").fetch("username") },
+      ).to eq(native.map { |message| message.fetch("user").fetch("username") })
     end
 
     it "rejects invalid cursors, bounds and changed channel or page size" do
       Fabricate.times(2, :chat_message, chat_channel: channel)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id, last: 1 } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+               last: 1,
+             },
+           },
            headers: headers,
            as: :json
       cursor = response.parsed_body.dig("data", "chatMessages", "pageInfo", "startCursor")
@@ -79,7 +98,10 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         { channelId: private_channel.id, last: 1, before: cursor },
       ].each do |variables|
         post "/discourse-graphql/graphql",
-             params: { query: query, variables: variables },
+             params: {
+               query: query,
+               variables: variables,
+             },
              headers: headers,
              as: :json
 
@@ -93,7 +115,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       messages = Fabricate.times(2, :chat_message, chat_channel: private_channel)
       private_group.add(user)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: private_channel.id, last: 1 } },
+           params: {
+             query: query,
+             variables: {
+               channelId: private_channel.id,
+               last: 1,
+             },
+           },
            headers: headers,
            as: :json
       cursor = response.parsed_body.dig("data", "chatMessages", "pageInfo", "startCursor")
@@ -102,14 +130,31 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       other_user = Fabricate(:user)
       other_key = Fabricate(:api_key, user: other_user)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: private_channel.id, last: 1, before: cursor } },
-           headers: { "Api-Key" => other_key.key, "Api-Username" => other_user.username },
+           params: {
+             query: query,
+             variables: {
+               channelId: private_channel.id,
+               last: 1,
+               before: cursor,
+             },
+           },
+           headers: {
+             "Api-Key" => other_key.key,
+             "Api-Username" => other_user.username,
+           },
            as: :json
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
 
       private_group.remove(user)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: private_channel.id, last: 1, before: cursor } },
+           params: {
+             query: query,
+             variables: {
+               channelId: private_channel.id,
+               last: 1,
+               before: cursor,
+             },
+           },
            headers: headers,
            as: :json
 
@@ -120,15 +165,24 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "supports native public anonymous preview with null defaults and protects private messages" do
       message = Fabricate(:chat_message, chat_channel: channel)
-      SiteSetting.chat_allowed_groups = "#{Group::AUTO_GROUPS[:everyone]}|#{Group::AUTO_GROUPS[:anonymous_users]}"
+      SiteSetting.chat_allowed_groups =
+        "#{Group::AUTO_GROUPS[:everyone]}|#{Group::AUTO_GROUPS[:anonymous_users]}"
 
       get "/discourse-graphql/graphql",
-          params: { query: query, variables: { channelId: channel.id, last: nil, before: nil }.to_json }
+          params: {
+            query: query,
+            variables: { channelId: channel.id, last: nil, before: nil }.to_json,
+          }
       expect(response.parsed_body["errors"]).to be_blank
-      expect(response.parsed_body.dig("data", "chatMessages", "nodes").map { |entry| entry.fetch("id") }).to eq([message.id.to_s])
+      expect(
+        response.parsed_body.dig("data", "chatMessages", "nodes").map { |entry| entry.fetch("id") },
+      ).to eq([message.id.to_s])
 
       get "/discourse-graphql/graphql",
-          params: { query: query, variables: { channelId: private_channel.id }.to_json }
+          params: {
+            query: query,
+            variables: { channelId: private_channel.id }.to_json,
+          }
       expect(response.parsed_body.dig("data", "chatMessages")).to be_nil
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("FORBIDDEN")
     end
@@ -142,21 +196,38 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       deleted.trash!(Discourse.system_user)
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+             },
+           },
            headers: headers,
            as: :json
       expect(response.parsed_body["errors"]).to be_blank
-      expect(response.parsed_body.dig("data", "chatMessages", "nodes").map { |entry| entry.fetch("id") }).to eq([original.id.to_s])
+      expect(
+        response.parsed_body.dig("data", "chatMessages", "nodes").map { |entry| entry.fetch("id") },
+      ).to eq([original.id.to_s])
       expect(response.body).not_to include(deleted.message, reply.message)
 
       admin = Fabricate(:admin)
       admin_key = Fabricate(:api_key, user: admin)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id } },
-           headers: { "Api-Key" => admin_key.key, "Api-Username" => admin.username },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+             },
+           },
+           headers: {
+             "Api-Key" => admin_key.key,
+             "Api-Username" => admin.username,
+           },
            as: :json
       expect(response.parsed_body["errors"]).to be_blank
-      expect(response.parsed_body.dig("data", "chatMessages", "nodes").map { |entry| entry.fetch("id") }).to eq([original.id.to_s, deleted.id.to_s])
+      expect(
+        response.parsed_body.dig("data", "chatMessages", "nodes").map { |entry| entry.fetch("id") },
+      ).to eq([original.id.to_s, deleted.id.to_s])
     end
 
     it "represents the native missing author without fabricating identity" do
@@ -164,7 +235,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       message.update_columns(user_id: nil)
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+             },
+           },
            headers: headers,
            as: :json
 
@@ -182,26 +258,44 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       channel.membership_for(user).update!(last_viewed_at: 1.day.ago)
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+             },
+           },
            headers: headers,
            as: :json
 
       expect(response.parsed_body["errors"]).to be_blank
-      expect(channel.membership_for(user).reload.last_viewed_at).to eq(Time.zone.now)
+      expect(channel.membership_for(user).reload.last_viewed_at.to_r).to eq(Time.zone.now.to_r)
       expect(user.reload.custom_fields[Chat::LAST_CHAT_CHANNEL_ID]).to eq(channel.id)
     end
 
     it "rejects a native reset after the cursor anchor becomes hidden" do
       messages = Fabricate.times(3, :chat_message, chat_channel: channel)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id, last: 2 } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+               last: 2,
+             },
+           },
            headers: headers,
            as: :json
       cursor = response.parsed_body.dig("data", "chatMessages", "pageInfo", "startCursor")
       messages.second.trash!(Discourse.system_user)
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id, last: 2, before: cursor } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+               last: 2,
+               before: cursor,
+             },
+           },
            headers: headers,
            as: :json
 
@@ -211,21 +305,35 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "contains the native anonymous deleted anchor failure without exposing diagnostics" do
       messages = Fabricate.times(2, :chat_message, chat_channel: channel)
-      SiteSetting.chat_allowed_groups = "#{Group::AUTO_GROUPS[:everyone]}|#{Group::AUTO_GROUPS[:anonymous_users]}"
+      SiteSetting.chat_allowed_groups =
+        "#{Group::AUTO_GROUPS[:everyone]}|#{Group::AUTO_GROUPS[:anonymous_users]}"
       get "/discourse-graphql/graphql",
-          params: { query: query, variables: { channelId: channel.id, last: 1 }.to_json }
+          params: {
+            query: query,
+            variables: { channelId: channel.id, last: 1 }.to_json,
+          }
       cursor = response.parsed_body.dig("data", "chatMessages", "pageInfo", "startCursor")
       expect(cursor).to be_present
       messages.last.trash!(Discourse.system_user)
 
       get "/discourse-graphql/graphql",
-          params: { query: query, variables: { channelId: channel.id, last: 1, before: cursor }.to_json }
+          params: {
+            query: query,
+            variables: { channelId: channel.id, last: 1, before: cursor }.to_json,
+          }
 
       expect(response.status).to eq(200)
       expect(response.parsed_body.dig("data", "chatMessages")).to be_nil
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("INTERNAL_ERROR")
-      expect(response.parsed_body.dig("errors", 0, "message")).to eq(I18n.t("discourse_graphql.errors.internal_error"))
-      expect(response.body).not_to include("NoMethodError", "MessageExistence", "/var/www", *messages.map(&:message))
+      expect(response.parsed_body.dig("errors", 0, "message")).to eq(
+        I18n.t("discourse_graphql.errors.internal_error"),
+      )
+      expect(response.body).not_to include(
+        "NoMethodError",
+        "MessageExistence",
+        "/var/www",
+        *messages.map(&:message),
+      )
     end
 
     it "uses the exact native timestamp and ID ordering for cursor progress" do
@@ -237,7 +345,14 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       ids =
         3.times.map do
           post "/discourse-graphql/graphql",
-               params: { query: query, variables: { channelId: channel.id, last: 1, before: cursor } },
+               params: {
+                 query: query,
+                 variables: {
+                   channelId: channel.id,
+                   last: 1,
+                   before: cursor,
+                 },
+               },
                headers: headers,
                as: :json
           expect(response.parsed_body["errors"]).to be_blank
@@ -251,7 +366,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "retains native missing target errors after hard removal" do
       message = Fabricate(:chat_message, chat_channel: channel)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id, last: 1 } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+               last: 1,
+             },
+           },
            headers: headers,
            as: :json
       cursor = response.parsed_body.dig("data", "chatMessages", "pageInfo", "startCursor")
@@ -259,7 +380,14 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       message.destroy!
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id, last: 1, before: cursor } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+               last: 1,
+               before: cursor,
+             },
+           },
            headers: headers,
            as: :json
 
@@ -270,7 +398,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "returns an empty terminal page when older messages are removed" do
       messages = Fabricate.times(2, :chat_message, chat_channel: channel)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id, last: 1 } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+               last: 1,
+             },
+           },
            headers: headers,
            as: :json
       cursor = response.parsed_body.dig("data", "chatMessages", "pageInfo", "startCursor")
@@ -278,21 +412,38 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       messages.first.destroy!
 
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id, last: 1, before: cursor } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+               last: 1,
+               before: cursor,
+             },
+           },
            headers: headers,
            as: :json
 
       expect(response.parsed_body["errors"]).to be_blank
       expect(response.parsed_body.dig("data", "chatMessages")).to eq(
         "nodes" => [],
-        "pageInfo" => { "startCursor" => nil, "hasPreviousPage" => false, "endCursor" => nil, "hasNextPage" => false },
+        "pageInfo" => {
+          "startCursor" => nil,
+          "hasPreviousPage" => false,
+          "endCursor" => nil,
+          "hasNextPage" => false,
+        },
       )
     end
 
     it "returns feature errors for disabled Chat while retaining permitted siblings" do
       SiteSetting.chat_enabled = false
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+             },
+           },
            headers: headers,
            as: :json
 
@@ -304,7 +455,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "bounds SQL growth across messages with 50 distinct authors" do
       Fabricate.times(50, :chat_message, chat_channel: channel)
       post "/discourse-graphql/graphql",
-           params: { query: query, variables: { channelId: channel.id } },
+           params: {
+             query: query,
+             variables: {
+               channelId: channel.id,
+             },
+           },
            headers: headers,
            as: :json
       expect(response.parsed_body["errors"]).to be_blank
@@ -314,7 +470,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
           queries =
             track_sql_queries do
               post "/discourse-graphql/graphql",
-                   params: { query: query, variables: { channelId: channel.id, last: limit } },
+                   params: {
+                     query: query,
+                     variables: {
+                       channelId: channel.id,
+                       last: limit,
+                     },
+                   },
                    headers: headers,
                    as: :json
             end

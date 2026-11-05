@@ -12,10 +12,18 @@ module DiscourseGraphQL
     def create
       file = params[:file]
       if file
-        temporary_file = Tempfile.new(["discourse-graphql-upload", File.extname(file.original_filename)[0, 129]], binmode: true)
+        temporary_file =
+          Tempfile.new(
+            ["discourse-graphql-upload", File.extname(file.original_filename)[0, 129]],
+            binmode: true,
+          )
         File.open(file.tempfile.path, "rb") { |source| IO.copy_stream(source, temporary_file) }
         temporary_file.rewind
-        params[:file] = ActionDispatch::Http::UploadedFile.new(tempfile: temporary_file, filename: file.original_filename, type: file.content_type)
+        params[:file] = ActionDispatch::Http::UploadedFile.new(
+          tempfile: temporary_file,
+          filename: file.original_filename,
+          type: file.content_type,
+        )
       end
       super
     ensure

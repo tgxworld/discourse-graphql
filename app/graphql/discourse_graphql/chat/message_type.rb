@@ -16,13 +16,26 @@ module DiscourseGraphQL
       field :streaming, Boolean, null: false
       field :reactions, ReactionPageType, null: true do
         extras [:lookahead]
-        argument :first, Integer, required: false, default_value: 30, replace_null_with_default: true
+        argument :first,
+                 Integer,
+                 required: false,
+                 default_value: 30,
+                 replace_null_with_default: true
         argument :after, String, required: false
         complexity ->(_context, arguments, child) { 100 + arguments[:first].clamp(1, 50) * child }
       end
 
       def reactions(first:, lookahead:, after: nil)
-        NativeArrayPage.call(source: object["reactions"], kind: "chat_message_reactions", context: context, lookahead: lookahead, first: first, after: after, maximum_first: 50, scope: object.slice("id", "chat_channel_id"))
+        NativeArrayPage.call(
+          source: object["reactions"],
+          kind: "chat_message_reactions",
+          context: context,
+          lookahead: lookahead,
+          first: first,
+          after: after,
+          maximum_first: 50,
+          scope: object.slice("id", "chat_channel_id"),
+        )
       end
     end
   end
