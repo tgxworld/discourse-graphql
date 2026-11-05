@@ -80,6 +80,11 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `chat/api/channels_current_user_notifications_settings#update` | `mutation.updateChatNotifications` | partial |
 | `chat/api/channels_read#update` | `mutation.markChatRead` | partial |
 | `chat/api/channels_read#update_all` | `mutation.markAllChatRead` | partial |
+| `drafts#bulk_destroy` | `mutation.deleteDrafts` | partial |
+| `drafts#create` | `mutation.saveDraft` | partial |
+| `drafts#destroy` | `mutation.deleteDraft` | partial |
+| `drafts#index` | `query.drafts` | partial |
+| `drafts#show` | `query.draft` | partial |
 | `list#latest` | `query.latestTopics` | partial |
 | `notifications#index` | `query.notifications` | partial |
 | `notifications#mark_read` | `mutation.markNotificationRead`, `mutation.markAllNotificationsRead` | partial |

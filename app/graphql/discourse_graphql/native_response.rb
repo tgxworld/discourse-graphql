@@ -16,7 +16,7 @@ module DiscourseGraphQL
 
       messages = Array(payload["errors"]).presence || [I18n.t("discourse_graphql.errors.operation_failed")]
       messages.map do |message|
-        { code: error_code, message: message.to_s, retry_after_seconds: payload.dig("extras", "wait_seconds") }
+        { code: error_code, message: message.to_s, retry_after_seconds: payload.dig("extras", "wait_seconds"), description: payload.dig("extras", "description") }
       end
     end
 
@@ -30,6 +30,7 @@ module DiscourseGraphQL
       error = errors.first
       extensions = { code: error.fetch(:code) }
       extensions[:retryAfterSeconds] = error[:retry_after_seconds] if error[:retry_after_seconds]
+      extensions[:description] = error[:description] if error[:description]
       raise GraphQL::ExecutionError.new(error.fetch(:message), extensions: extensions)
     end
 
@@ -43,6 +44,8 @@ module DiscourseGraphQL
         "FORBIDDEN"
       when 404
         "NOT_FOUND"
+      when 409
+        "CONFLICT"
       when 429
         "RATE_LIMITED"
       when 500..599

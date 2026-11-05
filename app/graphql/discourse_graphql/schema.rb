@@ -35,6 +35,13 @@ module DiscourseGraphQL
       )
     end
 
+    rescue_from(::Draft::OutOfSequence) do
+      raise GraphQL::ExecutionError.new(
+        I18n.t("draft.sequence_conflict_error.title"),
+        extensions: { code: "CONFLICT", description: I18n.t("draft.sequence_conflict_error.description") },
+      )
+    end
+
     rescue_from(Discourse::InvalidParameters) do
       raise GraphQL::ExecutionError.new(
         I18n.t("discourse_graphql.errors.invalid_parameters"),

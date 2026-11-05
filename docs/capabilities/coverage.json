@@ -637,6 +637,128 @@
       "remaining": [
         "Mixed ownership partial outcome journey and disabled owning target lifecycle"
       ]
+    },
+    "drafts#index": {
+      "graphql_operations": [
+        "query.drafts"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#index",
+        "Draft.stream",
+        "Draft.preload_data",
+        "DraftSerializer"
+      ],
+      "authorization_requirements": [
+        "Native current actor stream and stale sequence filtering",
+        "Native permitted topic/post metadata and display name controls",
+        "Signed actor, site and size scoped pages, maximum50",
+        "Explicit typed snapshots and bounded unmapped field reporting"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Unresolved native array root listing dependency",
+        "Plugin draft fields reported as unmapped",
+        "Remaining list metadata and localization journeys"
+      ]
+    },
+    "drafts#show": {
+      "graphql_operations": [
+        "query.draft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#show",
+        "Draft.get",
+        "DraftSequence.current"
+      ],
+      "authorization_requirements": [
+        "Native current actor ownership and sequence check",
+        "Lossless bigint sequence strings and explicit unsupported format reporting"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Plugin content extensions and full native composer recovery journeys"
+      ]
+    },
+    "drafts#create": {
+      "graphql_operations": [
+        "mutation.saveDraft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#create",
+        "Draft.set",
+        "UploadReference.ensure_exist!",
+        "Draft.backup_draft"
+      ],
+      "authorization_requirements": [
+        "Native current actor, serialized length and count limits",
+        "Native sequence recovery, explicit force save and owner handover",
+        "Native edit conflict permission checks, events, upload references and backup work",
+        "Typed content, key, sequence and collection bounds"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Plugin metadata extensions and additional composer states",
+        "Full concurrent writer and forced reconciliation journeys"
+      ]
+    },
+    "drafts#destroy": {
+      "graphql_operations": [
+        "mutation.deleteDraft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#destroy",
+        "ApplicationController#fetch_target_user",
+        "Draft.clear"
+      ],
+      "authorization_requirements": [
+        "Native current actor default and admin API target guard",
+        "Native stale sequence successful noop and upload reference cleanup",
+        "No deletion or replay guarantee from acknowledgement alone"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Additional missing and invalid administrative target cases"
+      ]
+    },
+    "drafts#bulk_destroy": {
+      "graphql_operations": [
+        "mutation.deleteDrafts"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#bulk_destroy",
+        "DraftSequence.current",
+        "UserStat.update_draft_count"
+      ],
+      "authorization_requirements": [
+        "Native target guard and sequence validation before deletion transaction",
+        "Maximum30 unique key/sequence references with typed input",
+        "Native deleted count and quota count updates",
+        "No stronger concurrent writer isolation guarantee"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Concurrent writer outcomes and empty batch semantics"
+      ]
     }
   },
   "shared_plugin_assessments": {

@@ -3,6 +3,7 @@ module DiscourseGraphQL
     class MutationType < Types::BaseObject
       include TopicStateMutationFields
       include BookmarkMutationFields
+      include DraftMutationFields
       Extensions.mutation_modules.each { |extension| include extension }
 
       field :mark_notification_read, ActionPayloadType, null: true, complexity: 1000 do

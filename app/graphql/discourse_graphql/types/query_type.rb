@@ -8,6 +8,17 @@ module DiscourseGraphQL
       field :capabilities, [CapabilityType], null: false
       field :current_user, UserType, null: true
 
+      field :draft, DraftReadType, null: true, complexity: 100 do
+        argument :key, String, required: true
+        argument :sequence, GraphQL::Types::BigInt, required: false
+      end
+      field :drafts, DraftPageType, null: true do
+        extras [:lookahead]
+        argument :first, Int, required: false, default_value: 25, replace_null_with_default: true
+        argument :after, String, required: false
+        complexity ->(_context, arguments, child) { 100 + arguments[:first].clamp(1, 50) * (20 + child) }
+      end
+
       field :bookmarks, BookmarkPageType, null: true do
         extras [:lookahead]
         argument :first, Int, required: false, default_value: 20, replace_null_with_default: true
@@ -72,6 +83,15 @@ module DiscourseGraphQL
         ).call
         context.scoped_set!(:result, result)
         result.posts
+      end
+
+      def draft(key:, sequence: nil)
+        DraftLookup.new(request: context[:request]).call(key: key, sequence: sequence)
+      end
+
+      def drafts(first:, lookahead:, after: nil)
+        fields = lookahead.selection(:nodes).selections.map { |selection| selection.field.method_sym }
+        DraftList.new(request: context[:request]).call(first: first, after: after, fields: fields)
       end
 
       def bookmarks(first:, lookahead:, after: nil, search: nil)

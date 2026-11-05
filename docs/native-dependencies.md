@@ -43,3 +43,12 @@ The native bookmark registration is filtered when Chat is disabled. Deleting an 
 A real native HTTP reproduction is retained in `tmp/discourse-task/native_disabled_bookmark_spec.rb`. It enables Chat, creates a channel message bookmark through POST `/bookmarks.json`, disables Chat, then deletes the bookmark through DELETE `/bookmarks/:id.json`. The aggregate assertion confirms row removal while the expected successful status fails with 500.
 
 The native correction must retain ownership checks and define callback behavior when the owning registration is unavailable before declaring success. The GraphQL plugin does not copy or patch that lifecycle. Error containment does not repair the partial outcome. The reproduction and disabled target GraphQL contract must pass the corrected behavior before this dependency can be accepted.
+
+
+## Native draft listing after an array save
+
+Status: unresolved legacy compatibility limitation.
+
+The native POST `/drafts.json` accepts `data: "[]"` and returns HTTP 200. A subsequent GET `/drafts.json` returns HTTP 500. `Draft.preload_data` calls `Draft#post_id`, which indexes the parsed array using the string `postId`, raising `TypeError` at line 177.
+
+The real native HTTP reproduction is `tmp/discourse-task/native_draft_array_spec.rb`. Typed GraphQL creation accepts an object of declared composer fields and cannot create that root shape. Explicit key lookup reports `$format`, and native deletion can remove a known malformed draft and restore listing. Error containment and that recovery path do not repair the native index. Keep legacy listing compatibility incomplete until the native owner handles its accepted data safely.
