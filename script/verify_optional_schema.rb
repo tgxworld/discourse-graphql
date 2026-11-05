@@ -18,6 +18,7 @@ abort payload.fetch("errors").inspect if payload["errors"].present?
 data = payload.fetch("data")
 fields = data.dig("__schema", "queryType", "fields").map { |field| field.fetch("name") }
 types = data.dig("__schema", "types").map { |type| type.fetch("name") }
+abort "Core setting metadata types missing without optional plugins." unless %w[SiteSettingDefinition SiteSettingChoicePage SiteSettingDependencyPage SiteSettingObjectSchema SiteSettingJsonSchema].all? { |name| types.include?(name) }
 capabilities = data.fetch("capabilities")
 targets = data.fetch("__type").fetch("enumValues").map { |value| value.fetch("name") }
 abort "Optional bookmark targets leaked into the schema." unless targets.sort == %w[POST TOPIC]

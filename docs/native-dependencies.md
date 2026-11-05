@@ -75,3 +75,15 @@ The committed `script/measure_external_upload_threshold_spec.rb` drives POST `/u
 This remains an unmet compatibility requirement. The adapter neither changes the size nor supplies a replacement promotion policy. A native correction must make the two processing branches cover the equality case and preserve native validation, checksum, cleanup and large file semantics.
 
 Native backup initiation uses multipart storage. The backup store does not implement the single PUT signing method. The supported backup multipart path is verified separately. No backup signer is added to this plugin.
+
+## Site setting catalog allocation
+
+Status: unresolved native performance dependency. Bounded metadata alias growth does not establish acceptable total catalog work.
+
+`Admin::SiteSettingsController#index` invokes `SiteSetting.all_settings`. Name filtering occurs after constructing every definition. During construction, each definition calls `defaults.get`, which invokes `DefaultsProvider#all` and duplicates the complete default map through `all_clean`. Reusing the existing native name filter therefore does not avoid this repeated allocation.
+
+The committed `script/measure_setting_metadata_spec.rb` profiles real native HTTP and GraphQL requests with every bundled plugin loaded. Its controlled fixture attaches200 choices totaling819890 bytes through the native result modifier. In the recorded isolated run, direct native index allocates209547576 bytes with21 SQL queries. GraphQL allocates211530914 bytes with24 queries for one selected metadata page, and212666976 bytes with24 queries for40 aliases. These are total allocations during requests, not retained or peak process memory. Approximately182.5MB is attributed to the default map duplication line in both paths.
+
+The GraphQL metadata cache bounds additional alias allocation to about1.3MB when each alias selects its cursor in this workload. A control run without fingerprint reuse allocates about33.3MB more across40 aliases and fails its growth check. The cache is restored and the passing measurement is reproducible. It does not fix native catalog construction.
+
+The native owner needs an efficient catalog or named definition boundary with explicit default snapshot semantics and preserved default and result modifiers. The existing catalog enumerator already obtains defaults before repeatedly looking them up, but the adapter must not replace those calls or bypass modifier behavior. Record and verify the smallest upstream improvement before claiming the full concurrent performance budgets are met.

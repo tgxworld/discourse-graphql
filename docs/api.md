@@ -270,7 +270,7 @@ A native structured read boundary remains an assessment item before complete plu
 
 `adminSiteSetting(name:)` returns the exact visible setting or null for an unknown or hidden setting. The native list can include its default locale entry even when a name filter is supplied. Exact lookup excludes this unrelated entry.
 
-Definitions expose `name`, `displayName`, `type`, `category`, `primaryArea`, `plugin`, `description`, `valueWire`, `defaultWire`, `secret` and `themeable`. Optional native metadata remains nullable. Native modifiers can remove values without a model fallback. Rich editor and choice metadata remain incomplete.
+Definitions expose `name`, `displayName`, `type`, `category`, `primaryArea`, `plugin`, `description`, `valueWire`, `defaultWire`, `secret` and `themeable`. Optional native metadata remains nullable. Native modifiers can remove values without a model fallback. Typed editor metadata is described below.
 
 `updateSiteSettings(changes:)` accepts between one and 50 uniquely named changes. Each `SiteSettingChangeInput` requires `name` and `valueWire`. Optional `backfill` defaults to false. Values use the native String wire protocol for every setting type. Boolean values are strings such as `"false"`, list values use the native separator, and object values contain native JSON text. Native parsing and validation remain authoritative. For example:
 
@@ -295,3 +295,21 @@ All three native actions retain administrator checks and both native router cons
 GraphQL documents, variable objects, legacy variable strings and multipart operation documents are filtered from request parameters before the native request logger. Logical native administration parameters are filtered too. Existing parameter filters remain in effect, and unrelated endpoints retain their own query logging behavior. This protection covers request logs and controller request payload notifications. It does not claim to filter database bind logging.
 
 List and single definition reads cost at least 4000 each. Affected count costs 1000. Bulk changes cost 2000 plus 20 per requested setting and selected output fields. These bounds acknowledge native catalog construction rather than claiming it has been optimized. Final concurrent performance budgets remain required.
+
+### Editor metadata
+
+Definitions retain native `keywords`, `preview`, `textarea`, `disabled`, `allowAny`, `listType`, `translateNames`, `minimum`, `maximum`, `mandatoryValuesWire`, `disallowedGroupsWire`, `requiresConfirmation`, `dependsBehavior`, `dependentSettingDisplay`, `authorizedExtensions` and `maxFileSizeKb`. Integer limits use BigInt and serialize as decimal strings. The `disabled` hint preserves native modifiers, including the AI discovery setting. The server continues to enforce its native update policy independently of editor hints.
+
+`placeholder` exposes nullable `text`, `key` and `value`. Native scalar placeholders populate `text`, while native pair placeholders populate `key` and `value`. `upload` exposes `originalFilename`, `humanFilesize`, `width` and `height`. `defaultOverride` exposes native `oldDefault`, `newDefault` and `changeSettingName`.
+
+`choices`, `validValues`, `dependencies` and schema `properties` return typed pages with `nodes`, `totalCount` and `pageInfo`. Each accepts `first` (default25, maximum100) and `after`. Exact terminal pages have no next cursor. Missing metadata returns null, while an explicitly empty collection returns an empty page. Supplying a continuation for removed metadata returns `BAD_USER_INPUT`.
+
+Choice nodes expose nullable `name`, `valueWire`, `nativeName` and `id`. Primitive choices use their own String representation for name and value. Hash choices preserve supplied metadata without filling in missing keys. Zero and false become `"0"` and `"false"`. Native translation keys and locale labels remain unchanged. Dependency nodes expose `name`, `displayName` and optional `allowedValuesWire`. These are native descriptors, with no copied dependency evaluation.
+
+`objectSchema` exposes native name, identifier and paged named property definitions. Definitions retain type, required, textarea and length validations. `jsonSchema` exposes recursive type, title, description, format, uniqueItems, items, named property pages, required names, enumValuesWire and scalar defaultWire. These typed fields cover the schemas supplied by the pinned core and bundled plugins. Native schema validation remains authoritative when submitting valueWire. No generic JSON output or copied validator is introduced.
+
+Keywords, dependency allowed values, JSON schema required names and enum literals are bounded to100 entries. Overflow returns a nullable field error with `BAD_USER_INPUT`, preserving sibling fields. Constraints are never silently truncated. Each such field costs100. Metadata page cost is100 plus requested first multiplied by selected child cost, in addition to the parent definition cost.
+
+Signed metadata cursors bind the administrator, site, collection kind, requested page size and full native content fingerprint. Fingerprints include ordering and omitted keys independently of selected output fields. Identical collections of the same kind have equivalent cursor meaning. Changed, reordered or removed contents require restarting that collection. Source fingerprints and dependency projections are cached only within the request. Fingerprinting is skipped when neither a continuation nor a selected cursor needs it. Schema property pages convert only the selected entries to output nodes, and count only selections do not construct nodes.
+
+Reproduce allocation and SQL growth measurements with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --env ENABLE_LOGSTASH_LOGGER=0 --seed 23293 plugins/discourse-graphql/script/measure_setting_metadata_spec.rb`. The probe verifies every selected value and compares one versus40 aliases over an approximately800KB native choice fixture. It also records direct native endpoint allocations. This bounds alias growth without claiming that native catalog construction meets final workload budgets.

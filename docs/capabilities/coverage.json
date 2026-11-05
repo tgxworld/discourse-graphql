@@ -998,7 +998,9 @@
         "query.adminSiteSetting"
       ],
       "graphql_tests": [
-        "spec/requests/discourse_graphql/site_settings_spec.rb"
+        "spec/requests/discourse_graphql/site_settings_spec.rb",
+        "spec/requests/discourse_graphql/site_setting_metadata_spec.rb",
+        "script/measure_setting_metadata_spec.rb"
       ],
       "native_entry_points": [
         "Admin::SiteSettingsController#index",
@@ -1013,8 +1015,8 @@
       "authorization_audit": "partial, declared adapter paths exercised",
       "status": "partial",
       "remaining": [
-        "Complete typed editor and choice metadata",
-        "Final concurrent workload budgets and native full catalog construction cost"
+        "Complete plugin configuration and administrative client journeys",
+        "Resolve native full catalog default map allocations and verify final concurrent budgets"
       ]
     },
     "admin/site_settings#update": {
