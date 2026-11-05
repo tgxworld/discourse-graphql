@@ -499,6 +499,144 @@
       "remaining": [
         "Complete unread tracking and recovery journeys"
       ]
+    },
+    "users#bookmarks": {
+      "graphql_operations": [
+        "query.bookmarks"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "UsersController#bookmarks",
+        "UserBookmarkList",
+        "BookmarkQuery",
+        "RegisteredBookmarkable",
+        "UserBookmarkListSerializer",
+        "TopicViewBookmarkSerializer"
+      ],
+      "authorization_requirements": [
+        "Native current actor list and target visibility filtering",
+        "Native registered handler search, ordering and preloads",
+        "Only the extra automatic deletion preference comes from supplementary metadata serialization",
+        "Signed actor, site, exact search and page size scoped continuation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Rich target payloads, additional bookmark metadata and calendar export",
+        "Permitted administrative target user listing"
+      ]
+    },
+    "bookmarks#create": {
+      "graphql_operations": [
+        "mutation.createBookmark"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#create",
+        "BookmarkManager#create_for",
+        "RegisteredBookmarkable#validate_before_create"
+      ],
+      "authorization_requirements": [
+        "Native login, current actor and target permission checks",
+        "Native enabled registrations, validation and shared rate allowance",
+        "Explicit core, Chat and Data Explorer group association target types"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining target input extensions and complete reminder policy journeys"
+      ]
+    },
+    "bookmarks#update": {
+      "graphql_operations": [
+        "mutation.updateBookmark"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#update",
+        "BookmarkManager#update"
+      ],
+      "authorization_requirements": [
+        "Native current actor ownership and validation",
+        "Explicit nullable replacement input and native automatic deletion defaults",
+        "Native reminder and pin reset behavior"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "All reminder policy combinations and disabled owning target update coverage"
+      ]
+    },
+    "bookmarks#destroy": {
+      "graphql_operations": [
+        "mutation.deleteBookmark"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#destroy",
+        "BookmarkManager#destroy",
+        "RegisteredBookmarkable#after_destroy"
+      ],
+      "authorization_requirements": [
+        "Native current actor ownership before deletion",
+        "Native target callback and resulting topic bookmark metadata"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Unresolved native deletion failure after disabling the owning plugin"
+      ]
+    },
+    "bookmarks#toggle_pin": {
+      "graphql_operations": [
+        "mutation.toggleBookmarkPin"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#toggle_pin",
+        "BookmarkManager#toggle_pin"
+      ],
+      "authorization_requirements": [
+        "Native ownership, validation and stored pin toggle",
+        "No idempotency or automatic replay guarantee"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Disabled owning target pin validation coverage"
+      ]
+    },
+    "bookmarks#bulk": {
+      "graphql_operations": [
+        "mutation.bulkBookmarks"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#bulk",
+        "BookmarksBulkAction"
+      ],
+      "authorization_requirements": [
+        "Native ownership for every encountered bookmark",
+        "Typed native operations, maximum50 IDs and explicit per ID cost",
+        "Native changed IDs, target side effects and partial failure semantics"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Mixed ownership partial outcome journey and disabled owning target lifecycle"
+      ]
     }
   },
   "shared_plugin_assessments": {

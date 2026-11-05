@@ -33,3 +33,13 @@ The native timing endpoint returns HTTP 500 for a negative post number at the en
 The GraphQL input contract requires positive post numbers and rejects nonpositive values before native execution. The malformed input is outside the typed API contract. The plugin preserves the native algorithm for accepted inputs and does not patch this native defect.
 
 A separate native HTTP case in the same reproduction verifies that the first timing submission creates stored topic state with zero total viewed milliseconds. A second 500 ms submission adds 500. GraphQL exposes these stored native values rather than reconstructing a different total.
+
+## Bookmark deletion after disabling Chat
+
+Status: unresolved. This prevents complete disabled target deletion acceptance.
+
+The native bookmark registration is filtered when Chat is disabled. Deleting an owned existing Chat bookmark removes the row, then `BookmarkManager#destroy` dereferences the missing registration at line 75. The native DELETE returns HTTP 500 with `NoMethodError` for `after_destroy`, and the bookmark row is already absent.
+
+A real native HTTP reproduction is retained in `tmp/discourse-task/native_disabled_bookmark_spec.rb`. It enables Chat, creates a channel message bookmark through POST `/bookmarks.json`, disables Chat, then deletes the bookmark through DELETE `/bookmarks/:id.json`. The aggregate assertion confirms row removal while the expected successful status fails with 500.
+
+The native correction must retain ownership checks and define callback behavior when the owning registration is unavailable before declaring success. The GraphQL plugin does not copy or patch that lifecycle. Error containment does not repair the partial outcome. The reproduction and disabled target GraphQL contract must pass the corrected behavior before this dependency can be accepted.

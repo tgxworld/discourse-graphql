@@ -8,6 +8,16 @@ module DiscourseGraphQL
       field :capabilities, [CapabilityType], null: false
       field :current_user, UserType, null: true
 
+      field :bookmarks, BookmarkPageType, null: true do
+        extras [:lookahead]
+        argument :first, Int, required: false, default_value: 20, replace_null_with_default: true
+        argument :after, String, required: false
+        argument :search, String, required: false
+        complexity ->(_context, arguments, child_complexity) do
+          100 + arguments[:first].clamp(1, 20) * (20 + child_complexity)
+        end
+      end
+
       field :notifications, NotificationPageType, null: true do
         extras [:lookahead]
         argument :first, Int, required: false, default_value: 25, replace_null_with_default: true
@@ -62,6 +72,11 @@ module DiscourseGraphQL
         ).call
         context.scoped_set!(:result, result)
         result.posts
+      end
+
+      def bookmarks(first:, lookahead:, after: nil, search: nil)
+        fields = lookahead.selection(:nodes).selections.map { |selection| selection.field.method_sym }
+        Bookmarks.new(request: context[:request]).call(first: first, after: after, search: search, fields: fields)
       end
 
       def notifications(first:, lookahead:, after: nil, filter: nil)

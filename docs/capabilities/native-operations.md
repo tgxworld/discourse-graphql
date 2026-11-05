@@ -63,6 +63,11 @@ These links cover declared adapter slices. The remaining native action capabilit
 
 | Native action | GraphQL fields | Status |
 |---|---|---|
+| `bookmarks#bulk` | `mutation.bulkBookmarks` | partial |
+| `bookmarks#create` | `mutation.createBookmark` | partial |
+| `bookmarks#destroy` | `mutation.deleteBookmark` | partial |
+| `bookmarks#toggle_pin` | `mutation.toggleBookmarkPin` | partial |
+| `bookmarks#update` | `mutation.updateBookmark` | partial |
 | `categories#index` | `query.categories` | partial |
 | `chat/api/channel_messages#create` | `mutation.createChatMessage` | partial |
 | `chat/api/channel_messages#index` | `query.chatMessages` | partial |
@@ -85,6 +90,7 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `topics#set_notifications` | `mutation.updateTopicNotifications` | partial |
 | `topics#show` | `query.topic`, `query.topicPosts` | partial |
 | `topics#timings` | `mutation.recordTopicTimings` | partial |
+| `users#bookmarks` | `query.bookmarks` | partial |
 
 ## Native route resolution
 

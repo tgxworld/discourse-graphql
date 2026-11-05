@@ -49,6 +49,10 @@ module DiscourseGraphQL
       )
     end
 
+    rescue_from(GraphQL::Schema::Validator::ValidationFailedError) do |error|
+      raise GraphQL::ExecutionError.new(error.message, extensions: { code: "GRAPHQL_VALIDATION_FAILED" })
+    end
+
     rescue_from(StandardError) do |error|
       Discourse.warn_exception(error, message: "GraphQL operation failed")
       raise GraphQL::ExecutionError.new(

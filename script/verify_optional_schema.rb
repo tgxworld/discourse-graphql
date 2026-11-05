@@ -7,7 +7,7 @@ session = ActionDispatch::Integration::Session.new(Rails.application)
 session.get(
   "/discourse-graphql/graphql",
   params: {
-    query: "{ capabilities { id queryFields mutationFields } __schema { queryType { fields { name } } types { name } } }",
+    query: "{ capabilities { id queryFields mutationFields } __schema { queryType { fields { name } } types { name } } __type(name: \"BookmarkTarget\") { enumValues { name } } }",
   },
   headers: { "HTTP_HOST" => "test.localhost" },
 )
@@ -19,10 +19,13 @@ data = payload.fetch("data")
 fields = data.dig("__schema", "queryType", "fields").map { |field| field.fetch("name") }
 types = data.dig("__schema", "types").map { |type| type.fetch("name") }
 capabilities = data.fetch("capabilities")
+targets = data.fetch("__type").fetch("enumValues").map { |value| value.fetch("name") }
+abort "Optional bookmark targets leaked into the schema." unless targets.sort == %w[POST TOPIC]
 abort "Unexpected optional capabilities." unless capabilities.map { |capability| capability.fetch("id") } == ["discourse"]
 abort "Capability fields do not match the schema." unless capabilities.first.fetch("queryFields").sort == fields.sort
 abort "Chat fields leaked into the schema." if fields.include?("chatChannels")
 abort "Chat types leaked into the schema." if types.any? { |name| name.start_with?("Chat") }
 abort "Native Chat constants were loaded." if defined?(::Chat)
+abort "Native Data Explorer constants were loaded." if defined?(::DiscourseDataExplorer)
 
-puts JSON.generate(status: "passed", eager_loaded: true, capabilities: capabilities, optional_chat: "absent")
+puts JSON.generate(status: "passed", eager_loaded: true, capabilities: capabilities, optional_chat: "absent", bookmark_targets: targets)
