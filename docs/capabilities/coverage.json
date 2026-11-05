@@ -1,0 +1,550 @@
+{
+  "discourse_revision": "f5e1933dd40c57b886da02c45e5630020ceb99c2",
+  "scope": "Reviewed links for implemented adapter slices. Partial native action coverage does not establish full capability coverage.",
+  "operations": {
+    "session#current": {
+      "graphql_operations": [
+        "query.currentUser"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/transport_spec.rb"
+      ],
+      "native_entry_points": [
+        "Guardian#user"
+      ],
+      "authorization_requirements": [
+        "Existing request authentication and credential scopes",
+        "Anonymous actor returns null"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native current user fields and session management"
+      ]
+    },
+    "categories#index": {
+      "graphql_operations": [
+        "query.categories"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/discovery_spec.rb",
+        "spec/requests/discourse_graphql/associations_spec.rb"
+      ],
+      "native_entry_points": [
+        "CategoryList",
+        "Guardian#can_see_category?"
+      ],
+      "authorization_requirements": [
+        "Native permitted category list",
+        "Authorization of nested topic and post references"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Category list work bounds and remaining category fields"
+      ]
+    },
+    "list#latest": {
+      "graphql_operations": [
+        "query.latestTopics"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/discovery_spec.rb",
+        "spec/requests/discourse_graphql/performance_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicQuery#list_latest"
+      ],
+      "authorization_requirements": [
+        "Native TopicQuery scope for the current Guardian",
+        "Bounded pages and nested topic authorization"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native topic list filters and fields"
+      ]
+    },
+    "search#query": {
+      "graphql_operations": [
+        "query.search"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/search_spec.rb"
+      ],
+      "native_entry_points": [
+        "SearchController protected guards",
+        "Search"
+      ],
+      "authorization_requirements": [
+        "Native search permission, shared rate allowance and overload check",
+        "Actor, request metadata, logging and events remain native"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining result kinds, search metadata and fields"
+      ]
+    },
+    "posts#create": {
+      "graphql_operations": [
+        "mutation.createTopic",
+        "mutation.createPost"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/participation_spec.rb"
+      ],
+      "native_entry_points": [
+        "PostsController#create",
+        "NewPostManager#perform"
+      ],
+      "authorization_requirements": [
+        "Native authentication, CSRF, posting restrictions and approval flow",
+        "Validation, rate limits, plugin modifiers, API memoization and side effects remain native"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Uploads, personal messages and remaining typed creation inputs"
+      ]
+    },
+    "topics#show": {
+      "graphql_operations": [
+        "query.topic",
+        "query.topicPosts"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/topics_spec.rb",
+        "spec/requests/discourse_graphql/topic_posts_spec.rb",
+        "spec/requests/discourse_graphql/performance_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicView",
+        "Guardian#can_see_topic_ids",
+        "PostSerializer"
+      ],
+      "authorization_requirements": [
+        "Native topic permission, post visibility and author display",
+        "Signed topic page cursors and request scoped batching"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Deleted root topic lookup, remaining fields and native view tracking audit"
+      ]
+    },
+    "chat/api/channels#index": {
+      "graphql_operations": [
+        "query.chatChannels"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_channels_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsController#index",
+        "Chat::ChannelFetcher.secured_public_channels",
+        "Chat::ChannelSerializer"
+      ],
+      "authorization_requirements": [
+        "Native Chat login and group guards",
+        "Native public channel and category filtering",
+        "Existing serializer restrictions remain authoritative"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native channel filters, fields and direct message discovery"
+      ]
+    },
+    "chat/api/channel_messages#create": {
+      "graphql_operations": [
+        "mutation.createChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_creation_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#create",
+        "Chat::MessageRateLimiter",
+        "Chat::CreateMessage"
+      ],
+      "authorization_requirements": [
+        "Native Chat groups, silencing, membership and channel status",
+        "Native recipient, reply and thread restrictions",
+        "Native shared rate allowance, automatic silencing, publication and tracking"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Upload inputs, bot blocks and remaining integration inputs"
+      ]
+    },
+    "chat/api/channel_messages#index": {
+      "graphql_operations": [
+        "query.chatMessages"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_history_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#index",
+        "Chat::ListChannelMessages",
+        "Chat::MessagesQuery",
+        "Chat::MessagesSerializer"
+      ],
+      "authorization_requirements": [
+        "Native public anonymous preview and channel permissions",
+        "Native deleted visibility, thread filtering and viewed state",
+        "Signed cursor binding and exact native ordering checks"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Anonymous deleted anchor dependency",
+        "Attachments, reactions, thread previews and remaining message or tracking fields"
+      ]
+    }
+  },
+  "shared_plugin_assessments": {
+    "discourse-affiliate": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-affiliate/plugin.rb",
+        "plugins/discourse-affiliate/lib/affiliate_processor.rb"
+      ],
+      "assessment": "Native cooked and localized cooked processing. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-apple-auth": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-apple-auth/plugin.rb",
+        "plugins/discourse-apple-auth/lib/omniauth_apple.rb"
+      ],
+      "assessment": "Native authentication middleware and callbacks. Shared provider discovery, initiation, status and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-details": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-details/plugin.rb",
+        "plugins/discourse-details/assets/javascripts/lib/discourse-markdown/details.js"
+      ],
+      "assessment": "Native details markup and rendering. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-graphviz": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-graphviz/plugin.rb"
+      ],
+      "assessment": "Native diagram markup and renderer. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-lazy-videos": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-lazy-videos/plugin.rb"
+      ],
+      "assessment": "Native video placeholders and player metadata. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-local-dates": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "calendar export",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-local-dates/plugin.rb"
+      ],
+      "assessment": "Native date markup, localized display and calendar export behavior. Shared post content, useful structured dates and settings require verification.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-login-with-amazon": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-login-with-amazon/plugin.rb",
+        "plugins/discourse-login-with-amazon/lib/auth/login_with_amazon_authenticator.rb"
+      ],
+      "assessment": "Native provider middleware and callbacks. Shared provider discovery, initiation, status and settings are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-lti": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "signed launch protocol",
+        "role synchronization",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-lti/plugin.rb",
+        "plugins/discourse-lti/lib/discourse_lti/lti_authenticator.rb"
+      ],
+      "assessment": "Native signed launch and authentication events remain authoritative. Shared provider and configuration adapters must preserve resulting role or group behavior.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-math": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-math/plugin.rb"
+      ],
+      "assessment": "Native mathematical markup and rendering. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-microsoft-auth": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-microsoft-auth/plugin.rb",
+        "plugins/discourse-microsoft-auth/lib/microsoft_authenticator.rb"
+      ],
+      "assessment": "Native provider middleware and callbacks. Shared provider discovery, initiation, status and settings are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-oauth2-basic": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-oauth2-basic/plugin.rb",
+        "plugins/discourse-oauth2-basic/lib/oauth2_basic_authenticator.rb"
+      ],
+      "assessment": "Native provider middleware and callbacks. Shared provider discovery, initiation, status and settings are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-openid-connect": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "logout protocol",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-openid-connect/plugin.rb",
+        "plugins/discourse-openid-connect/lib/openid_connect_authenticator.rb"
+      ],
+      "assessment": "Native login and logout protocols remain authoritative. Shared provider discovery, initiation, status and settings must preserve both flows.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-presence": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "presence",
+        "live delivery",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-presence/plugin.rb",
+        "app/controllers/presence_controller.rb"
+      ],
+      "assessment": "Uses core presence operations with plugin registered channel permission logic. GraphQL presence writes and protected live delivery remain required.",
+      "coverage_status": "incomplete"
+    },
+    "footnote": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/footnote/plugin.rb"
+      ],
+      "assessment": "Native footnote markup and display. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "spoiler-alert": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/spoiler-alert/plugin.rb"
+      ],
+      "assessment": "Native spoiler markup and display. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "styleguide": {
+      "dedicated_controller_actions": true,
+      "required_surfaces": [
+        "developer page access",
+        "configuration",
+        "site capability metadata"
+      ],
+      "native_source_files": [
+        "plugins/styleguide/plugin.rb",
+        "plugins/styleguide/app/controllers/styleguide/styleguide_controller.rb"
+      ],
+      "assessment": "The native controller serves the application shell for developer component demonstrations. It exposes no separate community data API. Preserve native group restrictions and site capability metadata through shared adapters.",
+      "coverage_status": "incomplete"
+    }
+  },
+  "native_route_assessments": {
+    "discourse_ai/admin/ai_agents#indexing_status_check": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-ai/app/controllers/discourse_ai/admin/ai_agents_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_ai/admin/ai_agents#remove_file": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-ai/app/controllers/discourse_ai/admin/ai_agents_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_assign/assign#claim": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-assign/app/controllers/discourse_assign/assign_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_reactions/custom_reactions#index": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-reactions/app/controllers/discourse_reactions/custom_reactions_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/plans#destroy": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/plans_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/plans#edit": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/plans_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/plans#new": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/plans_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/products#edit": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/products_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/products#new": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/products_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "live/rooms#edit": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/live/app/controllers/live/rooms_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "live/rooms#new": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/live/app/controllers/live/rooms_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "message_bus#poll": {
+      "classification": "native middleware protocol",
+      "native_source_files": [
+        "config/routes.rb",
+        "config/initializers/200-first_middlewares.rb",
+        "config/initializers/004-message_bus.rb"
+      ],
+      "assessment": "The named Ruby controller is absent. MessageBus transport is installed as Rack middleware before routing. Preserve the native transport and implement protected GraphQL live capabilities through the owning event infrastructure.",
+      "coverage_status": "incomplete"
+    },
+    "post_voting/votes#edit": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-post-voting/app/controllers/post_voting/votes_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "post_voting/votes#new": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-post-voting/app/controllers/post_voting/votes_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "post_voting/votes#show": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-post-voting/app/controllers/post_voting/votes_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "post_voting/votes#update": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-post-voting/app/controllers/post_voting/votes_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    }
+  }
+}
