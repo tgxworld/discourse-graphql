@@ -14,27 +14,9 @@ module DiscourseGraphQL
           target_message_id: @before_boundary&.fetch(:message_id),
         )
         process(:index)
-        payload = JSON.parse(response.body)
-        if response.status != 200
-          code =
-            if payload["error_type"] == "not_logged_in"
-              "UNAUTHENTICATED"
-            else
-              case response.status
-              when 400, 422
-                "BAD_USER_INPUT"
-              when 403
-                "FORBIDDEN"
-              when 404
-                "NOT_FOUND"
-              when 429
-                "RATE_LIMITED"
-              else
-                "UNAVAILABLE"
-              end
-            end
-          raise GraphQL::ExecutionError.new(payload.fetch("errors").first, extensions: { code: code })
-        end
+        result = NativeResponse.new(response)
+        result.raise_error!
+        payload = result.payload
 
         cursor =
           if @next_boundary

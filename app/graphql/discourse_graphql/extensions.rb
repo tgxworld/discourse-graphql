@@ -5,7 +5,7 @@ module DiscourseGraphQL
     end
 
     def self.mutation_modules
-      Discourse.plugins_by_name.key?("chat") ? [Chat::MutationFields] : []
+      Discourse.plugins_by_name.key?("chat") ? [Chat::MutationFields, Chat::MembershipMutationFields] : []
     end
 
     def self.ensure_enabled!(plugin_name)

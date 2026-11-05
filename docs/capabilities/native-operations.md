@@ -67,6 +67,14 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `chat/api/channel_messages#create` | `mutation.createChatMessage` | partial |
 | `chat/api/channel_messages#index` | `query.chatMessages` | partial |
 | `chat/api/channels#index` | `query.chatChannels` | partial |
+| `chat/api/channels#show` | `query.chatChannel` | partial |
+| `chat/api/channels_current_user_membership#create` | `mutation.joinChatChannel` | partial |
+| `chat/api/channels_current_user_membership#destroy` | `mutation.leaveChatChannel` | partial |
+| `chat/api/channels_current_user_membership#update` | `mutation.starChatChannel` | partial |
+| `chat/api/channels_current_user_membership_follows#destroy` | `mutation.unfollowChatChannel` | partial |
+| `chat/api/channels_current_user_notifications_settings#update` | `mutation.updateChatNotifications` | partial |
+| `chat/api/channels_read#update` | `mutation.markChatRead` | partial |
+| `chat/api/channels_read#update_all` | `mutation.markAllChatRead` | partial |
 | `list#latest` | `query.latestTopics` | partial |
 | `posts#create` | `mutation.createTopic`, `mutation.createPost` | partial |
 | `search#query` | `query.search` | partial |

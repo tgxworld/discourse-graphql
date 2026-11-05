@@ -203,6 +203,174 @@
         "Anonymous deleted anchor dependency",
         "Attachments, reactions, thread previews and remaining message or tracking fields"
       ]
+    },
+    "chat/api/channels#show": {
+      "graphql_operations": [
+        "query.chatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsController#show",
+        "Chat::ChannelSerializer"
+      ],
+      "authorization_requirements": [
+        "Native login, Chat groups and channel visibility",
+        "Native serializer restrictions and current actor membership"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining channel metadata and direct message discovery"
+      ]
+    },
+    "chat/api/channels_current_user_membership#create": {
+      "graphql_operations": [
+        "mutation.joinChatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserMembershipController#create",
+        "Chat::Channel#add"
+      ],
+      "authorization_requirements": [
+        "Native channel access, join permission and current actor identity",
+        "Native current actor membership creation remains idempotent"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining membership metadata and broader channel management"
+      ]
+    },
+    "chat/api/channels_current_user_membership#update": {
+      "graphql_operations": [
+        "mutation.starChatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserMembershipController#update",
+        "Chat::UpdateUserChannelMembership"
+      ],
+      "authorization_requirements": [
+        "Native channel access and existing current actor membership",
+        "Typed star patch only"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native membership patch inputs"
+      ]
+    },
+    "chat/api/channels_current_user_membership#destroy": {
+      "graphql_operations": [
+        "mutation.leaveChatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserMembershipController#destroy",
+        "Chat::LeaveChannel"
+      ],
+      "authorization_requirements": [
+        "Native cleanup permits stale memberships after access revocation",
+        "Group conversation departure differs from pair conversation unfollow"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining departure and live delivery journey evidence"
+      ]
+    },
+    "chat/api/channels_current_user_membership_follows#destroy": {
+      "graphql_operations": [
+        "mutation.unfollowChatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserMembershipFollowsController#destroy",
+        "Chat::UnfollowChannel"
+      ],
+      "authorization_requirements": [
+        "Native current actor cleanup without requiring current channel access",
+        "Unfollow retains group conversation participation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining live delivery and unread behavior evidence"
+      ]
+    },
+    "chat/api/channels_current_user_notifications_settings#update": {
+      "graphql_operations": [
+        "mutation.updateChatNotifications"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserNotificationsSettingsController#update",
+        "Chat::Api::ChannelsController#membership_from_params"
+      ],
+      "authorization_requirements": [
+        "Native channel access and current actor membership",
+        "False values retained, null or omitted preferences leave existing values"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native notification settings inputs"
+      ]
+    },
+    "chat/api/channels_read#update": {
+      "graphql_operations": [
+        "mutation.markChatRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsReadController#update",
+        "Chat::UpdateUserChannelLastRead"
+      ],
+      "authorization_requirements": [
+        "Native channel permission, membership and same channel message lookup",
+        "Native forward progress validation, mention updates and tracking publication"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining thread reading state and complete live journey"
+      ]
+    },
+    "chat/api/channels_read#update_all": {
+      "graphql_operations": [
+        "mutation.markAllChatRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsReadController#update_all",
+        "Chat::MarkAllUserChannelsRead"
+      ],
+      "authorization_requirements": [
+        "Native current actor followed membership scope",
+        "Count only output, bulk write work has explicit query cost"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining bulk live delivery journey evidence"
+      ]
     }
   },
   "shared_plugin_assessments": {

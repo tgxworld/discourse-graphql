@@ -3,27 +3,16 @@ module DiscourseGraphQL
     class Channels < ::Chat::Api::ChannelsController
       include NativeRequest
 
-      def call(first:, after: nil, filter: nil)
+      def call(first:, fields:, after: nil, filter: nil)
         raise Discourse::InvalidParameters unless first.between?(1, 50)
+        @fields = fields
 
         offset = after.nil? ? 0 : cursor_offset(cursor: after, first: first, filter: filter)
         self.params = ActionController::Parameters.new(limit: first, offset: offset, filter: filter)
         process(:index)
-        payload = JSON.parse(response.body)
-        if response.status != 200
-          code =
-            if payload["error_type"] == "not_logged_in"
-              "UNAUTHENTICATED"
-            elsif response.status == 403
-              "FORBIDDEN"
-            else
-              "UNAVAILABLE"
-            end
-          raise GraphQL::ExecutionError.new(
-            payload.fetch("errors").first,
-            extensions: { code: code },
-          )
-        end
+        result = NativeResponse.new(response)
+        result.raise_error!
+        payload = result.payload
 
         nodes = payload.fetch("channels")
         has_next_page = nodes.size == first
@@ -41,12 +30,9 @@ module DiscourseGraphQL
         options = arguments.first
         if action_name == "index" && options.is_a?(Hash) && options[:json].is_a?(Array) &&
              options[:json].all? { |serializer| serializer.is_a?(::Chat::ChannelSerializer) }
-          declared_fields = ChannelType.fields.values.map(&:original_name)
           nodes =
             options[:json].map do |serializer|
-              fields = declared_fields
-              fields &= Array(serializer.options[:only]) if serializer.options.key?(:only)
-              serializer.class.new(serializer.object, serializer.options.merge(only: fields))
+              serializer.class.new(serializer.object, NativeSerialization.options(options: serializer.options, fields: @fields))
             end
           arguments[0] = options.merge(json: nodes)
         end

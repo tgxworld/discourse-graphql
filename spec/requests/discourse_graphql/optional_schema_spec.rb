@@ -24,7 +24,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         expect(fields).to include("chatChannels", "chatMessages")
         expect(types).to include("ChatChannel", "ChatChannelPage")
         expect(mutations).to include("createChatMessage")
-        expect(capabilities.map { |capability| capability.fetch("id") }).to eq(["discourse", "chat.channelDiscovery", "chat.messageHistory", "chat.messageCreation"])
+        expect(capabilities.map { |capability| capability.fetch("id") }).to eq(["discourse", "chat.channelDiscovery", "chat.messageHistory", "chat.messageCreation", "chat.membershipAndReading"])
       else
         expect(fields).not_to include("chatChannels", "chatMessages")
         expect(mutations).not_to include("createChatMessage")

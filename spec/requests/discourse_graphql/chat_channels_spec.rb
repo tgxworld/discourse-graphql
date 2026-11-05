@@ -185,7 +185,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(response.parsed_body.dig("data", "capabilities")).to include(
         "id" => "chat.channelDiscovery",
         "available" => false,
-        "queryFields" => ["chatChannels"],
+        "queryFields" => ["chatChannels", "chatChannel"],
         "mutationFields" => [],
       )
 
@@ -196,7 +196,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(response.parsed_body.dig("data", "capabilities")).to include(
         "id" => "chat.channelDiscovery",
         "available" => true,
-        "queryFields" => ["chatChannels"],
+        "queryFields" => ["chatChannels", "chatChannel"],
         "mutationFields" => [],
       )
     end

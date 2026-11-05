@@ -5,9 +5,14 @@ module DiscourseGraphQL
       controller.skip_after_action :perform_refresh_session
     end
 
-    def initialize(request:)
+    def initialize(request:, request_method: nil)
       super()
-      set_request!(ActionDispatch::Request.new(request.env.dup))
+      environment = request.env.dup
+      if request_method
+        environment["REQUEST_METHOD"] = request_method
+        environment.delete("rack.methodoverride.original_method")
+      end
+      set_request!(ActionDispatch::Request.new(environment))
       set_response!(ActionDispatch::Response.new)
       self.request.format = :json
     end
