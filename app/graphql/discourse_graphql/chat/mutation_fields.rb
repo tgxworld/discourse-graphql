@@ -17,12 +17,7 @@ module DiscourseGraphQL
       end
 
       def create_chat_message(input:)
-        if !Discourse.plugins_by_name.fetch("chat").enabled?
-          raise GraphQL::ExecutionError.new(
-            I18n.t("discourse_graphql.errors.feature_disabled"),
-            extensions: { code: "FEATURE_DISABLED" },
-          )
-        end
+        Extensions.ensure_enabled!("chat")
 
         parameters = input.to_h
         parameters[:chat_channel_id] = parameters.delete(:channel_id)

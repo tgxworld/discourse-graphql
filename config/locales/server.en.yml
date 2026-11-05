@@ -2,6 +2,7 @@ en:
   discourse_graphql:
     errors:
       feature_disabled: "This feature is disabled."
+      internal_error: "An unexpected error prevented this operation from completing."
       invalid_request: "Provide one query and a variables object."
       invalid_parameters: "Check the arguments for this operation."
       invalid_query: "The GraphQL query could not be parsed."

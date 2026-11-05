@@ -22,12 +22,7 @@ module DiscourseGraphQL
       end
 
       def chat_channels(first:, after: nil, filter: nil)
-        if !Discourse.plugins_by_name.fetch("chat").enabled?
-          raise GraphQL::ExecutionError.new(
-            I18n.t("discourse_graphql.errors.feature_disabled"),
-            extensions: { code: "FEATURE_DISABLED" },
-          )
-        end
+        Extensions.ensure_enabled!("chat")
 
         Channels.new(request: context[:request]).call(first: first, after: after, filter: filter)
       end

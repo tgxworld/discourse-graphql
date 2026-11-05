@@ -21,12 +21,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(capabilities.flat_map { |capability| capability.fetch("mutationFields") }).to match_array(mutations)
 
       if Discourse.plugins_by_name.key?("chat")
-        expect(fields).to include("chatChannels")
+        expect(fields).to include("chatChannels", "chatMessages")
         expect(types).to include("ChatChannel", "ChatChannelPage")
         expect(mutations).to include("createChatMessage")
-        expect(capabilities.map { |capability| capability.fetch("id") }).to eq(["discourse", "chat.channelDiscovery", "chat.messageCreation"])
+        expect(capabilities.map { |capability| capability.fetch("id") }).to eq(["discourse", "chat.channelDiscovery", "chat.messageHistory", "chat.messageCreation"])
       else
-        expect(fields).not_to include("chatChannels")
+        expect(fields).not_to include("chatChannels", "chatMessages")
         expect(mutations).not_to include("createChatMessage")
         expect(types.grep(/^Chat/)).to be_empty
         expect(capabilities.map { |capability| capability.fetch("id") }).to eq(["discourse"])

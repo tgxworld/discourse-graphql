@@ -48,5 +48,13 @@ module DiscourseGraphQL
         extensions: { code: "RATE_LIMITED", retryAfterSeconds: error.available_in },
       )
     end
+
+    rescue_from(StandardError) do |error|
+      Discourse.warn_exception(error, message: "GraphQL operation failed")
+      raise GraphQL::ExecutionError.new(
+        I18n.t("discourse_graphql.errors.internal_error"),
+        extensions: { code: "INTERNAL_ERROR" },
+      )
+    end
   end
 end

@@ -1,11 +1,20 @@
 module DiscourseGraphQL
   module Extensions
     def self.query_modules
-      Discourse.plugins_by_name.key?("chat") ? [Chat::QueryFields] : []
+      Discourse.plugins_by_name.key?("chat") ? [Chat::QueryFields, Chat::HistoryQueryFields] : []
     end
 
     def self.mutation_modules
       Discourse.plugins_by_name.key?("chat") ? [Chat::MutationFields] : []
+    end
+
+    def self.ensure_enabled!(plugin_name)
+      if !Discourse.plugins_by_name.fetch(plugin_name).enabled?
+        raise GraphQL::ExecutionError.new(
+          I18n.t("discourse_graphql.errors.feature_disabled"),
+          extensions: { code: "FEATURE_DISABLED" },
+        )
+      end
     end
 
     def self.capabilities
