@@ -2,10 +2,6 @@ module DiscourseGraphQL
   class Notifications < ::NotificationsController
     include NativeRequest
 
-    def self.requires_login_arg
-      superclass.requires_login_arg
-    end
-
     def call(first:, fields:, after: nil, filter: nil)
       raise Discourse::InvalidParameters unless first.between?(1, 50)
       @fields = fields

@@ -149,3 +149,19 @@ History retains native ordering by creation time and does not establish a snapsh
 `markNotificationRead(id: ID!)` and `markAllNotificationsRead` return `success` and typed `errors`. They invoke native notification reading, including actor isolation and state publication. A missing ID, an ID owned by another user or an already read ID receives the native successful acknowledgement without changing another actor's data. Success does not prove that the ID existed or changed. Marking all notifications read also retains native seen state updates and affects all native notification types. Base query costs are 1000 for one ID and 4000 for the bulk action. Outer credential, CSRF, GET and readonly protections remain applicable.
 
 Recent menu prioritization, reviewable menu entries, totals, notification administration and typed plugin payloads remain required future coverage.
+
+## Topic reading state and notifications
+
+An authorized topic exposes nullable `currentUserState` with `lastReadPostNumber`, `notificationLevel` and `totalTimeViewedMs`. It returns the current actor's stored native state. Anonymous users and topics without a stored actor record return null. A null record does not infer the effective notification preference from site, category, tag or group defaults. State lookup batches through the native actor scoped lookup.
+
+`updateTopicNotifications(topicId: ID!, level: TopicNotificationLevel!)` changes only the current actor's preference. Levels follow native topic levels, with `REGULAR` as the canonical name for the native normal alias. Native access restrictions, detailed missing topic behavior, notification reasons, events and publication remain authoritative.
+
+`recordTopicTimings(input: TopicTimingsInput!)` accepts `topicId`, `topicTimeMs` and `timings`. Each timing has `postNumber` and `milliseconds`. Durations must be nonnegative, post numbers must be positive and unique, and a submission may contain at most 50 entries. Invalid shapes return `BAD_USER_INPUT` before native timing work. An empty timing list retains native topic time behavior and can initialize reading state at the first post.
+
+Native processing retains timing caps, post read statistics, notification updates, automatic tracking and public or private tracking publication. It applies its native upper post range for members or staff. This does not promise an individual visibility check for every interior post number. Native first insertion leaves stored topic time at zero, while later updates accumulate it. For example, two accepted 500 ms submissions can report stored topic time as zero after the first and 500 after the second. Individual post timings still accumulate natively.
+
+Timing processing runs synchronously within GraphQL. The nested native request cannot take over the outer response socket. The outer GraphQL request retains its transport callback, session and response ownership.
+
+`resetTopicReading(topicId: ID!, lastPostOnly: Boolean)` defaults `lastPostOnly` to false, including when null. A full reset deletes native post timings and the stored topic state row, including an explicit notification preference. With `lastPostOnly: true`, native processing resets the final post instead. Both modes retain reopening the latest topic notification and applicable private message tracking publication. Reload authoritative state after success.
+
+These mutations return `success` and typed `errors`, preserve current authorization and outer credential, CSRF, GET and readonly restrictions, and invalidate request loader caches around execution. Base costs are 1,000, with an additional 10 per submitted timing entry. A lost response does not establish rollback. Timing replay can accumulate time again, and reset replay can affect newer reading state. Reconcile authoritative state before deciding how to recover.

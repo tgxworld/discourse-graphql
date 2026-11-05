@@ -116,16 +116,19 @@
       "graphql_tests": [
         "spec/requests/discourse_graphql/topics_spec.rb",
         "spec/requests/discourse_graphql/topic_posts_spec.rb",
-        "spec/requests/discourse_graphql/performance_spec.rb"
+        "spec/requests/discourse_graphql/performance_spec.rb",
+        "spec/requests/discourse_graphql/topic_state_spec.rb"
       ],
       "native_entry_points": [
         "TopicView",
         "Guardian#can_see_topic_ids",
-        "PostSerializer"
+        "PostSerializer",
+        "TopicUser.lookup_for"
       ],
       "authorization_requirements": [
         "Native topic permission, post visibility and author display",
-        "Signed topic page cursors and request scoped batching"
+        "Signed topic page cursors and request scoped batching",
+        "Stored current actor state batches only after topic authorization"
       ],
       "authorization_audit": "partial, declared adapter paths exercised",
       "status": "partial",
@@ -423,6 +426,78 @@
       "status": "partial",
       "remaining": [
         "Type filtered dismissal and complete live delivery journey"
+      ]
+    },
+    "topics#timings": {
+      "graphql_operations": [
+        "mutation.recordTopicTimings"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/topic_state_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicsController#timings",
+        "PostTiming.process_timings",
+        "TopicUser.update_last_read",
+        "TopicGroup.update_last_read"
+      ],
+      "authorization_requirements": [
+        "Native login and visible topic lookup",
+        "Typed positive unique post numbers, nonnegative milliseconds and maximum50 entries",
+        "Native timing caps, upper range filtering, statistics and notification updates",
+        "Synchronous native action cannot own the outer socket"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Mobile reading metadata and complete client journey"
+      ]
+    },
+    "topics#set_notifications": {
+      "graphql_operations": [
+        "mutation.updateTopicNotifications"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/topic_state_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicsController#set_notifications",
+        "TopicUser.change"
+      ],
+      "authorization_requirements": [
+        "Native login, current actor identity and visible topic guard",
+        "Typed canonical native notification levels",
+        "Native notification reasons, events and publication"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Admin API target user inputs and full preference journeys"
+      ]
+    },
+    "topics#destroy_timings": {
+      "graphql_operations": [
+        "mutation.resetTopicReading"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/topic_state_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicsController#destroy_timings",
+        "PostTiming.destroy_last_for",
+        "PostTiming.destroy_for",
+        "PrivateMessageTopicTrackingState.publish_read"
+      ],
+      "authorization_requirements": [
+        "Native login and visible topic lookup",
+        "Native current actor reset and notification reopening",
+        "Full reset removes the native topic state row and explicit preference",
+        "Native private message tracking publication"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete unread tracking and recovery journeys"
       ]
     }
   },

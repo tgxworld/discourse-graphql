@@ -81,7 +81,10 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `posts#create` | `mutation.createTopic`, `mutation.createPost` | partial |
 | `search#query` | `query.search` | partial |
 | `session#current` | `query.currentUser` | partial |
+| `topics#destroy_timings` | `mutation.resetTopicReading` | partial |
+| `topics#set_notifications` | `mutation.updateTopicNotifications` | partial |
 | `topics#show` | `query.topic`, `query.topicPosts` | partial |
+| `topics#timings` | `mutation.recordTopicTimings` | partial |
 
 ## Native route resolution
 

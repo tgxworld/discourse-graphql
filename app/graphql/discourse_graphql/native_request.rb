@@ -1,13 +1,22 @@
 module DiscourseGraphQL
   module NativeRequest
-    def self.included(controller)
-      controller.skip_before_action :clear_notifications
-      controller.skip_after_action :perform_refresh_session
+    extend ActiveSupport::Concern
+
+    included do
+      skip_before_action :clear_notifications
+      skip_after_action :perform_refresh_session
+    end
+
+    class_methods do
+      def requires_login_arg
+        superclass.requires_login_arg
+      end
     end
 
     def initialize(request:, request_method: nil)
       super()
       environment = request.env.dup
+      environment.delete("rack.hijack")
       if request_method
         environment["REQUEST_METHOD"] = request_method
         environment.delete("rack.methodoverride.original_method")

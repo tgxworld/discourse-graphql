@@ -25,3 +25,11 @@ tgx-dv test --name graphql-revival-01a1aaad --env LOAD_PLUGINS=1 --seed 23293 tm
 ```
 
 GraphQL error containment does not resolve this dependency. Keep it incomplete until the native correction is present in the supported revision and the reproduction plus GraphQL recovery tests pass. Full application scope remains required.
+
+## Malformed native timing entries
+
+The native timing endpoint returns HTTP 500 for a negative post number at the end of its timing map. `PostTiming.process_timings` deletes the entry and then dereferences the removed slot at line 185. A real native HTTP reproduction is retained in `tmp/discourse-task/native_negative_timing_spec.rb`.
+
+The GraphQL input contract requires positive post numbers and rejects nonpositive values before native execution. The malformed input is outside the typed API contract. The plugin preserves the native algorithm for accepted inputs and does not patch this native defect.
+
+A separate native HTTP case in the same reproduction verifies that the first timing submission creates stored topic state with zero total viewed milliseconds. A second 500 ms submission adds 500. GraphQL exposes these stored native values rather than reconstructing a different total.

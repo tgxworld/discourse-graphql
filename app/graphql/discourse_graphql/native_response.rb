@@ -20,6 +20,10 @@ module DiscourseGraphQL
       end
     end
 
+    def action_payload
+      { success: successful?, errors: errors }
+    end
+
     def raise_error!
       return if successful?
 

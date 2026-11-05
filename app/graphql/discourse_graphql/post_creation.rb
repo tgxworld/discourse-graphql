@@ -2,10 +2,6 @@ module DiscourseGraphQL
   class PostCreation < ::PostsController
     include NativeRequest
 
-    def self.requires_login_arg
-      superclass.requires_login_arg
-    end
-
     def call(parameters:)
       self.params = ActionController::Parameters.new(parameters.merge(nested_post: true))
       process(:create)

@@ -15,12 +15,17 @@ module DiscourseGraphQL
       field :reply_count, Int, null: false
       field :category, CategoryType, null: true
       field :author, UserType, null: true
+      field :current_user_state, TopicStateType, null: true
 
       def self.authorized?(object, context)
         super && context.dataloader.with(
           Loaders::TopicAuthorization,
           guardian: context[:guardian],
         ).load(object.id)
+      end
+
+      def current_user_state
+        dataloader.with(Loaders::TopicState, user: context[:guardian].user).load(object)
       end
 
       def author
