@@ -1000,7 +1000,8 @@
       "graphql_tests": [
         "spec/requests/discourse_graphql/site_settings_spec.rb",
         "spec/requests/discourse_graphql/site_setting_metadata_spec.rb",
-        "script/measure_setting_metadata_spec.rb"
+        "script/measure_setting_metadata_spec.rb",
+        "spec/requests/discourse_graphql/bundled_settings_spec.rb"
       ],
       "native_entry_points": [
         "Admin::SiteSettingsController#index",

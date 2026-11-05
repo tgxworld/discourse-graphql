@@ -196,3 +196,10 @@ The native structured read boundary assessment, setting administration, full cli
 ## Shared site setting increment
 
 Administrator queries now expose native setting definitions, exact lookup and affected preference counts. The bulk mutation uses the native update controller and service. Route constraint hooks, mounted paths, CSRF, credential scopes, visibility, configurability, backfill, archive recovery and request parameter filtering are covered by focused request checks. Typed editor hints, option pages, dependency descriptors and the pinned object and JSON schemas are implemented. Configuration journeys for each plugin and final concurrent performance budgets remain incomplete. Catalog construction remains native and evaluates the full setting set before name filtering. A committed allocation probe confirms repeated native default map duplication, recorded as an unresolved performance dependency.
+
+
+## Bundled configuration discovery evidence
+
+The shared settings adapter matches the native administrator index for all 47 bundled plugins in a real HTTP comparison. The observed test state contains736 visible definitions. Every definition and selected scalar editor hint matches native output, including plugins requiring multiple pages. The verifier follows native ordering to exact terminal pages and rejects repeated cursors. The scope comes from the pinned core tracked plugin entries, with loaded plugin presence asserted.
+
+The reproducible case is `spec/requests/discourse_graphql/bundled_settings_spec.rb`. The value free observation is [plugin-settings.json](capabilities/plugin-settings.json). Counts describe that test state and can change with native configurability and visibility. Per plugin writes, provider flows, rendering, feature actions, live delivery and final performance budgets remain required. Every broad plugin family remains incomplete.

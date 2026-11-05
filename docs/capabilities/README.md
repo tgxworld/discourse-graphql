@@ -60,3 +60,8 @@ for line in inventory.open():
         print(json.dumps(record, indent=2))
 PY
 ```
+
+
+## Bundled configuration discovery
+
+[plugin-settings.json](plugin-settings.json) records a value free native HTTP comparison for every bundled plugin. Reproduce it with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --seed 23293 plugins/discourse-graphql/spec/requests/discourse_graphql/bundled_settings_spec.rb`. The case derives its 47 plugin inputs from the pinned core tracked files, verifies every loaded owner and compares all visible definitions through complete GraphQL page traversal. It emits counts and setting type names without saving current values. This establishes shared configuration discovery. Configuration writes and plugin feature completion remain separately required.

@@ -1,0 +1,582 @@
+{
+  "discourse_revision": "f5e1933dd40c57b886da02c45e5630020ceb99c2",
+  "scope": "Visible native setting definitions, selected scalar metadata and complete forward pagination. Configuration writes, feature workflows and final budgets remain incomplete.",
+  "verifier": "spec/requests/discourse_graphql/bundled_settings_spec.rb",
+  "plugins": 47,
+  "visible_settings": 736,
+  "summaries": [
+    {
+      "plugin": "automation",
+      "registered_name": "automation",
+      "visible_settings": 1,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "blog",
+      "registered_name": "blog",
+      "visible_settings": 10,
+      "pages": 1,
+      "types": [
+        "category",
+        "group_list",
+        "integer",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "boards",
+      "registered_name": "boards",
+      "visible_settings": 1,
+      "pages": 1,
+      "types": [
+        "group_list"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "chat",
+      "registered_name": "chat",
+      "visible_settings": 28,
+      "pages": 2,
+      "types": [
+        "bool",
+        "enum",
+        "float",
+        "group_list",
+        "integer"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "checklist",
+      "registered_name": "checklist",
+      "visible_settings": 1,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-adplugin",
+      "registered_name": "discourse-adplugin",
+      "visible_settings": 122,
+      "pages": 5,
+      "types": [
+        "bool",
+        "category_list",
+        "group_list",
+        "integer",
+        "list",
+        "string",
+        "value_list"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-affiliate",
+      "registered_name": "discourse-affiliate",
+      "visible_settings": 17,
+      "pages": 1,
+      "types": [
+        "bool",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-ai",
+      "registered_name": "discourse-ai",
+      "visible_settings": 130,
+      "pages": 6,
+      "types": [
+        "bool",
+        "category_list",
+        "date",
+        "enum",
+        "float",
+        "group_list",
+        "integer",
+        "list",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-apple-auth",
+      "registered_name": "discourse-apple-auth",
+      "visible_settings": 5,
+      "pages": 1,
+      "types": [
+        "bool",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-assign",
+      "registered_name": "discourse-assign",
+      "visible_settings": 21,
+      "pages": 1,
+      "types": [
+        "bool",
+        "enum",
+        "group_list",
+        "integer",
+        "list",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-cakeday",
+      "registered_name": "discourse-cakeday",
+      "visible_settings": 4,
+      "pages": 1,
+      "types": [
+        "bool",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-captcha",
+      "registered_name": "discourse-captcha",
+      "visible_settings": 9,
+      "pages": 1,
+      "types": [
+        "bool",
+        "enum",
+        "float",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-chat-integration",
+      "registered_name": "discourse-chat-integration",
+      "visible_settings": 54,
+      "pages": 3,
+      "types": [
+        "bool",
+        "integer",
+        "string",
+        "username"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-data-explorer",
+      "registered_name": "discourse-data-explorer",
+      "visible_settings": 2,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-details",
+      "registered_name": "discourse-details",
+      "visible_settings": 1,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-events",
+      "registered_name": "discourse-events",
+      "visible_settings": 35,
+      "pages": 2,
+      "types": [
+        "bool",
+        "category",
+        "category_list",
+        "enum",
+        "group_list",
+        "integer",
+        "list",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-gamification",
+      "registered_name": "discourse-gamification",
+      "visible_settings": 18,
+      "pages": 1,
+      "types": [
+        "bool",
+        "category_list",
+        "enum",
+        "integer"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-github",
+      "registered_name": "discourse-github",
+      "visible_settings": 14,
+      "pages": 1,
+      "types": [
+        "bool",
+        "category_list",
+        "integer",
+        "list",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-graphviz",
+      "registered_name": "discourse-graphviz",
+      "visible_settings": 1,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-lazy-videos",
+      "registered_name": "discourse-lazy-videos",
+      "visible_settings": 4,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-local-dates",
+      "registered_name": "discourse-local-dates",
+      "visible_settings": 5,
+      "pages": 1,
+      "types": [
+        "bool",
+        "list",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-login-with-amazon",
+      "registered_name": "discourse-login-with-amazon",
+      "visible_settings": 7,
+      "pages": 1,
+      "types": [
+        "bool",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-lti",
+      "registered_name": "discourse-lti",
+      "visible_settings": 6,
+      "pages": 1,
+      "types": [
+        "bool",
+        "list",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-math",
+      "registered_name": "discourse-math",
+      "visible_settings": 8,
+      "pages": 1,
+      "types": [
+        "bool",
+        "enum"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-microsoft-auth",
+      "registered_name": "discourse-microsoft-auth",
+      "visible_settings": 5,
+      "pages": 1,
+      "types": [
+        "bool",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-narrative-bot",
+      "registered_name": "discourse-narrative-bot",
+      "visible_settings": 6,
+      "pages": 1,
+      "types": [
+        "bool",
+        "enum",
+        "integer",
+        "list"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-oauth2-basic",
+      "registered_name": "discourse-oauth2-basic",
+      "visible_settings": 29,
+      "pages": 2,
+      "types": [
+        "bool",
+        "enum",
+        "list",
+        "objects",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-openid-connect",
+      "registered_name": "discourse-openid-connect",
+      "visible_settings": 25,
+      "pages": 1,
+      "types": [
+        "bool",
+        "list",
+        "objects",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-patreon",
+      "registered_name": "discourse-patreon",
+      "visible_settings": 16,
+      "pages": 1,
+      "types": [
+        "bool",
+        "enum",
+        "integer",
+        "string",
+        "username"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-policy",
+      "registered_name": "discourse-policy",
+      "visible_settings": 3,
+      "pages": 1,
+      "types": [
+        "bool",
+        "group_list"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-post-voting",
+      "registered_name": "discourse-post-voting",
+      "visible_settings": 6,
+      "pages": 1,
+      "types": [
+        "bool",
+        "group_list",
+        "integer"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-presence",
+      "registered_name": "discourse-presence",
+      "visible_settings": 2,
+      "pages": 1,
+      "types": [
+        "bool",
+        "integer"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-reactions",
+      "registered_name": "discourse-reactions",
+      "visible_settings": 7,
+      "pages": 1,
+      "types": [
+        "bool",
+        "emoji_list",
+        "enum",
+        "icon"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-rewind",
+      "registered_name": "discourse-rewind",
+      "visible_settings": 1,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-rss-polling",
+      "registered_name": "discourse-rss-polling",
+      "visible_settings": 6,
+      "pages": 1,
+      "types": [
+        "bool",
+        "integer"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-solved",
+      "registered_name": "discourse-solved",
+      "visible_settings": 14,
+      "pages": 1,
+      "types": [
+        "bool",
+        "enum",
+        "group_list",
+        "integer",
+        "tag_list"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-subscriptions",
+      "registered_name": "discourse-subscriptions",
+      "visible_settings": 18,
+      "pages": 1,
+      "types": [
+        "bool",
+        "color",
+        "enum",
+        "integer",
+        "string",
+        "upload"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-templates",
+      "registered_name": "discourse-templates",
+      "visible_settings": 5,
+      "pages": 1,
+      "types": [
+        "bool",
+        "category_list",
+        "group_list",
+        "tag_list"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-topic-voting",
+      "registered_name": "discourse-topic-voting",
+      "visible_settings": 10,
+      "pages": 1,
+      "types": [
+        "bool",
+        "integer"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-user-notes",
+      "registered_name": "discourse-user-notes",
+      "visible_settings": 3,
+      "pages": 1,
+      "types": [
+        "bool",
+        "enum"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-workflows",
+      "registered_name": "discourse-workflows",
+      "visible_settings": 1,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "discourse-zendesk-plugin",
+      "registered_name": "discourse-zendesk-plugin",
+      "visible_settings": 13,
+      "pages": 1,
+      "types": [
+        "bool",
+        "category_list",
+        "list",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "footnote",
+      "registered_name": "footnote",
+      "visible_settings": 2,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "live",
+      "registered_name": "live",
+      "visible_settings": 49,
+      "pages": 2,
+      "types": [
+        "bool",
+        "enum",
+        "group_list",
+        "integer",
+        "string"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "poll",
+      "registered_name": "poll",
+      "visible_settings": 8,
+      "pages": 1,
+      "types": [
+        "bool",
+        "group_list",
+        "integer",
+        "list"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "spoiler-alert",
+      "registered_name": "spoiler-alert",
+      "visible_settings": 1,
+      "pages": 1,
+      "types": [
+        "bool"
+      ],
+      "result": "native parity"
+    },
+    {
+      "plugin": "styleguide",
+      "registered_name": "styleguide",
+      "visible_settings": 2,
+      "pages": 1,
+      "types": [
+        "bool",
+        "group_list"
+      ],
+      "result": "native parity"
+    }
+  ]
+}
