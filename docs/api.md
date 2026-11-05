@@ -263,3 +263,35 @@ On success, retain returned state. On conflict, retain local intent. For a check
 The mutation clears request loaders before and after processing. Its cost is 1000 plus 20 per requested toggle before selected output fields. Native GET rejection, readonly mode, CSRF, credential scopes and rate limiting remain applicable. The shared native allowance is 60 requests per minute at the pinned revision.
 
 A native structured read boundary remains an assessment item before complete plugin coverage. Current clients use native cooked target hints with the typed mutation. Native setting administration, complete client journeys and final concurrent workload budgets remain required.
+
+## Site setting administration
+
+`adminSiteSettings(first: 25, after:, names:, categories:, plugin:)` returns native setting definitions in native order. Pages contain at most 100 definitions. Name and category filters accept at most 100 entries. Names and filter entries must be nonblank strings of at most 128 bytes. Cursors bind the administrator, site, filters and page size. Native index construction still evaluates the complete setting catalog before name filtering, so a small page does not imply proportionally small native work.
+
+`adminSiteSetting(name:)` returns the exact visible setting or null for an unknown or hidden setting. The native list can include its default locale entry even when a name filter is supplied. Exact lookup excludes this unrelated entry.
+
+Definitions expose `name`, `displayName`, `type`, `category`, `primaryArea`, `plugin`, `description`, `valueWire`, `defaultWire`, `secret` and `themeable`. Optional native metadata remains nullable. Native modifiers can remove values without a model fallback. Rich editor and choice metadata remain incomplete.
+
+`updateSiteSettings(changes:)` accepts between one and 50 uniquely named changes. Each `SiteSettingChangeInput` requires `name` and `valueWire`. Optional `backfill` defaults to false. Values use the native String wire protocol for every setting type. Boolean values are strings such as `"false"`, list values use the native separator, and object values contain native JSON text. Native parsing and validation remain authoritative. For example:
+
+```graphql
+mutation {
+  updateSiteSettings(changes: [
+    { name: "title", valueWire: "Our community" }
+    { name: "allow_user_locale", valueWire: "false" }
+  ]) {
+    success
+    errors { code message }
+  }
+}
+```
+
+The native controller performs the update through `SiteSetting::Update`, retaining visibility, configurability, dependency ordering, validation, transaction handling, staff logs, events, cache changes and explicit preference backfill. Success acknowledges the native response without manufacturing current values. Query definitions again to obtain current state. A lost response requires reconciliation before deciding whether to repeat the operation.
+
+`siteSettingAffectedUserCount(name:, valueWire:)` retains the native affected preference count action and returns a nullable BigInt. It uses native PUT semantics despite being a GraphQL query, so credential scopes, CSRF and readonly protections remain applicable. Unsupported default preference families can return null.
+
+All three native actions retain administrator checks and both native router constraint hooks. Hooks receive logical native paths, methods, route parameters, bodies, sessions and headers, including a mounted site subfolder. Native authentication evaluates the reconstructed request rather than accepting the outer request identity cache. For example, a key limited to GET requests can read definitions but cannot invoke the native PUT count action through a GraphQL GET query. Native archived site recovery is available through `updateSiteSettings`. The controller remains responsible for which settings can change while archived. A mutation mixing recovery with any root action lacking native archived permission is rejected before writes execute. Skipped root fields do not participate in admission. The root walk deduplicates fragments and does not descend into payload selections.
+
+GraphQL documents, variable objects, legacy variable strings and multipart operation documents are filtered from request parameters before the native request logger. Logical native administration parameters are filtered too. Existing parameter filters remain in effect, and unrelated endpoints retain their own query logging behavior. This protection covers request logs and controller request payload notifications. It does not claim to filter database bind logging.
+
+List and single definition reads cost at least 4000 each. Affected count costs 1000. Bulk changes cost 2000 plus 20 per requested setting and selected output fields. These bounds acknowledge native catalog construction rather than claiming it has been optimized. Final concurrent performance budgets remain required.

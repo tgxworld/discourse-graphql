@@ -1,6 +1,7 @@
 module DiscourseGraphQL
   class GraphQLController < ApplicationController
     requires_plugin DiscourseGraphQL::PLUGIN_NAME
+    allow_when_archived :execute
 
     skip_before_action :check_xhr, :preload_json
 
@@ -30,6 +31,10 @@ module DiscourseGraphQL
         )
 
       return render_bad_request if request.get? && query.selected_operation&.operation_type == "mutation"
+
+      if SiteSetting.site_archived && !request.get? && !request.head? && !ArchiveAdmission.allowed?(query)
+        raise Discourse::SiteArchived
+      end
 
       result = query.result.to_h
       if query.validation_errors.present?

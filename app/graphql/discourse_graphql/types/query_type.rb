@@ -3,6 +3,7 @@
 module DiscourseGraphQL
   module Types
     class QueryType < Types::BaseObject
+      include SiteSettingQueryFields
       Extensions.query_modules.each { |extension| include extension }
 
       field :capabilities, [CapabilityType], null: false

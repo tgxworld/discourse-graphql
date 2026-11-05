@@ -988,8 +988,81 @@
       "status": "partial",
       "remaining": [
         "Assess reusable structured read boundary without copying private parsing",
-        "Native setting administration through shared core capability",
+        "Complete setting editor metadata and Checklist configuration journeys",
         "Complete client journeys, concurrency recovery and final workload budgets"
+      ]
+    },
+    "admin/site_settings#index": {
+      "graphql_operations": [
+        "query.adminSiteSettings",
+        "query.adminSiteSetting"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/site_settings_spec.rb"
+      ],
+      "native_entry_points": [
+        "Admin::SiteSettingsController#index",
+        "SiteSetting.all_settings"
+      ],
+      "authorization_requirements": [
+        "Native StaffConstraint and AdminConstraint custom hooks with logical native request metadata",
+        "Native administrator role, credential scopes and browser CSRF",
+        "Native visibility, configurability and setting validation",
+        "Native archived site restrictions, readonly mode and secret parameter filtering"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete typed editor and choice metadata",
+        "Final concurrent workload budgets and native full catalog construction cost"
+      ]
+    },
+    "admin/site_settings#update": {
+      "graphql_operations": [
+        "mutation.updateSiteSettings"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/site_settings_spec.rb"
+      ],
+      "native_entry_points": [
+        "Admin::SiteSettingsController#update",
+        "SiteSetting::Update.call"
+      ],
+      "authorization_requirements": [
+        "Native StaffConstraint and AdminConstraint custom hooks with logical native request metadata",
+        "Native administrator role, credential scopes and browser CSRF",
+        "Native visibility, configurability and setting validation",
+        "Native archived site restrictions, readonly mode and secret parameter filtering"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete administrative client journeys",
+        "Verify every plugin configuration workflow through its owning feature"
+      ]
+    },
+    "admin/site_settings#user_count": {
+      "graphql_operations": [
+        "query.siteSettingAffectedUserCount"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/site_settings_spec.rb"
+      ],
+      "native_entry_points": [
+        "Admin::SiteSettingsController#user_count",
+        "UserOption.human_users",
+        "SiteSettingUpdateExistingUsers"
+      ],
+      "authorization_requirements": [
+        "Native StaffConstraint and AdminConstraint custom hooks with logical native request metadata",
+        "Native administrator role, credential scopes and browser CSRF",
+        "Native visibility, configurability and setting validation",
+        "Native archived site restrictions, readonly mode and secret parameter filtering"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete user preference administration journeys"
       ]
     }
   },

@@ -6,7 +6,7 @@ This is the required scope and delivery ledger. Every row starts incomplete. Ope
 
 Core and plugin implementations remain authoritative for permissions, validation, rate limiting, filtering, persistence and side effects. Existing signed provider callbacks and browser rendering are preserved through their native flows. Their compatibility still requires verification.
 
-The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 43 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
+The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 46 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
 
 ## Core
 
@@ -191,3 +191,8 @@ The suite retains actor ownership, anonymous denial for every new action, browse
 Disabled Checklist retains schema fields and capability discovery while rejecting updates. New posts cooked while disabled retain native rendering behavior. Fresh eager boot without Checklist exposes no plugin fields, types or native constants. A separate boot with Checklist and no Chat verifies its independent schema, native anonymous denial and disabled execution. The isolated verification script runs enabled and disabled phases in separate processes and sets its test mode before issuing requests.
 
 The native structured read boundary assessment, setting administration, full client journeys and final workload budgets remain incomplete. This slice adds no duplicate checkbox parser, revision logic or permission policy.
+
+
+## Shared site setting increment
+
+Administrator queries now expose native setting definitions, exact lookup and affected preference counts. The bulk mutation uses the native update controller and service. Route constraint hooks, mounted paths, CSRF, credential scopes, visibility, configurability, backfill, archive recovery and request parameter filtering are covered by focused request checks. Rich setting editor metadata, configuration journeys for each plugin and final concurrent performance budgets remain incomplete. Catalog construction remains native and evaluates the full setting set before name filtering.

@@ -77,6 +77,8 @@ module DiscourseGraphQL
       path = environment["PATH_INFO"].to_s
       return @app.call(environment) unless path.match?(%r{(?:\A|/)discourse-graphql/graphql(?:\.[^/]+)?/?\z})
 
+      environment["action_dispatch.parameter_filter"] = Array(environment["action_dispatch.parameter_filter"]) + %i[query variables operations]
+
       multipart = environment["CONTENT_TYPE"].to_s.match?(%r{\Amultipart/form-data(?:;|\z)}i)
       limit_bytes = multipart ? MAX_BODY_BYTES : MAX_DOCUMENT_BYTES
       return too_large if environment["CONTENT_LENGTH"].to_i > limit_bytes

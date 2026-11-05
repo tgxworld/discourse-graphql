@@ -11,6 +11,10 @@ module DiscourseGraphQL
       def requires_login_arg
         superclass.requires_login_arg
       end
+
+      def allowed_when_archived?(action)
+        superclass.allowed_when_archived?(action)
+      end
     end
 
     def initialize(request:, request_method: nil)

@@ -63,6 +63,9 @@ These links cover declared adapter slices. The remaining native action capabilit
 
 | Native action | GraphQL fields | Status |
 |---|---|---|
+| `admin/site_settings#index` | `query.adminSiteSettings`, `query.adminSiteSetting` | partial |
+| `admin/site_settings#update` | `mutation.updateSiteSettings` | partial |
+| `admin/site_settings#user_count` | `query.siteSettingAffectedUserCount` | partial |
 | `bookmarks#bulk` | `mutation.bulkBookmarks` | partial |
 | `bookmarks#create` | `mutation.createBookmark` | partial |
 | `bookmarks#destroy` | `mutation.deleteBookmark` | partial |

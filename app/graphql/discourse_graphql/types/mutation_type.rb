@@ -5,6 +5,7 @@ module DiscourseGraphQL
       include BookmarkMutationFields
       include DraftMutationFields
       include UploadMutationFields
+      include SiteSettingMutationFields
       Extensions.mutation_modules.each { |extension| include extension }
 
       field :mark_notification_read, ActionPayloadType, null: true, complexity: 1000 do
