@@ -6,7 +6,7 @@ This is the required scope and delivery ledger. Every row starts incomplete. Ope
 
 Core and plugin implementations remain authoritative for permissions, validation, rate limiting, filtering, persistence and side effects. Existing signed provider callbacks and browser rendering are preserved through their native flows. Their compatibility still requires verification.
 
-The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 36 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
+The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 42 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
 
 ## Core
 
@@ -167,7 +167,16 @@ Native listing after an accepted array draft remains an independently reproduced
 
 `upload_ingress_spec.rb` exercises raw body limits, missing lengths, downstream exception handling, relative paths and format suffixes, malformed parser cleanup, response closure, duplicate file names and partial streaming overflow. Native Rack parsing remains responsible for multipart grammar. The endpoint tracks files from factory creation rather than relying on Rack registration after parsing.
 
-Direct storage workflows, large transfers, remaining native serialization and measured parsing, copying, memory and concurrent load budgets remain incomplete. This slice does not complete the upload family or full forum client journey.
+Remaining native serialization, complete client journeys and measured parsing, copying, memory and concurrent load budgets remain incomplete. Direct storage evidence follows below. This slice does not complete the upload family or full forum client journey.
 
 
 Protected URL lookup has a measured native N+1 dependency. One and 50 distinct permitted private message uploads produce 14 and 158 GraphQL SQL queries, versus 11 and 158 at the native HTTP endpoint. All returned identities are asserted and query caches are cleared. This does not satisfy the query growth requirement. No synthetic preload or copied policy is used to conceal that gap. See [native dependencies](native-dependencies.md).
+
+
+## Direct storage operation evidence
+
+`external_uploads_spec.rb` drives six fixed native actions through GraphQL HTTP. Single PUT evidence uses the returned signed headers in a provider HTTP request, native completion downloads actual fixture bytes and creates the native upload, and a consumed ticket returns its native error. Multipart evidence checks ticket state, signed part URLs, native part sorting, real promotion and abort. Backup completion moves the native destination object without creating an Upload row.
+
+The suite retains actor ownership, anonymous denial for every new action, browser CSRF, shared initiation and signing allowances, native size validation, temporary bans and cleanup after size mismatch, checksum failure with debug retention, local and disabled storage behavior, typed bounds, GET and readonly protections. It admits the full 10,000 part completion payload and signs all final 100 part numbers. Native promotion above 100 MiB and false versus true private upload options are exercised. External storage is stubbed at its provider boundary. Native manager transformation and controller responses are not mocked.
+
+`script/measure_external_upload_threshold_spec.rb` separately calls the native completion endpoint at exactly 100 MiB. It reports HTTP422, no resulting upload, removal of both ticket and temporary object, and native nil.path logging. This is an unresolved native lifecycle defect. A passing characterization of the failure does not establish compatible large transfer coverage. Protected upload URL lookup query growth also remains unmet. Complete client journeys, remaining semantic branches and final concurrent workloads remain required.

@@ -64,3 +64,14 @@ No access policy has been copied or bypassed. Native lookup performance remains 
 
 
 Reproduce the upload measurement with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --seed 23293 plugins/discourse-graphql/script/measure_upload_lookup_spec.rb`. The measurement asserts complete permitted results and emits `growth_budget_met`. The current result is false.
+
+
+## Exact direct storage download threshold
+
+`ExternalUploadManager#promote_to_upload` downloads only when external size is below `DOWNLOAD_LIMIT`, while selecting its external filesize path only above that threshold. At exactly 104,857,600 bytes, native completion reaches `UploadCreator#filesize` with a nil file and logs nil.path at line602. The native helper returns HTTP422 with a generic upload failure. Native rescue cleanup removes both the ticket and temporary storage object.
+
+The committed `script/measure_external_upload_threshold_spec.rb` drives POST `/uploads/complete-external-upload.json` with an owned ticket and a matching provider size. It uses the actual native manager and stubs only external storage. It prints `native_completion_succeeded: false` and records the partial state. Reproduce with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --seed 23293 plugins/discourse-graphql/script/measure_external_upload_threshold_spec.rb`.
+
+This remains an unmet compatibility requirement. The adapter neither changes the size nor supplies a replacement promotion policy. A native correction must make the two processing branches cover the equality case and preserve native validation, checksum, cleanup and large file semantics.
+
+Native backup initiation uses multipart storage. The backup store does not implement the single PUT signing method. The supported backup multipart path is verified separately. No backup signer is added to this plugin.

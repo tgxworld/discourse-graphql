@@ -4,25 +4,8 @@ module DiscourseGraphQL
       include TopicStateMutationFields
       include BookmarkMutationFields
       include DraftMutationFields
+      include UploadMutationFields
       Extensions.mutation_modules.each { |extension| include extension }
-
-      field :create_upload, UploadPayloadType, null: true, complexity: 1000 do
-        argument :input, CreateUploadInput, required: true
-      end
-
-      def create_upload(input:)
-        parameters = input.to_h
-        if parameters[:file].present? == parameters[:url].present? || parameters[:url]&.bytesize.to_i > 4096
-          raise Discourse::InvalidParameters
-        end
-        %i[pasted for_private_message for_site_setting].each do |key|
-          parameters[key] = parameters[key].to_s unless parameters[key].nil?
-        end
-        context.dataloader.clear_cache
-        UploadCreation.new(request: context[:request], request_method: "POST").call(parameters: parameters)
-      ensure
-        context.dataloader.clear_cache
-      end
 
       field :mark_notification_read, ActionPayloadType, null: true, complexity: 1000 do
         argument :id, ID, required: true
