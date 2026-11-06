@@ -1,60 +1,88 @@
 module DiscourseGraphQL
   class GraphQLController < ApplicationController
-    skip_before_action :check_xhr, :verify_authenticity_token, :preload_json
+    requires_plugin DiscourseGraphQL::PLUGIN_NAME
+    allow_when_archived :execute
 
-    # If accessing from outside this domain, nullify the session
-    # This allows for outside API access while preventing CSRF attacks,
-    # but you'll have to authenticate your user separately
-    # protect_from_forgery with: :null_session
+    skip_before_action :check_xhr, :preload_json
 
     def execute
-      raise Discourse::InvalidAccess.new if !Rails.env.development? && !is_api?
+      parameters = MultipartRequest.parameters(params)
+      if parameters[:_json].present? || !parameters[:query].is_a?(String) ||
+           parameters[:query].blank?
+        return render_bad_request
+      end
 
-      variables = ensure_hash(params[:variables])
-      query = params[:query]
-      operation_name = params[:operationName]
+      variables = parameters[:variables]
+      variables = JSON.parse(variables) if variables.is_a?(String) && variables.present?
+      variables = {} if variables.nil? || variables == ""
+      variables = variables.to_unsafe_h if variables.is_a?(ActionController::Parameters)
+      return render_bad_request unless variables.is_a?(Hash)
 
-      context = {
-        guardian: Guardian.new(current_user),
-      }
+      operation_name = parameters[:operationName]
+      return render_bad_request if operation_name && !operation_name.is_a?(String)
 
-      result = DiscourseSchema.execute(query,
-        variables: variables,
-        context: context,
-        operation_name: operation_name
-      )
+      document = GraphQL.parse(parameters[:query])
+      query =
+        GraphQL::Query.new(
+          DiscourseGraphQL::Schema,
+          document: document,
+          variables: variables,
+          operation_name: operation_name,
+          context: {
+            guardian: guardian,
+            request: request,
+          },
+        )
+
+      if request.get? && query.selected_operation&.operation_type == "mutation"
+        return render_bad_request
+      end
+
+      if SiteSetting.site_archived && !request.get? && !request.head? &&
+           !ArchiveAdmission.allowed?(query)
+        raise Discourse::SiteArchived
+      end
+
+      result = query.result.to_h
+      if query.validation_errors.present?
+        result
+          .fetch("errors", [])
+          .each do |error|
+            error["extensions"] ||= {}
+            error["extensions"]["code"] = "GRAPHQL_VALIDATION_FAILED"
+          end
+      end
 
       render json: result
-    rescue => e
-      raise e unless Rails.env.development?
-      handle_error_in_development e
+    rescue JSON::ParserError, Discourse::InvalidParameters
+      render_bad_request
+    rescue GraphQL::ParseError
+      render json: {
+               errors: [
+                 {
+                   message: I18n.t("discourse_graphql.errors.invalid_query"),
+                   extensions: {
+                     code: "GRAPHQL_PARSE_FAILED",
+                   },
+                 },
+               ],
+             }
     end
 
     private
 
-    # Handle form data, JSON body, or a blank value
-    def ensure_hash(ambiguous_param)
-      case ambiguous_param
-      when String
-        if ambiguous_param.present?
-          ensure_hash(JSON.parse(ambiguous_param))
-        else
-          {}
-        end
-      when Hash, ActionController::Parameters
-        ambiguous_param
-      when nil
-        {}
-      else
-        raise ArgumentError, "Unexpected parameter: #{ambiguous_param}"
-      end
-    end
-
-    def handle_error_in_development(e)
-      logger.error e.message
-      logger.error e.backtrace.join("\n")
-
-      render json: { errors: [{ message: e.message, backtrace: e.backtrace }], data: {} }, status: 500
+    def render_bad_request
+      render json: {
+               errors: [
+                 {
+                   message: I18n.t("discourse_graphql.errors.invalid_request"),
+                   extensions: {
+                     code: "BAD_REQUEST",
+                   },
+                 },
+               ],
+             },
+             status: :bad_request
     end
   end
 end

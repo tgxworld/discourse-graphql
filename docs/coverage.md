@@ -1,0 +1,254 @@
+# Capability coverage
+
+Supported Discourse revision: `f5e1933dd40c57b886da02c45e5630020ceb99c2`.
+
+This is the required scope and delivery ledger. Every row starts incomplete. Operation names below are proposed contracts, not implemented coverage. Detailed endpoint and field audits must resolve each family before it can be marked verified.
+
+Core and plugin implementations remain authoritative for permissions, validation, rate limiting, filtering, persistence and side effects. Existing signed provider callbacks and browser rendering are preserved through their native flows. Their compatibility still requires verification.
+
+The [operation inventory](capabilities/native-operations.md) records 1,467 routed action names, 345 controllers, their native callback and router guard metadata, and 58 other endpoints. [Reviewed mappings](capabilities/coverage.json) link current GraphQL slices to native owners and request evidence. All 59 mapped native actions remain partial. Shared capability assessments retain plugins without dedicated controllers, and unresolved route names remain visible for review. Source enumeration does not complete the authorization audit or establish full feature coverage.
+
+## Core
+
+| Capability | Proposed operations | Existing owner | Verification | Status |
+|---|---|---|---|---|
+| Identity and authentication | currentUser, authenticationProviders, session management, API key management | CurrentUser, SessionController, UserApiKeysController, ApiKeysController | HTTP identity, key scopes, CSRF, revoked keys | Incomplete |
+| Site and community structure | site, categories, category, tags, tagGroups | SiteController, CategoryList, CategoriesController, TagsController | Public and restricted category journeys | Incomplete |
+| Discovery | latestTopics, newTopics, unreadTopics, topTopics, categoryTopics, search | TopicQuery, Search, ListController | Filtering, pagination, search permission checks | Incomplete |
+| Reading | topic, post, topicPosts, revisions, translations | TopicView, Post serializers, PostsController | Nested access, deleted content, uploads, rendered plugin content | Incomplete |
+| Participation | createTopic, createPost, updatePost, deletePost, recoverPost, uploadFile | NewPostManager, PostCreator, PostRevisor, PostDestroyer, UploadCreator, controllers | HTTP writes, validation, moderation and rate limits | Incomplete |
+| Personal state | bookmarks, drafts, notifications, updateReadingState, updateTopicNotifications | Bookmark, Draft, TopicUser, Notification services and controllers | Save, reload, unread counts and preferences | Incomplete |
+| People and groups | user, userActivity, directory, groups, group, memberships | User and group queries, serializers, services and controllers | Profile field privacy, staff fields and membership permissions | Incomplete |
+| Personal messages | personalMessages, createPersonalMessage, updateRecipients | TopicQuery, TopicView, NewPostManager, participant management | Sender, recipient, group and unauthorized actor journeys | Incomplete |
+| Moderation | reviewables, flags, reviewActions, topic moderation, sanctions | Reviewable services, Guardian, post and topic moderation controllers | Staff versus member, flags, review transitions and logs | Incomplete |
+| Administration | siteSettings, categories, groups, invites, badges, themes, plugins, reports, backups, API keys, webhooks | Existing admin controllers and owned services | Admin capability audit, secret filtering, existing provider boundaries | Incomplete |
+| Live behavior | notificationEvents, topicEvents, presenceEvents | MessageBus and existing authorization | Reconnect, replay bounds, permission revocation and disabled features | Incomplete |
+
+## Bundled plugins
+
+All 47 bundled plugins at the supported revision are represented. Shared settings and rendered content count only after their behavior is exercised through the GraphQL journey and existing rendering boundary.
+
+| Plugin | Required capabilities | Proposed operations | Existing owner | Verification | Status |
+|---|---|---|---|---|---|
+| `automation` | Automations, scripts, triggers, manual execution, notices, checked posts | automationDefinitions, automationScripts, automationTriggers, createAutomation, updateAutomation, deleteAutomation, triggerAutomation, dismissAutomationNotice | DiscourseAutomation services and controllers | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `blog` | Articles, publishing, scheduling, editorial review, feedback, themes | blogArticles, blogArticle, blogReviews, blogThemes, updateBlogArticle, publishBlogArticle, scheduleBlogArticle, submitBlogReview, updateBlogTheme | Blog controllers and EditorQuery | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `boards` | Boards, columns, cards, ordering, constraints, archives, topic moves | boards, board, createBoard, updateBoard, archiveBoard, createBoardColumn, updateBoardCard, moveTopicToBoard | Boards services | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `chat` | Channels, direct messages, threads, messages, pins, uploads, reactions, membership, bookmarks, drafts, search, unread state, preferences, flags, moderation, exports, webhooks, presence, live delivery | chatChannels, chatChannel, chatMessages, chatThreads, chatSearch, createChatMessage, updateChatMessage, deleteChatMessage, createChatThread, createDirectMessageChannel, updateChatMembership, chatEvents | Chat services, controller protections, serializers and MessageBus | HTTP capability tests, authorized and denied actors, disabled plugin, performance, live delivery and revocation | Incomplete |
+| `checklist` | Rendered checklists, permitted checkbox changes | updateChecklist, Post.cooked, Post.updatedAt | Checklist::ToggleCheckbox and existing cooking | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-adplugin` | House ads, targeting settings, impressions, ads.txt | houseAds, houseAd, createHouseAd, updateHouseAd, deleteHouseAd, recordAdImpression, updateHouseAdSettings | AdPlugin controllers and settings | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-affiliate` | Affiliate link rewriting and configuration | Post.cooked, siteSettings, updateSiteSetting | Existing cooking and site settings | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-ai` | Agents, conversations, artifacts, shares, tools, MCP servers, model configuration, quotas, credits, usage, logs, embeddings, discovery, assistance, summaries, translation, moderation, streaming | aiConversations, aiAgents, aiArtifacts, aiModels, aiUsage, aiLogs, aiCredits, createAiConversation, updateAiAgent, suggestWithAi, summarizeTopic, translatePost, aiEvents | DiscourseAi controllers, services, serializers and existing streaming | HTTP capability tests, authorized and denied actors, disabled plugin, performance, live delivery and revocation | Incomplete |
+| `discourse-apple-auth` | Provider availability, configuration, existing login and callback flow | authenticationProviders, updateSiteSetting, existing provider flow | Apple authenticator and existing authentication endpoints | HTTP capability tests, authorized and denied actors, disabled plugin, performance, provider compatibility with external boundary stubbed | Incomplete |
+| `discourse-assign` | Assignments, unassignment, group and user assignments, filters | Topic.assignments, assignedTopics, assignTopic, unassignTopic | DiscourseAssign controllers and assignment implementation | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-cakeday` | Birthdays, anniversaries and profile dates | birthdays, anniversaries, User.birthdate | DiscourseCakeday queries and serializers | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-captcha` | Challenge availability and verification, provider configuration | captchaChallenge, verifyCaptcha, authenticationProviders, updateSiteSetting | Existing CAPTCHA services and controllers | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-chat-integration` | Providers, channels, rules, tests, transcripts, existing signed provider callbacks | chatIntegrationProviders, chatIntegrationChannels, chatIntegrationRules, updateChatIntegrationRule, testChatIntegration | DiscourseChatIntegration services and controllers | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-data-explorer` | Queries, groups, parameters, execution, exports, cached and related results, bookmarks | dataExplorerQueries, dataExplorerQuery, createDataExplorerQuery, updateDataExplorerQuery, executeDataExplorerQuery | DiscourseDataExplorer controllers and query implementation | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-details` | Details rendering and configuration | Post.cooked, siteSettings | Existing cooking and site settings | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-events` | Events, calendars, attendance, invitations, bulk invitations, holidays, livestream provider flow | events, event, upcomingEvents, eventInvitees, inviteToEvent, updateEventAttendance, updateHolidayRegion | DiscourseEvents services and controllers | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-gamification` | Leaderboards, scores, score events, administration | leaderboards, leaderboard, scoreEvents, updateLeaderboard, updateGamificationScore | DiscourseGamification controllers and score queries | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-github` | Repository integration, configuration, rendered links, existing signed webhooks | Post.cooked, siteSettings, updateSiteSetting, existing signed webhook flow | DiscourseGithub services, cooking and webhook controller | HTTP capability tests, authorized and denied actors, disabled plugin, performance, provider compatibility with external boundary stubbed | Incomplete |
+| `discourse-graphviz` | Rendered diagrams and configuration | Post.cooked, siteSettings | Existing cooking and rendering pipeline | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-lazy-videos` | Video placeholders, playback metadata and rendering | Post.cooked, siteSettings | Existing cooking and client rendering | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-local-dates` | Structured local date markup and rendering | Post.cooked, siteSettings | Existing cooking and client rendering | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-login-with-amazon` | Provider availability, configuration, existing login and callback flow | authenticationProviders, updateSiteSetting, existing provider flow | Amazon authenticator and existing authentication endpoints | HTTP capability tests, authorized and denied actors, disabled plugin, performance, provider compatibility with external boundary stubbed | Incomplete |
+| `discourse-lti` | LTI availability, configuration and existing signed launch flow | authenticationProviders, updateSiteSetting, existing signed launch flow | LTI authenticator and launch implementation | HTTP capability tests, authorized and denied actors, disabled plugin, performance, provider compatibility with external boundary stubbed | Incomplete |
+| `discourse-math` | Math markup and rendering configuration | Post.cooked, siteSettings | Existing cooking and client rendering | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-microsoft-auth` | Provider availability, configuration, existing login and callback flow | authenticationProviders, updateSiteSetting, existing provider flow | Microsoft authenticator and existing authentication endpoints | HTTP capability tests, authorized and denied actors, disabled plugin, performance, provider compatibility with external boundary stubbed | Incomplete |
+| `discourse-narrative-bot` | Tutorial participation, bot replies, certificates and configuration | createPost, botCertificate, siteSettings | Existing post flows and DiscourseNarrativeBot | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-oauth2-basic` | Provider availability, configuration, existing OAuth login and callback flow | authenticationProviders, updateSiteSetting, existing provider flow | OAuth2 authenticator and existing authentication endpoints | HTTP capability tests, authorized and denied actors, disabled plugin, performance, provider compatibility with external boundary stubbed | Incomplete |
+| `discourse-openid-connect` | Provider availability, configuration, existing OpenID login and callback flow | authenticationProviders, updateSiteSetting, existing provider flow | OpenID Connect authenticator and existing authentication endpoints | HTTP capability tests, authorized and denied actors, disabled plugin, performance, provider compatibility with external boundary stubbed | Incomplete |
+| `discourse-patreon` | Integration status, synchronization, group mappings and signed callbacks | patreonStatus, synchronizePatreon, siteSettings, updateSiteSetting | Patreon services and controllers | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-policy` | Policy details, acceptance, revocation, reminders and configuration | Post.policy, acceptPolicy, revokePolicyAcceptance, policyUsers | DiscoursePolicy implementation and controller | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-post-voting` | Post votes, voters, comments, editing and deletion | Post.voting, postVotingComments, votePost, removePostVote, createVotingComment, updateVotingComment, deleteVotingComment | PostVoting controllers and vote implementation | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-presence` | Topic and composer presence, updates and access control | presence, updatePresence, presenceEvents | Existing presence implementation and endpoints | HTTP capability tests, authorized and denied actors, disabled plugin, performance, live delivery and revocation | Incomplete |
+| `discourse-reactions` | Reaction lists, permitted reacting users, toggle and reconciliation | Post.reactions, reactionUsers, toggleReaction | DiscourseReactions services and serializers | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-rewind` | User rewind reports, availability, sharing and configuration | rewind, rewindAvailability, siteSettings | DiscourseRewind services and controller | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-rss-polling` | Feeds, validation, polling, status and configuration | rssFeeds, createRssFeed, updateRssFeed, deleteRssFeed, testRssFeed, pollRssFeed | RssFeed services | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-solved` | Accepted answers, removal, solved user topics, shared issues and reports | Topic.acceptedAnswer, solvedTopics, solvedDashboard, acceptAnswer, unacceptAnswer, toggleSharedIssue | DiscourseSolved services, serializer extensions and controller rate limits | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-subscriptions` | Products, plans, coupons, subscriptions, payments, contributors, cancellation, payment methods and existing provider checkout | subscriptionProducts, subscriptionPlans, subscriptions, payments, updateSubscription, cancelSubscription, createSubscriptionCheckout, updateSubscriptionProduct | DiscourseSubscriptions controllers and Stripe boundary | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-templates` | Permitted templates, categories and usage tracking | templates, useTemplate, createTopic, updateTopic | DiscourseTemplates controller and existing topic flows | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-topic-voting` | Topic votes, voters, limits and removal | Topic.voting, topicVoters, voteTopic, removeTopicVote | DiscourseTopicVoting services and controller | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-user-notes` | Staff user notes, creation and deletion | userNotes, createUserNote, deleteUserNote | DiscourseUserNotes controller and note implementation | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `discourse-workflows` | Workflows, versions, executions, steps, credentials, variables, tables, rows, columns, templates, node metadata, previews, expressions, forms, modal responses, trigger actions, statistics and test listeners | workflows, workflowVersions, workflowExecutions, workflowVariables, workflowDataTables, workflowNodeTypes, createWorkflow, executeWorkflow, submitWorkflowForm, workflowEvents | DiscourseWorkflows services, controllers and event delivery | HTTP capability tests, authorized and denied actors, disabled plugin, performance, live delivery and revocation | Incomplete |
+| `discourse-zendesk-plugin` | Ticket creation, integration state and existing signed synchronization callbacks | Topic.zendeskTicket, createZendeskTicket, siteSettings, existing signed callback flow | DiscourseZendeskPlugin services and controllers | HTTP capability tests, authorized and denied actors, disabled plugin, performance, provider compatibility with external boundary stubbed | Incomplete |
+| `footnote` | Footnote markup and rendering | Post.cooked | Existing cooking and client rendering | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `live` | Rooms, calls, memberships, contacts, invitations, participation, signals, reactions, speaker requests, recording, Chat sessions, agents, statistics and LiveKit provider flows | liveRooms, liveRoom, liveContacts, liveParticipants, liveStats, createLiveRoom, joinLiveRoom, leaveLiveRoom, updateLiveMembership, signalLiveRoom, liveEvents | Live services, controllers and event delivery | HTTP capability tests, authorized and denied actors, disabled plugin, performance, live delivery and revocation | Incomplete |
+| `poll` | Poll definitions, voting, withdrawal, results, voters, status and cooking | Post.polls, pollVoters, votePoll, removePollVote, updatePollStatus | DiscoursePoll controller, existing poll implementation and serializers | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `spoiler-alert` | Spoiler markup and rendering | Post.cooked | Existing cooking and client rendering | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+| `styleguide` | Developer component demonstrations and access restrictions | Existing developer page. API capability assessment required | Existing Styleguide route | HTTP capability tests, authorized and denied actors, disabled plugin, performance | Incomplete |
+
+## Completion rules
+
+A feature family is verified only when its detailed operation inventory is complete, successful and denied paths pass at the real interface, disabled feature behavior is checked, and applicable performance and live delivery requirements pass. A schema field, an inventory entry, or a passing introspection query does not establish coverage.
+
+The supported revision is fixed for reproducibility. Changes to that revision require regenerating and reviewing the inventory so new plugins and capabilities are visible.
+
+## Current evidence
+
+Initial source inventory found 47 plugin manifests, 200 plugin controller files and 301 plugin service files. This establishes the investigation surface, not runtime compatibility. The original plugin exposes categories, latest topics and search, with two authentication and introspection request tests. The implemented contracts now pass 152 request examples using seed 23293. This includes nested restricted activity references and database query growth checks for 50 topics with distinct authors and categories, 50 personal messages, 50 Chat channels and 50 Chat messages with distinct authors. It does not establish full coverage of any broad family above. Search preserves native search restrictions, rate limits, overload handling, logging and events. Typed topic lookup includes personal messages and batches their permission checks. Topic post pages reuse native ordering, filtering and serializer output, with signed cursors and access checks on continuation. Topic and reply creation process the native action, including approval queues, validation, rate limits, API retry memoization, browser CSRF, session rotation and notification clearing. Creation work is bounded before execution. Public Chat channel discovery, text and threaded message creation, and adapter capability discovery are verified as described below. Message history has passing normal paths and a contained native failure, with its native dependency still unresolved. Single post lookup, complete reading, remaining writes, remaining Chat capabilities and all other plugin adapters remain incomplete. The tested runtime uses Ruby 4.0.7, GraphQL Ruby 2.6.14 and C parser 1.1.4.
+
+## Chat operation evidence
+
+These entries establish only the declared operations. The broad Chat row remains incomplete.
+
+| Operation | Existing owner | Authorization and bounds | Evidence | Status |
+|---|---|---|---|---|
+| `capabilities` | Loaded plugin registry, owning plugin `enabled?`, explicit schema fields | Global availability is distinct from actor permission. Only implemented adapters are listed | `chat_channels_spec.rb`, `optional_schema_spec.rb`, absent plugin boot script | Verified for core and implemented Chat adapters |
+| `chatChannels` | `Chat::Api::ChannelsController#index`, `Chat::ChannelFetcher.secured_public_channels`, `Chat::ChannelSerializer` | Native login, Chat groups, public channel setting and category permissions. Default 25, maximum 50. Signed cursor binds actor, site, size and filter | `chat_channels_spec.rb`: native metadata and filter parity, pagination, invalid cursor and bounds, actor isolation, membership revocation, disabled Chat, serializer restrictions, SQL growth | Verified for declared scalar fields |
+| Absent Chat schema | Engine optional adapter loading | No Chat field, reachable type or native constant when the owning plugin is absent | Fresh Rails boot, eager loading and real HTTP introspection through `script/verify_optional_schema.rb` | Verified |
+| `createChatMessage` | `Chat::Api::ChannelMessagesController#create`, `Chat::MessageRateLimiter`, `Chat::CreateMessage` | Native Chat groups, silencing, membership, channel status, recipient preferences and reply or thread consistency. Only typed text creation inputs. Base complexity 1,000 | `chat_creation_spec.rb`: persisted message ID, native event and publication, channel and thread reading state, invalid and denied inputs, recipient preferences, shared rate allowance and automatic silencing, disabled Chat, excessive work rejection | Verified for text creation and declared reply inputs |
+
+The initial full native serialization used 13 database queries for one channel and 111 for 50 channels. Selecting declared scalar fields through native serializer options removed that growth. The regression allows at most two additional database queries between 1 and 50 channels, including authorization and native serialization work. This is a query growth check, not the required final latency, allocation or concurrency benchmark.
+
+Creation publication evidence proves that the native creation flow is retained. It does not prove subscription authorization or live delivery after access revocation. Upload creation, complete message fields and complete Chat journeys remain required.
+
+| History capability | Existing owner | Authorization and bounds | Evidence | Status |
+|---|---|---|---|---|
+| `chatMessages` | `Chat::Api::ChannelMessagesController#index`, `Chat::ListChannelMessages`, `Chat::MessagesQuery`, native message serializers | Native public preview, channel permission, deleted visibility and thread filtering. Default last 25, maximum 50. Signed actor, site, channel, size and exact ordering boundary | `chat_history_spec.rb`: native content parity, backward pages, precise ordering, invalid cursors, revocation, private and deleted visibility, missing authors, native viewed state, disabled Chat and SQL growth | Normal paths verified. Anonymous deleted anchor recovery remains incomplete |
+
+The anonymous deleted anchor defect is reproduced through the native HTTP endpoint. The GraphQL regression verifies safe error containment, not repaired pagination. See `docs/native-dependencies.md`. This prevents full Chat history acceptance and final production readiness until corrected natively.
+
+
+## Membership and reading evidence
+
+`chat_membership_spec.rb` verifies `chatChannel`, current actor membership, joining, leaving, unfollowing, stars, notification patches, individual reading progress and bulk reading progress. Native controllers and services own all validation, permissions, persistence and side effects. Query and mutation output select native serializer fields while retaining existing serializer restrictions.
+
+Joining, starring, notification changes and individual reading updates require native channel access. Leaving and unfollowing retain native cleanup after access is lost. Leaving a group conversation removes its participant and membership. Leaving a pair conversation retains participation and unfollows it. Empty notification patches fail natively, false is retained and null preferences leave existing values.
+
+The request evidence covers actor isolation, native mention updates and tracking publication, foreign message rejection, forward progress, native readonly modes, disabled Chat, GET mutation rejection and rejection of excessive work before writes. Bulk marking returns only the native update count. Selected membership pin metadata permits at most two additional SQL queries between one and 50 channels. Unselected membership data avoids pin queries in channel lookup and join output.
+
+These declared operations are verified. The full membership, unread, notification and live delivery capability families remain incomplete.
+
+
+## Notification operation evidence
+
+`notifications_spec.rb` verifies current actor notification history with native read filters, signed offset cursors, visibility filtering and selected scalar serialization. Native permission filtering can yield an empty page while older pages remain available. Continuation follows the native count rather than the number of returned nodes. Tests cover revoked topic access, inaccessible reviewables, disabled badges, anonymous siblings, changed cursor context and native response parity.
+
+`markNotificationRead` and `markAllNotificationsRead` retain native actor isolation, successful missing or foreign ID noops, publication and bulk seen state. The bulk evidence uses distinct notification types. Excessive write work is rejected before any read state changes. Clients restart filtered pagination after reading mutations change list membership.
+
+The 50 notification SQL growth check includes distinct topics and acting users. It allows at most two additional queries between one and 50 notifications, including native filtering and serialization. This does not establish the final latency or concurrency budgets. Recent menu prioritization, totals, structured plugin data, notification administration and protected live delivery remain incomplete.
+
+
+## Topic state operation evidence
+
+`topic_state_spec.rb` verifies stored `Topic.currentUserState`, `recordTopicTimings`, `updateTopicNotifications` and `resetTopicReading`. Native topic actions own permission checks, timing limits, automatic tracking, state changes, notification reopening, events and publication. State lookup uses native `TopicUser.lookup_for` and permits at most two additional queries across one and 50 topics. Anonymous and missing actor records return null.
+
+The request evidence covers public and private reading, access revocation, actor isolation, timing replay accumulation, native first insertion totals, duration caps, native upper post range filtering, preferences, partial and full reset, private tracking publication, invalid input and excessive work rejection, GET and readonly protections. The outer socket probe verifies that native timing processing completes within GraphQL. Shared native request handling now owns login metadata delegation for all fixed adapters, and full regression coverage retains native unconditional login, action specific login and permitted anonymous queries.
+
+Full native reset deletes explicit notification preferences along with stored reading state. The API documents this consequence and requires state reload. Nonpositive timing identifiers are rejected before native execution. A native malformed input defect is separately reproduced, without changing the native timing algorithm. Mobile reading metadata, complete client journeys, bookmarks, drafts and remaining personal state coverage remain required.
+
+
+## Bookmark operation evidence
+
+`bookmarks_spec.rb` exercises native current actor listing, core post and topic creation, reminder replacement, pin toggling, deletion and bulk clearing or deletion. Native registered handlers own filtering, search, target metadata and effects. Explicit target inputs cover core, Chat messages and Data Explorer query group associations. The supplementary native metadata serializer contributes only the current automatic deletion preference, supporting a rename without overwriting it. Required nullable replacement fields and reminder precision are verified.
+
+The request evidence covers private target denial, actor isolation, native validation, duplicates, shared rate allowance, signed pagination, revocation, hidden reports, administrator access, detached associations, disabled registrations and outer HTTP protections. Actual native reminder delivery after a GraphQL save produces a notification readable through GraphQL. Bulk output retains native changed IDs and does not promise atomic effects.
+
+Query growth allows at most two additional SQL queries between one and 20 bookmarks across distinct forum topics and authors, direct message conversations, and Data Explorer reports and group associations. An independent global SQL observer confirms 14 ActiveRecord queries for one and 20 direct message title rows with cleared query caches. The native scoped helper includes MiniSql and reports 15 for both. No additional preload code was needed for these measured fixtures. These checks do not establish final latency, allocation or concurrency budgets.
+
+The native disabled Chat bookmark deletion defect is reproduced independently. GraphQL contains diagnostics while retaining the observed partial outcome. Full disabled target deletion remains incomplete. Rich target payloads, remaining metadata, calendar export, complete reminder policies and the full client journey remain required.
+
+
+## Draft operation evidence
+
+`drafts_spec.rb` verifies current actor lookup and listing, typed save, single deletion and bulk deletion through native draft actions. Native ownership, quota and length checks, sequences, force save, edit conflict identity, events, upload references, backups and administrative target restrictions remain authoritative. Typed snapshots report unmapped fields without arbitrary values, preserve tag name versus object format and numeric identities, and bound legacy reporting. Large native sequence values round trip through decimal strings.
+
+The request evidence includes current actor isolation, private references, native server metadata suppression, display name settings, source format recovery, quotas, upload cleanup, preexisting stale batch rejection, count updates, administrator API versus browser checks, signed pages, input bounds and HTTP protections. A stale single deletion acknowledgement remains a noop. Backup work can occur before sequence rejection, as demonstrated without changing the native lifecycle.
+
+The SQL growth fixture reads 50 permitted topics and posts with distinct authors and verifies every returned author. It permits at most two extra queries between one and 50 rows with cleared query caches. No additional preload code was required for this measured fixture. This does not establish final latency or allocation budgets.
+
+Native listing after an accepted array draft remains an independently reproduced compatibility limitation. Lookup and deliberate deletion can recover a known malformed key, while generic error containment preserves permitted siblings. Plugin draft fields represented by unmapped metadata, additional native list fields, concurrency recovery and full composer journeys remain required.
+
+
+## Upload operation evidence
+
+`uploads_spec.rb` exercises real multipart file creation through native storage, reference reuse after rejected reply validation, corrected post attachment and native cooking. It verifies reused source files, native rate allowance, avatar restrictions, invalid files, API only remote import, private metadata and URL lookup, access revocation, browser CSRF, revoked credentials, GET and readonly restrictions, malformed maps and query work rejection. Native SVG sanitization and private attachment option forwarding have dedicated cases.
+
+`upload_ingress_spec.rb` exercises raw body limits, missing lengths, downstream exception handling, relative paths and format suffixes, malformed parser cleanup, response closure, duplicate file names and partial streaming overflow. Native Rack parsing remains responsible for multipart grammar. The endpoint tracks files from factory creation rather than relying on Rack registration after parsing.
+
+Remaining native serialization, complete client journeys and measured parsing, copying, memory and concurrent load budgets remain incomplete. Direct storage evidence follows below. This slice does not complete the upload family or full forum client journey.
+
+
+Protected URL lookup has a measured native N+1 dependency. One and 50 distinct permitted private message uploads produce 14 and 158 GraphQL SQL queries, versus 11 and 158 at the native HTTP endpoint. All returned identities are asserted and query caches are cleared. This does not satisfy the query growth requirement. No synthetic preload or copied policy is used to conceal that gap. See [native dependencies](native-dependencies.md).
+
+
+## Direct storage operation evidence
+
+`external_uploads_spec.rb` drives six fixed native actions through GraphQL HTTP. Single PUT evidence uses the returned signed headers in a provider HTTP request, native completion downloads actual fixture bytes and creates the native upload, and a consumed ticket returns its native error. Multipart evidence checks ticket state, signed part URLs, native part sorting, real promotion and abort. Backup completion moves the native destination object without creating an Upload row.
+
+The suite retains actor ownership, anonymous denial for every new action, browser CSRF, shared initiation and signing allowances, native size validation, temporary bans and cleanup after size mismatch, checksum failure with debug retention, local and disabled storage behavior, typed bounds, GET and readonly protections. It admits the full 10,000 part completion payload and signs all final 100 part numbers. Native promotion above 100 MiB and false versus true private upload options are exercised. External storage is stubbed at its provider boundary. Native manager transformation and controller responses are not mocked.
+
+`script/measure_external_upload_threshold_spec.rb` separately calls the native completion endpoint at exactly 100 MiB. It reports HTTP422, no resulting upload, removal of both ticket and temporary object, and native nil.path logging. This is an unresolved native lifecycle defect. A passing characterization of the failure does not establish compatible large transfer coverage. Protected upload URL lookup query growth also remains unmet. Complete client journeys, remaining semantic branches and final concurrent workloads remain required.
+
+
+## Checklist operation evidence
+
+`checklist_spec.rb` drives native rendering through GraphQL post creation and sends the exact fractional timestamp back into a native checkbox update. It verifies desired false states and index zero, noops, revisions, cooked correlation, batch source targets, legacy count targets, permanent markers, sourced quote exclusion, native retryable versus content conflicts, and state observed across serial mutations. Moving a post into an inaccessible category prevents current conflict state from being exposed. Browser CSRF, anonymous and foreign actors, shared rate allowance, query bounds, GET and readonly protections remain enforced.
+
+`Post.updatedAt` uses a projection limited to the native serializer field. A restricted serializer inclusion case returns null and preserves permitted sibling data. One and 50 distinct public search results verify complete returned identities and bounded SQL growth. One and 50 item updates verify native batch processing and bounded query growth. These checks do not establish final latency or concurrent workload budgets.
+
+Disabled Checklist retains schema fields and capability discovery while rejecting updates. New posts cooked while disabled retain native rendering behavior. Fresh eager boot without Checklist exposes no plugin fields, types or native constants. A separate boot with Checklist and no Chat verifies its independent schema, native anonymous denial and disabled execution. The isolated verification script runs enabled and disabled phases in separate processes and sets its test mode before issuing requests.
+
+The native structured read boundary assessment, setting administration, full client journeys and final workload budgets remain incomplete. This slice adds no duplicate checkbox parser, revision logic or permission policy.
+
+
+## Shared site setting increment
+
+Administrator queries now expose native setting definitions, exact lookup and affected preference counts. The bulk mutation uses the native update controller and service. Route constraint hooks, mounted paths, CSRF, credential scopes, visibility, configurability, backfill, archive recovery and request parameter filtering are covered by focused request checks. Typed editor hints, option pages, dependency descriptors and the pinned object and JSON schemas are implemented. Configuration journeys for each plugin and final concurrent performance budgets remain incomplete. Catalog construction remains native and evaluates the full setting set before name filtering. A committed allocation probe confirms repeated native default map duplication, recorded as an unresolved performance dependency.
+
+
+## Bundled configuration discovery evidence
+
+The shared settings adapter matches the native administrator index for all 47 bundled plugins in a real HTTP comparison. The observed test state contains736 visible definitions. Every definition and selected scalar editor hint matches native output, including plugins requiring multiple pages. The verifier follows native ordering to exact terminal pages and rejects repeated cursors. The scope comes from the pinned core tracked plugin entries, with loaded plugin presence asserted.
+
+The reproducible case is `spec/requests/discourse_graphql/bundled_settings_spec.rb`. The value free observation is [plugin-settings.json](capabilities/plugin-settings.json). Counts describe that test state and can change with native configurability and visibility. Per plugin writes, provider flows, rendering, feature actions, live delivery and final performance budgets remain required. Every broad plugin family remains incomplete.
+
+
+## Chat reaction increment
+
+Native reaction changes, summary pages in message history and reactor popup pages are implemented. Native row ownership, unicode normalization, exact popup filtering, ignored users, private and thread publication, channel policy, serializer omissions and protected continuations are exercised through real HTTP. Summary paging supports stored state above the mutation limit. History serialization selects requested attributes while retaining native restrictions. The shared array pager preserves existing metadata cursor bindings.
+
+The warmed request comparisons record 12 SQL queries for one and 50 reactor rows, and 25 queries for one and 50 message summaries with distinct reactors. A separate committed probe confirms that native history still loads unselected reaction associations. Total work budgets, complete Chat clients and protected GraphQL live delivery remain incomplete. Publication alone does not complete live delivery acceptance.
+
+
+## Chat thread control increment
+
+Native title changes, reading progress, notification levels and prompt acknowledgements are implemented. HTTP evidence covers actual owner permissions, native channel and thread matching, distinct membership creation and reading behavior, deleted progress targets, first membership and private tracking publications, serializer omissions, selected attributes and outer request guards. Title publications match native payload and audience. GraphQL live delivery, complete thread reads and creation, client reconciliation and final performance budgets remain incomplete.
+
+
+## Thread lookup and creation increment
+
+Typed native lookup and creation have focused HTTP coverage for original message shape, JSON timestamps, nullable authors, sampled participants, membership omissions, mentions, permissions and repeat creation effects. Root serializer selection preserves native restrictions without propagating root field names onto embedded children. Native query preparation and complete nested rendering remain separate required performance work. Full289 regression examples and the separate native loading characterization pass. Fresh enabled, disabled, restored and absent Chat boots pass. Native lookup still loads unselected original message associations, documented as a required performance dependency.
+
+
+## Thread list increment
+
+Channel and current user thread pages preserve distinct native membership filters, unread ordering, tracking maps and protected offsets. Real cross site HTTP requests with the same actor ID and credential prove that a cursor cannot cross sites. Native collection omission returns unknown pagination, while retained rows determine page length. Selected serialization preserves native restrictions and skips unused node rendering. Complete user_option batches remove status SQL growth without replacing native privacy decisions. Full native preparation, thread history, drafts, clients and protected live delivery remain required.
+
+
+Thread message history now uses the native channel thread endpoint, with latest entry, backward chronological pages, precise signed cursor context, current access checks and retained native collection filtering. The dedicated page distinguishes unavailable data and pagination from an ordinary empty terminal page. Normal permission, forced thread, deleted original moderation, anonymous preview, read credential and disabled plugin paths are covered through HTTP. The anonymous deleted anchor native defect remains unresolved. Complete SQL remains 32 queries for 1 and 50 messages with distinct authors, reactions and status enabled. Native eager preparation and final total performance budgets remain incomplete.
+
+
+Chat draft reading and changes now preserve the native recent twenty window, serialized composer String, actor separation, native clearing, character limits, channel and thread binding, browser CSRF and native write restrictions. The native read boundary retains own stored drafts after private access loss and omits drafts when personal Chat or native eligibility suppresses them. Content bound cursors reject actor, site, size and source changes. SQL remains 7 queries for 1 and 20 rows, and for 1 and 8 aliases. An uncached control fails at 14 queries and eight native reads. Native count only preparation still copies the complete serialized content, so final total work budgets remain incomplete.
+
+
+## Message presentation increment
+
+Both native history queries now expose edited and pinned state, flag choices, own partial bookmark, reply and webhook presentation, mentions, attachments, structured blocks and selected nested threads. Snapshot fields retain native status privacy and serializer omissions. Private button values remain outside the schema. Bounded content pages bind native permitted parent identities and source content. Original serializer instances and existing channel and thread history cursor formats are retained.
+
+The richer message query holds 31 SQL queries at 1 and 50 messages through the native prepared category permission hook. Permission changes, native Guardian denial and anonymous mode flag parity are exercised through HTTP. This resolves the measured available_flags category query growth. Selected attachment output still uses 29 and 78 queries at 1 and 50 messages through native thumbnail lookups. Message ID only output uses 28 and 28 and avoids thumbnail rendering. The attachment dependency, native eager preparation, final concurrent budgets, remaining contexts and lifecycle operations, complete clients and protected live delivery remain incomplete.
+
+
+## Chat message lifecycle increment
+
+Native message editing, single and bulk deletion and restoration have typed mutation adapters. Creation accepts upload references and explicit empty text for attachment only messages. HTTP contracts cover revision and cooking results, exact native private publication audiences, attachment replacement and ownership mismatches, permissions, membership differences, channel states, private revocation, serial mutations, pins, notifications, channel and thread reading effects, browser CSRF, anonymous users and input and request bounds. The complete native 200 message bulk window is exercised with distinct messages.
+
+Native null text failure, repeated restoration count corruption, retained bulk pins and bulk read query growth remain required owner dependencies. These are documented and reproduced independently. The new operations remain partial in the ledger. Complete Chat clients, remaining inputs, moderation contexts, semantic branches, protected live delivery and final performance budgets remain required.
+
+
+## Chat pin control increment
+
+Native pin, unpin and read acknowledgement have typed mutation adapters. HTTP contracts retain private publication payloads and audiences, singular native error messages, the twenty pin limit, category group and direct message rights, current private access, membership differences, actor timestamp isolation, channel state behavior, disabled settings, credentials and browser CSRF. Existing membership readback now preserves native pin timestamp milliseconds through NativeTimestamp, with the introspection change explicit.
+
+Complete typed pin lists and nested message selection remain required. The native array row constructor is a viable version specific boundary, but native pinned message associations still lack a verified child selection boundary. No placeholder read field or private dispatch copy substitutes for that work. Native bulk pin cleanup, full clients, protected live delivery and final total budgets remain incomplete.

@@ -1,0 +1,2022 @@
+{
+  "discourse_revision": "f5e1933dd40c57b886da02c45e5630020ceb99c2",
+  "scope": "Reviewed links for implemented adapter slices. Partial native action coverage does not establish full capability coverage.",
+  "operations": {
+    "session#current": {
+      "graphql_operations": [
+        "query.currentUser",
+        "query.currentUserChatDrafts"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/transport_spec.rb",
+        "spec/requests/discourse_graphql/chat_drafts_spec.rb",
+        "spec/requests/discourse_graphql/chat_drafts_multisite_spec.rb",
+        "spec/performance/measure_chat_draft_window_spec.rb"
+      ],
+      "native_entry_points": [
+        "Guardian#user",
+        "SessionController#current",
+        "CurrentUserSerializer#chat_drafts"
+      ],
+      "authorization_requirements": [
+        "Existing request authentication and credential scopes",
+        "Anonymous actor returns null",
+        "Native current user draft eligibility and personal Chat preference",
+        "Native recent window, own actor storage and serializer filtering",
+        "Signed native window fingerprint, actor, site and page size"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native current user fields and session management"
+      ]
+    },
+    "categories#index": {
+      "graphql_operations": [
+        "query.categories"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/discovery_spec.rb",
+        "spec/requests/discourse_graphql/associations_spec.rb"
+      ],
+      "native_entry_points": [
+        "CategoryList",
+        "Guardian#can_see_category?"
+      ],
+      "authorization_requirements": [
+        "Native permitted category list",
+        "Authorization of nested topic and post references"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Category list work bounds and remaining category fields"
+      ]
+    },
+    "list#latest": {
+      "graphql_operations": [
+        "query.latestTopics"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/discovery_spec.rb",
+        "spec/requests/discourse_graphql/performance_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicQuery#list_latest"
+      ],
+      "authorization_requirements": [
+        "Native TopicQuery scope for the current Guardian",
+        "Bounded pages and nested topic authorization"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native topic list filters and fields"
+      ]
+    },
+    "search#query": {
+      "graphql_operations": [
+        "query.search"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/search_spec.rb"
+      ],
+      "native_entry_points": [
+        "SearchController protected guards",
+        "Search"
+      ],
+      "authorization_requirements": [
+        "Native search permission, shared rate allowance and overload check",
+        "Actor, request metadata, logging and events remain native"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining result kinds, search metadata and fields"
+      ]
+    },
+    "posts#create": {
+      "graphql_operations": [
+        "mutation.createTopic",
+        "mutation.createPost"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/participation_spec.rb"
+      ],
+      "native_entry_points": [
+        "PostsController#create",
+        "NewPostManager#perform"
+      ],
+      "authorization_requirements": [
+        "Native authentication, CSRF, posting restrictions and approval flow",
+        "Validation, rate limits, plugin modifiers, API memoization and side effects remain native"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Uploads, personal messages and remaining typed creation inputs"
+      ]
+    },
+    "topics#show": {
+      "graphql_operations": [
+        "query.topic",
+        "query.topicPosts"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/topics_spec.rb",
+        "spec/requests/discourse_graphql/topic_posts_spec.rb",
+        "spec/requests/discourse_graphql/performance_spec.rb",
+        "spec/requests/discourse_graphql/topic_state_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicView",
+        "Guardian#can_see_topic_ids",
+        "PostSerializer",
+        "TopicUser.lookup_for"
+      ],
+      "authorization_requirements": [
+        "Native topic permission, post visibility and author display",
+        "Signed topic page cursors and request scoped batching",
+        "Stored current actor state batches only after topic authorization"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Deleted root topic lookup, remaining fields and native view tracking audit"
+      ]
+    },
+    "chat/api/channels#index": {
+      "graphql_operations": [
+        "query.chatChannels"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_channels_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsController#index",
+        "Chat::ChannelFetcher.secured_public_channels",
+        "Chat::ChannelSerializer"
+      ],
+      "authorization_requirements": [
+        "Native Chat login and group guards",
+        "Native public channel and category filtering",
+        "Existing serializer restrictions remain authoritative"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native channel filters, fields and direct message discovery"
+      ]
+    },
+    "chat/api/channel_messages#create": {
+      "graphql_operations": [
+        "mutation.createChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_creation_spec.rb",
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#create",
+        "Chat::MessageRateLimiter",
+        "Chat::CreateMessage"
+      ],
+      "authorization_requirements": [
+        "Native Chat groups, silencing, membership and channel status",
+        "Native recipient, reply and thread restrictions",
+        "Native shared rate allowance, automatic silencing, publication and tracking"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Bot blocks and remaining integration inputs",
+        "Native null text attachment handling",
+        "Complete clients and final concurrent budgets"
+      ]
+    },
+    "chat/api/channel_messages#index": {
+      "graphql_operations": [
+        "query.chatMessages"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_history_spec.rb",
+        "spec/requests/discourse_graphql/chat_reactions_spec.rb",
+        "script/measure_chat_reaction_loading_spec.rb",
+        "spec/requests/discourse_graphql/chat_message_details_spec.rb",
+        "spec/performance/measure_chat_message_media_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#index",
+        "Chat::ListChannelMessages",
+        "Chat::MessagesQuery",
+        "Chat::MessagesSerializer",
+        "Chat::MessageSerializer",
+        "Category.post_create_allowed",
+        "Chat::GuardianExtensions#can_flag_in_chat_channel?"
+      ],
+      "authorization_requirements": [
+        "Native public anonymous preview and channel permissions",
+        "Native deleted visibility, thread filtering and viewed state",
+        "Signed cursor binding and exact native ordering checks",
+        "Native snapshot omissions, own bookmark, secure media, status privacy and prepared category flag permissions"
+      ],
+      "authorization_audit": "partial, declared HTTP presentation and flag permission growth verified, attachment growth remains incomplete",
+      "status": "partial",
+      "remaining": [
+        "Native anonymous deleted anchor recovery",
+        "Reviewable, user flag and channel contexts not supplied by these history owners",
+        "Remaining message and tracking fields and alternative history entry points",
+        "Native thumbnail SQL growth and unselected eager preparation dependencies",
+        "Final concurrent performance budgets",
+        "Complete client journeys and protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/channels#show": {
+      "graphql_operations": [
+        "query.chatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsController#show",
+        "Chat::ChannelSerializer"
+      ],
+      "authorization_requirements": [
+        "Native login, Chat groups and channel visibility",
+        "Native serializer restrictions and current actor membership"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining channel metadata and direct message discovery"
+      ]
+    },
+    "chat/api/channels_current_user_membership#create": {
+      "graphql_operations": [
+        "mutation.joinChatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserMembershipController#create",
+        "Chat::Channel#add"
+      ],
+      "authorization_requirements": [
+        "Native channel access, join permission and current actor identity",
+        "Native current actor membership creation remains idempotent"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining membership metadata and broader channel management"
+      ]
+    },
+    "chat/api/channels_current_user_membership#update": {
+      "graphql_operations": [
+        "mutation.starChatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserMembershipController#update",
+        "Chat::UpdateUserChannelMembership"
+      ],
+      "authorization_requirements": [
+        "Native channel access and existing current actor membership",
+        "Typed star patch only"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native membership patch inputs"
+      ]
+    },
+    "chat/api/channels_current_user_membership#destroy": {
+      "graphql_operations": [
+        "mutation.leaveChatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserMembershipController#destroy",
+        "Chat::LeaveChannel"
+      ],
+      "authorization_requirements": [
+        "Native cleanup permits stale memberships after access revocation",
+        "Group conversation departure differs from pair conversation unfollow"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining departure and live delivery journey evidence"
+      ]
+    },
+    "chat/api/channels_current_user_membership_follows#destroy": {
+      "graphql_operations": [
+        "mutation.unfollowChatChannel"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserMembershipFollowsController#destroy",
+        "Chat::UnfollowChannel"
+      ],
+      "authorization_requirements": [
+        "Native current actor cleanup without requiring current channel access",
+        "Unfollow retains group conversation participation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining live delivery and unread behavior evidence"
+      ]
+    },
+    "chat/api/channels_current_user_notifications_settings#update": {
+      "graphql_operations": [
+        "mutation.updateChatNotifications"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsCurrentUserNotificationsSettingsController#update",
+        "Chat::Api::ChannelsController#membership_from_params"
+      ],
+      "authorization_requirements": [
+        "Native channel access and current actor membership",
+        "False values retained, null or omitted preferences leave existing values"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining native notification settings inputs"
+      ]
+    },
+    "chat/api/channels_read#update": {
+      "graphql_operations": [
+        "mutation.markChatRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsReadController#update",
+        "Chat::UpdateUserChannelLastRead"
+      ],
+      "authorization_requirements": [
+        "Native channel permission, membership and same channel message lookup",
+        "Native forward progress validation, mention updates and tracking publication"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining thread reading state and complete live journey"
+      ]
+    },
+    "chat/api/channels_read#update_all": {
+      "graphql_operations": [
+        "mutation.markAllChatRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_membership_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelsReadController#update_all",
+        "Chat::MarkAllUserChannelsRead"
+      ],
+      "authorization_requirements": [
+        "Native current actor followed membership scope",
+        "Count only output, bulk write work has explicit query cost"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining bulk live delivery journey evidence"
+      ]
+    },
+    "notifications#index": {
+      "graphql_operations": [
+        "query.notifications"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/notifications_spec.rb"
+      ],
+      "native_entry_points": [
+        "NotificationsController#index",
+        "Notification.filter_inaccessible_topic_notifications",
+        "Notification.filter_inaccessible_reviewable_notifications",
+        "Notification.filter_disabled_badge_notifications",
+        "Notification.populate_acting_user",
+        "NotificationSerializer"
+      ],
+      "authorization_requirements": [
+        "Native login and current actor history scope",
+        "Native topic, reviewable and badge filtering on each page",
+        "Existing serializer restrictions and inclusion rules",
+        "Signed actor, site, filter and page size scoped continuation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Recent prioritized menu and reviewable entries",
+        "Type filters, totals and remaining structured notification metadata"
+      ]
+    },
+    "notifications#mark_read": {
+      "graphql_operations": [
+        "mutation.markNotificationRead",
+        "mutation.markAllNotificationsRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/notifications_spec.rb"
+      ],
+      "native_entry_points": [
+        "NotificationsController#mark_read",
+        "Notification.read",
+        "Notification.read_types",
+        "User#publish_notifications_state"
+      ],
+      "authorization_requirements": [
+        "Native login, actor scoped updates and identical missing or foreign ID acknowledgements",
+        "Native state publication and bulk seen state updates",
+        "Explicit mutation costs and outer credential, CSRF and readonly checks"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Type filtered dismissal and complete live delivery journey"
+      ]
+    },
+    "topics#timings": {
+      "graphql_operations": [
+        "mutation.recordTopicTimings"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/topic_state_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicsController#timings",
+        "PostTiming.process_timings",
+        "TopicUser.update_last_read",
+        "TopicGroup.update_last_read"
+      ],
+      "authorization_requirements": [
+        "Native login and visible topic lookup",
+        "Typed positive unique post numbers, nonnegative milliseconds and maximum50 entries",
+        "Native timing caps, upper range filtering, statistics and notification updates",
+        "Synchronous native action cannot own the outer socket"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Mobile reading metadata and complete client journey"
+      ]
+    },
+    "topics#set_notifications": {
+      "graphql_operations": [
+        "mutation.updateTopicNotifications"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/topic_state_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicsController#set_notifications",
+        "TopicUser.change"
+      ],
+      "authorization_requirements": [
+        "Native login, current actor identity and visible topic guard",
+        "Typed canonical native notification levels",
+        "Native notification reasons, events and publication"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Admin API target user inputs and full preference journeys"
+      ]
+    },
+    "topics#destroy_timings": {
+      "graphql_operations": [
+        "mutation.resetTopicReading"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/topic_state_spec.rb"
+      ],
+      "native_entry_points": [
+        "TopicsController#destroy_timings",
+        "PostTiming.destroy_last_for",
+        "PostTiming.destroy_for",
+        "PrivateMessageTopicTrackingState.publish_read"
+      ],
+      "authorization_requirements": [
+        "Native login and visible topic lookup",
+        "Native current actor reset and notification reopening",
+        "Full reset removes the native topic state row and explicit preference",
+        "Native private message tracking publication"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete unread tracking and recovery journeys"
+      ]
+    },
+    "users#bookmarks": {
+      "graphql_operations": [
+        "query.bookmarks"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "UsersController#bookmarks",
+        "UserBookmarkList",
+        "BookmarkQuery",
+        "RegisteredBookmarkable",
+        "UserBookmarkListSerializer",
+        "TopicViewBookmarkSerializer"
+      ],
+      "authorization_requirements": [
+        "Native current actor list and target visibility filtering",
+        "Native registered handler search, ordering and preloads",
+        "Only the extra automatic deletion preference comes from supplementary metadata serialization",
+        "Signed actor, site, exact search and page size scoped continuation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Rich target payloads, additional bookmark metadata and calendar export",
+        "Permitted administrative target user listing"
+      ]
+    },
+    "bookmarks#create": {
+      "graphql_operations": [
+        "mutation.createBookmark"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#create",
+        "BookmarkManager#create_for",
+        "RegisteredBookmarkable#validate_before_create"
+      ],
+      "authorization_requirements": [
+        "Native login, current actor and target permission checks",
+        "Native enabled registrations, validation and shared rate allowance",
+        "Explicit core, Chat and Data Explorer group association target types"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining target input extensions and complete reminder policy journeys"
+      ]
+    },
+    "bookmarks#update": {
+      "graphql_operations": [
+        "mutation.updateBookmark"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#update",
+        "BookmarkManager#update"
+      ],
+      "authorization_requirements": [
+        "Native current actor ownership and validation",
+        "Explicit nullable replacement input and native automatic deletion defaults",
+        "Native reminder and pin reset behavior"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "All reminder policy combinations and disabled owning target update coverage"
+      ]
+    },
+    "bookmarks#destroy": {
+      "graphql_operations": [
+        "mutation.deleteBookmark"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#destroy",
+        "BookmarkManager#destroy",
+        "RegisteredBookmarkable#after_destroy"
+      ],
+      "authorization_requirements": [
+        "Native current actor ownership before deletion",
+        "Native target callback and resulting topic bookmark metadata"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Unresolved native deletion failure after disabling the owning plugin"
+      ]
+    },
+    "bookmarks#toggle_pin": {
+      "graphql_operations": [
+        "mutation.toggleBookmarkPin"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#toggle_pin",
+        "BookmarkManager#toggle_pin"
+      ],
+      "authorization_requirements": [
+        "Native ownership, validation and stored pin toggle",
+        "No idempotency or automatic replay guarantee"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Disabled owning target pin validation coverage"
+      ]
+    },
+    "bookmarks#bulk": {
+      "graphql_operations": [
+        "mutation.bulkBookmarks"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/bookmarks_spec.rb"
+      ],
+      "native_entry_points": [
+        "BookmarksController#bulk",
+        "BookmarksBulkAction"
+      ],
+      "authorization_requirements": [
+        "Native ownership for every encountered bookmark",
+        "Typed native operations, maximum50 IDs and explicit per ID cost",
+        "Native changed IDs, target side effects and partial failure semantics"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Mixed ownership partial outcome journey and disabled owning target lifecycle"
+      ]
+    },
+    "drafts#index": {
+      "graphql_operations": [
+        "query.drafts"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#index",
+        "Draft.stream",
+        "Draft.preload_data",
+        "DraftSerializer"
+      ],
+      "authorization_requirements": [
+        "Native current actor stream and stale sequence filtering",
+        "Native permitted topic/post metadata and display name controls",
+        "Signed actor, site and size scoped pages, maximum50",
+        "Explicit typed snapshots and bounded unmapped field reporting"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Unresolved native array root listing dependency",
+        "Plugin draft fields reported as unmapped",
+        "Remaining list metadata and localization journeys"
+      ]
+    },
+    "drafts#show": {
+      "graphql_operations": [
+        "query.draft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#show",
+        "Draft.get",
+        "DraftSequence.current"
+      ],
+      "authorization_requirements": [
+        "Native current actor ownership and sequence check",
+        "Lossless bigint sequence strings and explicit unsupported format reporting"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Plugin content extensions and full native composer recovery journeys"
+      ]
+    },
+    "drafts#create": {
+      "graphql_operations": [
+        "mutation.saveDraft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#create",
+        "Draft.set",
+        "UploadReference.ensure_exist!",
+        "Draft.backup_draft"
+      ],
+      "authorization_requirements": [
+        "Native current actor, serialized length and count limits",
+        "Native sequence recovery, explicit force save and owner handover",
+        "Native edit conflict permission checks, events, upload references and backup work",
+        "Typed content, key, sequence and collection bounds"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Plugin metadata extensions and additional composer states",
+        "Full concurrent writer and forced reconciliation journeys"
+      ]
+    },
+    "drafts#destroy": {
+      "graphql_operations": [
+        "mutation.deleteDraft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#destroy",
+        "ApplicationController#fetch_target_user",
+        "Draft.clear"
+      ],
+      "authorization_requirements": [
+        "Native current actor default and admin API target guard",
+        "Native stale sequence successful noop and upload reference cleanup",
+        "No deletion or replay guarantee from acknowledgement alone"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Additional missing and invalid administrative target cases"
+      ]
+    },
+    "drafts#bulk_destroy": {
+      "graphql_operations": [
+        "mutation.deleteDrafts"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/drafts_spec.rb"
+      ],
+      "native_entry_points": [
+        "DraftsController#bulk_destroy",
+        "DraftSequence.current",
+        "UserStat.update_draft_count"
+      ],
+      "authorization_requirements": [
+        "Native target guard and sequence validation before deletion transaction",
+        "Maximum30 unique key/sequence references with typed input",
+        "Native deleted count and quota count updates",
+        "No stronger concurrent writer isolation guarantee"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Concurrent writer outcomes and empty batch semantics"
+      ]
+    },
+    "uploads#create": {
+      "graphql_operations": [
+        "mutation.createUpload"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/uploads_spec.rb",
+        "spec/requests/discourse_graphql/upload_ingress_spec.rb"
+      ],
+      "native_entry_points": [
+        "UploadsController#create -> UploadCreator"
+      ],
+      "authorization_requirements": [
+        "Native login, API credentials, credential scopes and CSRF",
+        "Native upload access checks, validation, rate allowance and events",
+        "Raw ingress bounds before parsing and cleanup from source creation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Direct storage lifecycle, large transfers and remaining native serialization"
+      ]
+    },
+    "uploads#metadata": {
+      "graphql_operations": [
+        "query.uploadMetadata"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/uploads_spec.rb",
+        "spec/requests/discourse_graphql/upload_ingress_spec.rb"
+      ],
+      "native_entry_points": [
+        "UploadsController#metadata -> SecureUploadEndpointHelpers#check_secure_upload_permission"
+      ],
+      "authorization_requirements": [
+        "Native login, API credentials, credential scopes and CSRF",
+        "Native upload access checks, validation, rate allowance and events",
+        "Raw ingress bounds before parsing and cleanup from source creation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "All upload relationship and download protocol journeys"
+      ]
+    },
+    "uploads#lookup_urls": {
+      "graphql_operations": [
+        "query.lookupUploadUrls"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/uploads_spec.rb",
+        "spec/requests/discourse_graphql/upload_ingress_spec.rb",
+        "script/measure_upload_lookup_spec.rb"
+      ],
+      "native_entry_points": [
+        "UploadsController#lookup_urls -> PrettyText::Helpers.lookup_upload_urls"
+      ],
+      "authorization_requirements": [
+        "Native login, API credentials, credential scopes and CSRF",
+        "Native upload access checks, validation, rate allowance and events",
+        "Raw ingress bounds before parsing and cleanup from source creation"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete native upload family and measured concurrent workloads",
+        "Measured native N+1: GraphQL14/158 and native11/158 SQL for1 versus50 permitted private message uploads. Native batch authorization extraction required."
+      ]
+    },
+    "uploads#generate_presigned_put": {
+      "graphql_operations": [
+        "mutation.createDirectUpload"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/external_uploads_spec.rb"
+      ],
+      "native_entry_points": [
+        "ExternalUploadHelpers#generate_presigned_put -> ExternalUploadManager.create_direct_upload"
+      ],
+      "authorization_requirements": [
+        "Native login, API credential restrictions and CSRF",
+        "Native external store and direct upload flags",
+        "Native actor eligibility, ticket ownership, backup access and shared rate allowance",
+        "Native storage validation, promotion and failure cleanup"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete initiation branches and measured signing workloads. Native backup store uses multipart rather than a single PUT signer."
+      ]
+    },
+    "uploads#create_multipart": {
+      "graphql_operations": [
+        "mutation.createMultipartUpload"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/external_uploads_spec.rb"
+      ],
+      "native_entry_points": [
+        "ExternalUploadHelpers#create_multipart -> ExternalUploadManager.create_direct_multipart_upload"
+      ],
+      "authorization_requirements": [
+        "Native login, API credential restrictions and CSRF",
+        "Native external store and direct upload flags",
+        "Native actor eligibility, ticket ownership, backup access and shared rate allowance",
+        "Native storage validation, promotion and failure cleanup"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining provider errors, backup administration and full client transfers."
+      ]
+    },
+    "uploads#batch_presign_multipart_parts": {
+      "graphql_operations": [
+        "mutation.presignUploadParts"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/external_uploads_spec.rb"
+      ],
+      "native_entry_points": [
+        "ExternalUploadHelpers#batch_presign_multipart_parts -> native multipart store"
+      ],
+      "authorization_requirements": [
+        "Native login, API credential restrictions and CSRF",
+        "Native external store and direct upload flags",
+        "Native actor eligibility, ticket ownership, backup access and shared rate allowance",
+        "Native storage validation, promotion and failure cleanup"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete provider retry and expiry journeys and measured signing costs."
+      ]
+    },
+    "uploads#complete_external_upload": {
+      "graphql_operations": [
+        "mutation.completeDirectUpload"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/external_uploads_spec.rb",
+        "script/measure_external_upload_threshold_spec.rb"
+      ],
+      "native_entry_points": [
+        "ExternalUploadHelpers#complete_external_upload -> ExternalUploadManager#transform!"
+      ],
+      "authorization_requirements": [
+        "Native login, API credential restrictions and CSRF",
+        "Native external store and direct upload flags",
+        "Native actor eligibility, ticket ownership, backup access and shared rate allowance",
+        "Native storage validation, promotion and failure cleanup"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Native exact100MiB failure remains unresolved. Full client recovery and final workload budgets required."
+      ]
+    },
+    "uploads#complete_multipart": {
+      "graphql_operations": [
+        "mutation.completeMultipartUpload"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/external_uploads_spec.rb",
+        "script/measure_external_upload_threshold_spec.rb"
+      ],
+      "native_entry_points": [
+        "ExternalUploadHelpers#complete_multipart -> ExternalUploadManager#transform!"
+      ],
+      "authorization_requirements": [
+        "Native login, API credential restrictions and CSRF",
+        "Native external store and direct upload flags",
+        "Native actor eligibility, ticket ownership, backup access and shared rate allowance",
+        "Native storage validation, promotion and failure cleanup"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Native exact100MiB failure remains unresolved. Remaining backup and provider transitions require evidence."
+      ]
+    },
+    "uploads#abort_multipart": {
+      "graphql_operations": [
+        "mutation.abortMultipartUpload"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/external_uploads_spec.rb"
+      ],
+      "native_entry_points": [
+        "ExternalUploadHelpers#abort_multipart -> native multipart store"
+      ],
+      "authorization_requirements": [
+        "Native login, API credential restrictions and CSRF",
+        "Native external store and direct upload flags",
+        "Native actor eligibility, ticket ownership, backup access and shared rate allowance",
+        "Native storage validation, promotion and failure cleanup"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Remaining provider error and concurrent lifecycle branches."
+      ]
+    },
+    "checklist/checkboxes#toggle": {
+      "graphql_operations": [
+        "mutation.updateChecklist"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/checklist_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_optional_schema.rb",
+        "script/verify_checklist_schema.rb"
+      ],
+      "native_entry_points": [
+        "Checklist::CheckboxesController#toggle",
+        "Checklist::ToggleCheckbox.call",
+        "Checklist::CheckboxLocator.call_many",
+        "PostRevisor#revise!"
+      ],
+      "authorization_requirements": [
+        "Native plugin enablement and login",
+        "Native Guardian.can_edit? before exposing conflict raw or timestamps",
+        "Native state/source/count validation, permanent markers and quote exclusion",
+        "Native shared rate allowance and publication"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Assess reusable structured read boundary without copying private parsing",
+        "Complete setting editor metadata and Checklist configuration journeys",
+        "Complete client journeys, concurrency recovery and final workload budgets"
+      ]
+    },
+    "admin/site_settings#index": {
+      "graphql_operations": [
+        "query.adminSiteSettings",
+        "query.adminSiteSetting"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/site_settings_spec.rb",
+        "spec/requests/discourse_graphql/site_setting_metadata_spec.rb",
+        "script/measure_setting_metadata_spec.rb",
+        "spec/requests/discourse_graphql/bundled_settings_spec.rb"
+      ],
+      "native_entry_points": [
+        "Admin::SiteSettingsController#index",
+        "SiteSetting.all_settings"
+      ],
+      "authorization_requirements": [
+        "Native StaffConstraint and AdminConstraint custom hooks with logical native request metadata",
+        "Native administrator role, credential scopes and browser CSRF",
+        "Native visibility, configurability and setting validation",
+        "Native archived site restrictions, readonly mode and secret parameter filtering"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete plugin configuration and administrative client journeys",
+        "Resolve native full catalog default map allocations and verify final concurrent budgets"
+      ]
+    },
+    "admin/site_settings#update": {
+      "graphql_operations": [
+        "mutation.updateSiteSettings"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/site_settings_spec.rb"
+      ],
+      "native_entry_points": [
+        "Admin::SiteSettingsController#update",
+        "SiteSetting::Update.call"
+      ],
+      "authorization_requirements": [
+        "Native StaffConstraint and AdminConstraint custom hooks with logical native request metadata",
+        "Native administrator role, credential scopes and browser CSRF",
+        "Native visibility, configurability and setting validation",
+        "Native archived site restrictions, readonly mode and secret parameter filtering"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete administrative client journeys",
+        "Verify every plugin configuration workflow through its owning feature"
+      ]
+    },
+    "admin/site_settings#user_count": {
+      "graphql_operations": [
+        "query.siteSettingAffectedUserCount"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/site_settings_spec.rb"
+      ],
+      "native_entry_points": [
+        "Admin::SiteSettingsController#user_count",
+        "UserOption.human_users",
+        "SiteSettingUpdateExistingUsers"
+      ],
+      "authorization_requirements": [
+        "Native StaffConstraint and AdminConstraint custom hooks with logical native request metadata",
+        "Native administrator role, credential scopes and browser CSRF",
+        "Native visibility, configurability and setting validation",
+        "Native archived site restrictions, readonly mode and secret parameter filtering"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete user preference administration journeys"
+      ]
+    },
+    "chat/chat#react": {
+      "graphql_operations": [
+        "mutation.updateChatReaction"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_reactions_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_optional_schema.rb",
+        "script/verify_chat_reactions_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::ChatController#react",
+        "Chat::MessageReactor#react!",
+        "Chat::Publisher.publish_reaction!"
+      ],
+      "authorization_requirements": [
+        "Native Chat enablement, login and allowed groups",
+        "Native channel and message scope, channel status, silence and following checks",
+        "Native emoji validation, distinct count rules, transaction and actor owned reaction writes",
+        "Native private and thread publication audience, CSRF, credential, readonly and archived guards"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete executable Chat journey and protected live delivery",
+        "Final concurrent allocation, memory and throughput budgets"
+      ]
+    },
+    "chat/chat#message_reactions_users": {
+      "graphql_operations": [
+        "query.chatReactionUsers"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_reactions_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_optional_schema.rb",
+        "script/verify_chat_reactions_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::ChatController#message_reactions_users",
+        "Chat::MessageReactionUsersQuery.call",
+        "Chat::ReactionUserSerializer"
+      ],
+      "authorization_requirements": [
+        "Native login, allowed groups and current channel permission",
+        "Native message and channel scope, deleted message denial",
+        "Native ignored user filters, chronological row order and serializer inclusion",
+        "Signed actor, site, first, channel, message and emoji cursor context"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete client pagination recovery after concurrent changes",
+        "Final concurrent allocation, memory and throughput budgets"
+      ]
+    },
+    "chat/api/channel_threads#update": {
+      "graphql_operations": [
+        "mutation.updateChatThreadTitle"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_controls_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpdateThread"
+      ],
+      "authorization_requirements": [
+        "Native actual owning channel preview permission",
+        "Native original author or staff edit and silence guard",
+        "Native threading and title validation",
+        "Inherited native authentication and Chat access",
+        "Outer credential, CSRF, readonly, archived and GET restrictions"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete thread discovery, creation, history and client reconciliation",
+        "Protected GraphQL live delivery and final total work budgets"
+      ]
+    },
+    "chat/api/channels_threads_read#update": {
+      "graphql_operations": [
+        "mutation.markChatThreadRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_controls_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpdateUserThreadLastRead"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread identity binding",
+        "Native existing actor membership and monotonic message progress",
+        "Native mention and private tracking effects",
+        "Inherited native authentication and Chat access",
+        "Outer credential, CSRF, readonly, archived and GET restrictions"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete thread discovery, creation, history and client reconciliation",
+        "Protected GraphQL live delivery and final total work budgets"
+      ]
+    },
+    "chat/api/channel_threads_current_user_notifications_settings#update": {
+      "graphql_operations": [
+        "mutation.updateChatThreadNotifications"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_controls_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpdateThreadNotificationSettings"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread identity binding",
+        "Native channel preview and threading guards",
+        "Native actor membership creation and existing read state preservation",
+        "Inherited native authentication and Chat access",
+        "Outer credential, CSRF, readonly, archived and GET restrictions"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete thread discovery, creation, history and client reconciliation",
+        "Protected GraphQL live delivery and final total work budgets"
+      ]
+    },
+    "chat/api/channel_threads_current_user_title_prompt_seen#update": {
+      "graphql_operations": [
+        "mutation.markChatThreadTitlePromptSeen"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_controls_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::MarkThreadTitlePromptSeen"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread identity binding",
+        "Native preview and threading guards",
+        "Native actor membership creation without advancing read state",
+        "Inherited native authentication and Chat access",
+        "Outer credential, CSRF, readonly, archived and GET restrictions"
+      ],
+      "authorization_audit": "partial, declared adapter paths exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete thread discovery, creation, history and client reconciliation",
+        "Protected GraphQL live delivery and final total work budgets"
+      ]
+    },
+    "chat/api/channel_threads#show": {
+      "graphql_operations": [
+        "query.chatThread"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_threads_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb",
+        "script/measure_thread_lookup_loading_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::LookupThread",
+        "Chat::ThreadSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread or original message identity binding",
+        "Native access and threading policies",
+        "Native deleted original moderation or creation silence and title validation",
+        "Inherited native authentication and outer request protections"
+      ],
+      "authorization_audit": "partial, declared adapter paths and fresh optional states exercised",
+      "status": "partial",
+      "remaining": [
+        "Thread lists, history, drafts and complete client reconciliation",
+        "Native nested rendering and total loading budgets",
+        "Protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/channel_threads#create": {
+      "graphql_operations": [
+        "mutation.createChatThread"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_threads_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb",
+        "script/measure_thread_lookup_loading_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::CreateThread",
+        "Chat::ThreadSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread or original message identity binding",
+        "Native access and threading policies",
+        "Native deleted original moderation or creation silence and title validation",
+        "Inherited native authentication and outer request protections"
+      ],
+      "authorization_audit": "partial, declared adapter paths and fresh optional states exercised",
+      "status": "partial",
+      "remaining": [
+        "Thread lists, history, drafts and complete client reconciliation",
+        "Native nested rendering and total loading budgets",
+        "Protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/channel_threads#index": {
+      "graphql_operations": [
+        "query.chatChannelThreads"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_lists_spec.rb",
+        "spec/requests/discourse_graphql/chat_thread_list_multisite_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/measure_thread_list_status_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::LookupChannelThreads",
+        "Chat::ThreadListSerializer",
+        "Chat::ThreadSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel or secured channel scope and list membership rules",
+        "Native login and Chat access",
+        "Current permission check on every continuation",
+        "Signed actor, site, list kind, first and channel cursor context",
+        "Native root and node serializer restrictions",
+        "Native profile privacy after complete association batching"
+      ],
+      "authorization_audit": "partial, focused declared HTTP contracts and status SQL growth pass",
+      "status": "partial",
+      "remaining": [
+        "Native preparation total work and final concurrent budgets",
+        "Complete thread history, drafts, user status fields and client journeys",
+        "Protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/current_user_threads#index": {
+      "graphql_operations": [
+        "query.currentUserChatThreads"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_lists_spec.rb",
+        "spec/requests/discourse_graphql/chat_thread_list_multisite_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/measure_thread_list_status_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::LookupUserThreads",
+        "Chat::ThreadListSerializer",
+        "Chat::ThreadSerializer"
+      ],
+      "authorization_requirements": [
+        "Native channel or secured channel scope and list membership rules",
+        "Native login and Chat access",
+        "Current permission check on every continuation",
+        "Signed actor, site, list kind, first and channel cursor context",
+        "Native root and node serializer restrictions",
+        "Native profile privacy after complete association batching"
+      ],
+      "authorization_audit": "partial, focused declared HTTP contracts and status SQL growth pass",
+      "status": "partial",
+      "remaining": [
+        "Native preparation total work and final concurrent budgets",
+        "Complete thread history, drafts, user status fields and client journeys",
+        "Protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/channel_thread_messages#index": {
+      "graphql_operations": [
+        "query.chatThreadMessages"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_thread_history_spec.rb",
+        "spec/requests/discourse_graphql/chat_thread_history_multisite_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb",
+        "spec/requests/discourse_graphql/chat_message_details_spec.rb",
+        "spec/performance/measure_chat_message_media_spec.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelThreadMessagesController#index",
+        "Chat::ListChannelThreadMessages",
+        "Chat::MessagesQuery",
+        "Chat::MessagesSerializer",
+        "Chat::MessageSerializer",
+        "Category.post_create_allowed",
+        "Chat::GuardianExtensions#can_flag_in_chat_channel?"
+      ],
+      "authorization_requirements": [
+        "Native channel and thread identity binding, access and threading policies",
+        "Native deleted original moderation and target existence policy",
+        "Current permission check on every page",
+        "Signed channel, thread, actor, site, size and exact ordering cursor",
+        "Native permitted message collection, field inclusion and logical GET semantics",
+        "Native snapshot omissions, own bookmark, secure media, status privacy and prepared category flag permissions"
+      ],
+      "authorization_audit": "partial, declared HTTP presentation and flag permission growth verified, attachment growth remains incomplete",
+      "status": "partial",
+      "remaining": [
+        "Native anonymous deleted anchor recovery",
+        "Reviewable, user flag and channel contexts not supplied by these history owners",
+        "Remaining message and tracking fields and alternative history entry points",
+        "Native thumbnail SQL growth and unselected eager preparation dependencies",
+        "Final concurrent performance budgets",
+        "Complete client journeys and protected GraphQL live delivery"
+      ]
+    },
+    "chat/api/channels_drafts#create": {
+      "graphql_operations": [
+        "mutation.updateChatChannelDraft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_drafts_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpsertDraft"
+      ],
+      "authorization_requirements": [
+        "Native Chat access, channel policy and thread binding",
+        "Native current actor storage and maximum character length",
+        "Native blank clearing semantics and serialized String preservation",
+        "Inherited native logical POST, outer credentials, CSRF and site write restrictions",
+        "Query cost admission before effects"
+      ],
+      "authorization_audit": "partial, declared native HTTP status parity and persisted effects exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete client recovery journeys",
+        "Native draft read projection and final total performance budgets"
+      ]
+    },
+    "chat/api/channels_threads_drafts#create": {
+      "graphql_operations": [
+        "mutation.updateChatThreadDraft"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_drafts_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::UpsertDraft"
+      ],
+      "authorization_requirements": [
+        "Native Chat access, channel policy and thread binding",
+        "Native current actor storage and maximum character length",
+        "Native blank clearing semantics and serialized String preservation",
+        "Inherited native logical POST, outer credentials, CSRF and site write restrictions",
+        "Query cost admission before effects",
+        "Nonblank required thread path identity before native optional ID coercion"
+      ],
+      "authorization_audit": "partial, declared native HTTP status parity and persisted effects exercised",
+      "status": "partial",
+      "remaining": [
+        "Complete client recovery journeys",
+        "Native draft read projection and final total performance budgets"
+      ]
+    },
+    "chat/api/channel_messages#update": {
+      "graphql_operations": [
+        "mutation.updateChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb",
+        "spec/performance/measure_chat_message_lifecycle_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#update",
+        "Chat::UpdateMessage"
+      ],
+      "authorization_requirements": [
+        "Native membership requirement, posting permission and author versus administrator editing policy",
+        "Native upload ownership resolution, replacement semantics, model validation, cooking, revisions, jobs and publications",
+        "Native CSRF, credential restrictions, readonly state and logical request verb",
+        "Native action specific membership and channel state requirements"
+      ],
+      "authorization_audit": "partial, declared HTTP lifecycle and native failure observations verified",
+      "status": "partial",
+      "remaining": [
+        "Native null text attachment handling",
+        "Complete semantic branches and client reconciliation",
+        "Protected GraphQL live delivery and final concurrent budgets"
+      ]
+    },
+    "chat/api/channel_messages#destroy": {
+      "graphql_operations": [
+        "mutation.deleteChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb",
+        "spec/performance/measure_chat_message_lifecycle_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#destroy",
+        "Chat::TrashMessage"
+      ],
+      "authorization_requirements": [
+        "Native can_delete_chat? actor, channel visibility, own versus other message and modification rules",
+        "Native single deletion pin and notification cleanup, last message and reading state, events and publications",
+        "Native CSRF, credential restrictions, readonly state and logical request verb",
+        "Native action specific membership and channel state requirements"
+      ],
+      "authorization_audit": "partial, declared HTTP lifecycle and native failure observations verified",
+      "status": "partial",
+      "remaining": [
+        "Complete semantic branches and client reconciliation",
+        "Protected GraphQL live delivery and final concurrent budgets"
+      ]
+    },
+    "chat/api/channel_messages#bulk_destroy": {
+      "graphql_operations": [
+        "mutation.deleteChatMessages"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb",
+        "spec/performance/measure_chat_message_lifecycle_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#bulk_destroy",
+        "Chat::TrashMessages"
+      ],
+      "authorization_requirements": [
+        "Native channel scoped selection and can_delete_chat? for every retained message before deletion",
+        "Native complete 1 through 200 input window, missing selection handling, per row effects and bulk publication",
+        "Native CSRF, credential restrictions, readonly state and logical request verb",
+        "Native action specific membership and channel state requirements"
+      ],
+      "authorization_audit": "partial, declared HTTP lifecycle and native failure observations verified",
+      "status": "partial",
+      "remaining": [
+        "Native bulk pin cleanup",
+        "Native bulk event preparation and read query growth",
+        "Complete semantic branches and client reconciliation",
+        "Protected GraphQL live delivery and final concurrent budgets"
+      ]
+    },
+    "chat/api/channel_messages#restore": {
+      "graphql_operations": [
+        "mutation.restoreChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb",
+        "spec/performance/measure_chat_message_lifecycle_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#restore",
+        "Chat::RestoreMessage"
+      ],
+      "authorization_requirements": [
+        "Native posting or moderation permission and can_restore_chat?, including silencing and deletion actor rules",
+        "Native recovery, channel and thread last message, reply count changes, events and publications",
+        "Native CSRF, credential restrictions, readonly state and logical request verb",
+        "Native action specific membership and channel state requirements"
+      ],
+      "authorization_audit": "partial, declared HTTP lifecycle and native failure observations verified",
+      "status": "partial",
+      "remaining": [
+        "Native repeated restore count corruption",
+        "Complete semantic branches and client reconciliation",
+        "Protected GraphQL live delivery and final concurrent budgets"
+      ]
+    },
+    "chat/api/channel_pins#create": {
+      "graphql_operations": [
+        "mutation.pinChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_pin_controls_spec.rb",
+        "spec/lib/discourse_graphql/native_response_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelPinsController#create",
+        "Chat::PinMessage"
+      ],
+      "authorization_requirements": [
+        "Native Chat eligibility, channel visibility, category pinning groups and direct message participant policy",
+        "Native feature, CSRF, credentials and readonly guards with original request verb",
+        "Native pin state, limit and duplicate rules, publications or actor reading timestamp"
+      ],
+      "authorization_audit": "partial, declared HTTP control paths and native timestamp readback verified",
+      "status": "partial",
+      "remaining": [
+        "Complete native pin list, excerpts, users and nested message presentation",
+        "Native bulk pin cleanup and complete semantic coverage",
+        "Complete client reconciliation, protected live delivery and final performance budgets"
+      ]
+    },
+    "chat/api/channel_pins#destroy": {
+      "graphql_operations": [
+        "mutation.unpinChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_pin_controls_spec.rb",
+        "spec/lib/discourse_graphql/native_response_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelPinsController#destroy",
+        "Chat::UnpinMessage"
+      ],
+      "authorization_requirements": [
+        "Native Chat eligibility, channel visibility, category pinning groups and direct message participant policy",
+        "Native feature, CSRF, credentials and readonly guards with original request verb",
+        "Native pin state, limit and duplicate rules, publications or actor reading timestamp"
+      ],
+      "authorization_audit": "partial, declared HTTP control paths and native timestamp readback verified",
+      "status": "partial",
+      "remaining": [
+        "Complete native pin list, excerpts, users and nested message presentation",
+        "Native bulk pin cleanup and complete semantic coverage",
+        "Complete client reconciliation, protected live delivery and final performance budgets"
+      ]
+    },
+    "chat/api/channel_pins#mark_read": {
+      "graphql_operations": [
+        "mutation.markChatPinsRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_pin_controls_spec.rb",
+        "spec/lib/discourse_graphql/native_response_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelPinsController#mark_read",
+        "Chat::MarkPinsAsRead"
+      ],
+      "authorization_requirements": [
+        "Native actor membership and current channel preview access",
+        "Native feature, CSRF, credentials and readonly guards with original request verb",
+        "Native pin state, limit and duplicate rules, publications or actor reading timestamp"
+      ],
+      "authorization_audit": "partial, declared HTTP control paths and native timestamp readback verified",
+      "status": "partial",
+      "remaining": [
+        "Complete native pin list, excerpts, users and nested message presentation",
+        "Native bulk pin cleanup and complete semantic coverage",
+        "Complete client reconciliation, protected live delivery and final performance budgets"
+      ]
+    }
+  },
+  "shared_plugin_assessments": {
+    "discourse-affiliate": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-affiliate/plugin.rb",
+        "plugins/discourse-affiliate/lib/affiliate_processor.rb"
+      ],
+      "assessment": "Native cooked and localized cooked processing. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-apple-auth": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-apple-auth/plugin.rb",
+        "plugins/discourse-apple-auth/lib/omniauth_apple.rb"
+      ],
+      "assessment": "Native authentication middleware and callbacks. Shared provider discovery, initiation, status and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-details": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-details/plugin.rb",
+        "plugins/discourse-details/assets/javascripts/lib/discourse-markdown/details.js"
+      ],
+      "assessment": "Native details markup and rendering. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-graphviz": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-graphviz/plugin.rb"
+      ],
+      "assessment": "Native diagram markup and renderer. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-lazy-videos": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-lazy-videos/plugin.rb"
+      ],
+      "assessment": "Native video placeholders and player metadata. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-local-dates": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "calendar export",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-local-dates/plugin.rb"
+      ],
+      "assessment": "Native date markup, localized display and calendar export behavior. Shared post content, useful structured dates and settings require verification.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-login-with-amazon": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-login-with-amazon/plugin.rb",
+        "plugins/discourse-login-with-amazon/lib/auth/login_with_amazon_authenticator.rb"
+      ],
+      "assessment": "Native provider middleware and callbacks. Shared provider discovery, initiation, status and settings are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-lti": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "signed launch protocol",
+        "role synchronization",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-lti/plugin.rb",
+        "plugins/discourse-lti/lib/discourse_lti/lti_authenticator.rb"
+      ],
+      "assessment": "Native signed launch and authentication events remain authoritative. Shared provider and configuration adapters must preserve resulting role or group behavior.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-math": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-math/plugin.rb"
+      ],
+      "assessment": "Native mathematical markup and rendering. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-microsoft-auth": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-microsoft-auth/plugin.rb",
+        "plugins/discourse-microsoft-auth/lib/microsoft_authenticator.rb"
+      ],
+      "assessment": "Native provider middleware and callbacks. Shared provider discovery, initiation, status and settings are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-oauth2-basic": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-oauth2-basic/plugin.rb",
+        "plugins/discourse-oauth2-basic/lib/oauth2_basic_authenticator.rb"
+      ],
+      "assessment": "Native provider middleware and callbacks. Shared provider discovery, initiation, status and settings are required.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-openid-connect": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "authentication provider",
+        "logout protocol",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-openid-connect/plugin.rb",
+        "plugins/discourse-openid-connect/lib/openid_connect_authenticator.rb"
+      ],
+      "assessment": "Native login and logout protocols remain authoritative. Shared provider discovery, initiation, status and settings must preserve both flows.",
+      "coverage_status": "incomplete"
+    },
+    "discourse-presence": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "presence",
+        "live delivery",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/discourse-presence/plugin.rb",
+        "app/controllers/presence_controller.rb"
+      ],
+      "assessment": "Uses core presence operations with plugin registered channel permission logic. GraphQL presence writes and protected live delivery remain required.",
+      "coverage_status": "incomplete"
+    },
+    "footnote": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/footnote/plugin.rb"
+      ],
+      "assessment": "Native footnote markup and display. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "spoiler-alert": {
+      "dedicated_controller_actions": false,
+      "required_surfaces": [
+        "rendering",
+        "configuration"
+      ],
+      "native_source_files": [
+        "plugins/spoiler-alert/plugin.rb"
+      ],
+      "assessment": "Native spoiler markup and display. Shared post content and site setting adapters are required.",
+      "coverage_status": "incomplete"
+    },
+    "styleguide": {
+      "dedicated_controller_actions": true,
+      "required_surfaces": [
+        "developer page access",
+        "configuration",
+        "site capability metadata"
+      ],
+      "native_source_files": [
+        "plugins/styleguide/plugin.rb",
+        "plugins/styleguide/app/controllers/styleguide/styleguide_controller.rb"
+      ],
+      "assessment": "The native controller serves the application shell for developer component demonstrations. It exposes no separate community data API. Preserve native group restrictions and site capability metadata through shared adapters.",
+      "coverage_status": "incomplete"
+    }
+  },
+  "native_route_assessments": {
+    "discourse_ai/admin/ai_agents#indexing_status_check": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-ai/app/controllers/discourse_ai/admin/ai_agents_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_ai/admin/ai_agents#remove_file": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-ai/app/controllers/discourse_ai/admin/ai_agents_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_assign/assign#claim": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-assign/app/controllers/discourse_assign/assign_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_reactions/custom_reactions#index": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-reactions/app/controllers/discourse_reactions/custom_reactions_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/plans#destroy": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/plans_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/plans#edit": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/plans_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/plans#new": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/plans_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/products#edit": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/products_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "discourse_subscriptions/admin/products#new": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-subscriptions/app/controllers/discourse_subscriptions/admin/products_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "live/rooms#edit": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/live/app/controllers/live/rooms_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "live/rooms#new": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/live/app/controllers/live/rooms_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "message_bus#poll": {
+      "classification": "native middleware protocol",
+      "native_source_files": [
+        "config/routes.rb",
+        "config/initializers/200-first_middlewares.rb",
+        "config/initializers/004-message_bus.rb"
+      ],
+      "assessment": "The named Ruby controller is absent. MessageBus transport is installed as Rack middleware before routing. Preserve the native transport and implement protected GraphQL live capabilities through the owning event infrastructure.",
+      "coverage_status": "incomplete"
+    },
+    "post_voting/votes#edit": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-post-voting/app/controllers/post_voting/votes_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "post_voting/votes#new": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-post-voting/app/controllers/post_voting/votes_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "post_voting/votes#show": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-post-voting/app/controllers/post_voting/votes_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    },
+    "post_voting/votes#update": {
+      "classification": "route without Ruby action, capability assessment pending",
+      "native_source_files": [
+        "plugins/discourse-post-voting/app/controllers/post_voting/votes_controller.rb"
+      ],
+      "assessment": "The compiled route names an action absent from this controller. Review its current native UI or replacement entry point before mapping it. A resource scaffold does not establish a functioning capability and must not cause a fabricated GraphQL field.",
+      "coverage_status": "incomplete"
+    }
+  }
+}

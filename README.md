@@ -1,44 +1,40 @@
-# DiscourseGraphQL
+# Discourse GraphQL
 
-Unofficial Discourse GraphQL API.
+A typed GraphQL adapter for Discourse and its bundled plugins. Native Discourse remains responsible for permissions, validation, rendering, rate limits and side effects.
 
-## Installation
+This revival is in progress. The [coverage ledger](docs/coverage.md) and [native dependencies](docs/native-dependencies.md) describe required work that remains incomplete. The current implementation is not a completed production release.
 
-Follow [Install a Plugin](https://meta.discourse.org/t/install-a-plugin/19157)
-how-to from the official Discourse Meta, using `git clone https://github.com/tgxworld/discourse-graphql.git`
-as the plugin command.
+## Compatibility and installation
 
-## Usage
+The supported Discourse commit is recorded in [.discourse-version](.discourse-version). CI checks that exact revision with all bundled plugins loaded. Other revisions remain unverified.
 
-```
-require "graphql/client"
-require "graphql/client/http"
+Add `git clone https://github.com/tgxworld/discourse-graphql.git` to your Discourse plugin installation configuration and rebuild. The `discourse_graphql_enabled` site setting controls the endpoint. Dependencies are pinned in Gemfile.lock, including graphql-ruby and its compiled C parser.
 
-module DiscourseAPI
-  HTTP = GraphQL::Client::HTTP.new("http://localhost:3000/discourse-graphql/graphql") do
-    def headers(context)
-      { "Api-Key": 'ef984ff3d0d242998b7df8eaa975229e4ce07c19500b55baa181fc7abd2fd04b', "Api-Username": 'system' }
-    end
-  end
+## Requests
 
-  Schema = GraphQL::Client.load_schema(HTTP)
+The endpoint is `/discourse-graphql/graphql`. Use existing Discourse credentials. Set DISCOURSE_URL, DISCOURSE_API_KEY and DISCOURSE_API_USERNAME in your environment, then run:
 
-  Client = GraphQL::Client.new(schema: Schema, execute: HTTP)
-end
-
-Query = DiscourseAPI::Client.parse(<<~QUERY)
-query {
-  latestTopics {
-    fancyTitle
-  }
-}
-QUERY
-
-DiscourseAPI::Client.query(Query).latest_topics.each do |topic|
-  puts topic.fancy_title
-end
+```bash
+curl --get "$DISCOURSE_URL/discourse-graphql/graphql" \
+  --header "Api-Key: $DISCOURSE_API_KEY" \
+  --header "Api-Username: $DISCOURSE_API_USERNAME" \
+  --data-urlencode 'query={ currentUser { id username } capabilities { id available } }'
 ```
 
-## Feedback
+GET executes queries. Mutations require POST. Browser sessions retain native CSRF protection. Credential restrictions remain enforced, and unsupported granular scopes fail closed. Public reads retain their native visibility rules.
 
-If you have issues or suggestions for the plugin, please [open an issue](https://github.com/tgxworld/discourse-graphql/issues/new).
+See [API conventions and operations](docs/api.md) for inputs, pagination, typed errors, uploads, optional plugin behavior and recovery after ambiguous mutation responses. Standard GraphQL introspection provides the current schema.
+
+## Verification
+
+From the supported Discourse checkout with the plugin installed:
+
+```bash
+RAILS_ENV=test LOAD_PLUGINS=1 ENABLE_LOGSTASH_LOGGER=0 bin/rspec plugins/discourse-graphql/spec
+```
+
+This discovers request, middleware and performance cases. Performance observations that expose unresolved native limitations remain explicitly marked as incomplete in the coverage and dependency records. Passing these characterization cases does not establish final latency, allocation, memory or concurrent throughput budgets.
+
+The CI workflow also checks fresh processes with optional adapters enabled, disabled and absent, then regenerates the native operation inventory and rejects drift. The workflow pins its Discourse revision, test container and checkout action.
+
+For an owned TGX development environment, run the same suite with `tgx-dv test --name <owned-container> --env LOAD_PLUGINS=1 --env ENABLE_LOGSTASH_LOGGER=0 plugins/discourse-graphql/spec`. Existing `script/measure_*_spec.rb` commands remain available as wrappers around the discovered performance cases.
