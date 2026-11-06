@@ -28,7 +28,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(result["errors"]).to be_blank
       node = result.dig("data", "chatMessages", "nodes", 0)
       expect(node).to include("id" => message.id.to_s, "edited" => native.fetch("edited"), "pinned" => native.fetch("pinned"), "isAction" => native.fetch("is_action"), "threadTitle" => native["thread_title"], "availableFlags" => native.fetch("available_flags"))
-      expect(node.fetch("bookmark")).to include("id" => bookmark.id.to_s, "name" => native.dig("bookmark", "name"), "targetId" => message.id.to_s, "targetType" => "Chat::Message")
+      expect(node.fetch("bookmark")).to include("id" => bookmark.id.to_s, "name" => native.dig("bookmark", "name"), "targetId" => message.id.to_s, "targetType" => native.dig("bookmark", "bookmarkable_type"))
       expect(Time.iso8601(node.dig("bookmark", "reminderAt")).to_r).to eq(Time.iso8601(native.dig("bookmark", "reminder_at")).to_r)
     end
 
@@ -104,7 +104,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       SiteSetting.secure_uploads = true
       group = Fabricate(:group, users: [user])
       restricted = Fabricate(:private_category_channel, group: group)
-      upload = Fabricate(:upload, secure: true)
+      upload = Fabricate(:secure_upload_s3)
       entry = Fabricate(:chat_message, chat_channel: restricted, uploads: [upload])
       native = native_message(channel_id: restricted.id).fetch("uploads").first
 
@@ -296,6 +296,162 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = details(selection: "nodes { thread { id originalMessage { id } } }")
       expect(result["errors"]).to be_blank
       expect(result.dig("data", "chatMessages", "nodes", 0, "thread", "originalMessage", "id")).to eq(thread.original_message_id.to_s)
+    end
+
+    it "rejects collection bounds and changed native mention content" do
+      mentioned = Fabricate.times(2, :user)
+      mentioned.each { |actor| Fabricate(:user_chat_mention, chat_message: message, user: actor) }
+      result = details(selection: "nodes { mentionedUsers(first: 1) { pageInfo { endCursor } } }")
+      cursor = result.dig("data", "chatMessages", "nodes", 0, "mentionedUsers", "pageInfo", "endCursor")
+      expect(cursor).to be_present
+      [0, 51].each do |first|
+        result = details(selection: "nodes { mentionedUsers(first: #{first}) { nodes { id } } }")
+        expect(result.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
+      end
+      mentioned.first.update!(username: "changed_mention")
+
+      result = details(selection: "nodes { mentionedUsers(first: 1, after: #{cursor.to_json}) { nodes { id } } }")
+
+      expect(result.dig("data", "chatMessages", "nodes", 0, "mentionedUsers")).to be_nil
+      expect(result.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
+    end
+
+    it "binds block child continuation to the native public block fingerprint" do
+      message.update!(blocks: [{ type: "confirmation", title: "Before", question: "Continue?", parameters: [{ label: "First", value: "One" }, { label: "Second", value: "Two" }], elements: [] }])
+      result = details(selection: "nodes { blocks(first: 1) { nodes { parameters(first: 1) { nodes { label value } pageInfo { endCursor } } } } }")
+      expect(result["errors"]).to be_blank
+      cursor = result.dig("data", "chatMessages", "nodes", 0, "blocks", "nodes", 0, "parameters", "pageInfo", "endCursor")
+      expect(cursor).to be_present
+      selection = "nodes { blocks(first: 1) { nodes { parameters(first: 1, after: #{cursor.to_json}) { nodes { label value } } } } }"
+      result = details(selection: selection)
+      expect(result["errors"]).to be_blank
+      expect(result.dig("data", "chatMessages", "nodes", 0, "blocks", "nodes", 0, "parameters", "nodes")).to eq([{ "label" => "Second", "value" => "Two" }])
+      updated = message.blocks.deep_dup
+      updated.first["title"] = "After"
+      message.update!(blocks: updated)
+
+      result = details(selection: selection)
+
+      expect(result.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
+    end
+
+    it "keeps native parent only restrictions authoritative for embedded media" do
+      upload = Fabricate(:upload)
+      message.uploads = [upload]
+      restricted = Class.new(Chat::MessageSerializer) do
+        def initialize(object, options = {})
+          super(object, options.merge(only: %i[id chat_channel_id uploads]))
+        end
+      end
+      stub_const(Chat, :MessageSerializer, restricted) do
+        native = native_message.fetch("uploads").first
+        expect(native).not_to have_key("url")
+        result = details(selection: "nodes { uploads(first: 1) { nodes { id url originalFilename } } }")
+        expect(result["errors"]).to be_blank
+        expect(result.dig("data", "chatMessages", "nodes", 0, "uploads", "nodes", 0)).to eq("id" => upload.id.to_s, "url" => nil, "originalFilename" => nil)
+      end
+    end
+
+    it "keeps private button values outside the typed schema" do
+      get "/discourse-graphql/graphql", params: { query: '{ __type(name: "ChatButtonElement") { fields { name } } }' }, headers: headers
+      expect(response.parsed_body["errors"]).to be_blank
+      expect(response.parsed_body.dig("data", "__type", "fields").map { |field| field.fetch("name") }).to contain_exactly("type", "actionId", "text", "style", "icon")
+    end
+
+    it "preserves native flag permissions across category permission changes and Guardian denial" do
+      selection = "nodes { availableFlags }"
+      permitted = native_message.fetch("available_flags")
+      expect(permitted).to be_present
+      expect(details(selection: selection).dig("data", "chatMessages", "nodes", 0, "availableFlags")).to eq(permitted)
+
+      channel.chatable.set_permissions(everyone: :readonly)
+      channel.chatable.save!
+      SiteSetting.chat_allowed_groups = "#{Group::AUTO_GROUPS[:everyone]}|#{Group::AUTO_GROUPS[:anonymous_users]}"
+      denied = native_message.fetch("available_flags")
+      expect(denied).to eq([])
+      expect(details(selection: selection).dig("data", "chatMessages", "nodes", 0, "availableFlags")).to eq(denied)
+
+      channel.chatable.set_permissions(everyone: :full)
+      channel.chatable.save!
+      Guardian.any_instance.stubs(:can_modify_channel_message?).returns(false)
+      denied = native_message.fetch("available_flags")
+      expect(denied).to eq([])
+      expect(details(selection: selection).dig("data", "chatMessages", "nodes", 0, "availableFlags")).to eq(denied)
+    end
+
+    it "preserves native flag permission for an anonymous mode actor" do
+      SiteSetting.allow_anonymous_mode = true
+      SiteSetting.allow_chat_in_anonymous_mode = true
+      SiteSetting.anonymous_posting_allowed_groups = Group::AUTO_GROUPS[:everyone]
+      SiteSetting.chat_message_flag_allowed_groups = Group::AUTO_GROUPS[:everyone]
+      shadow = AnonymousShadowCreator.get(user)
+      expect(shadow).to be_present
+      shadow_key = Fabricate(:api_key, user: shadow)
+      shadow_headers = { "Api-Key" => shadow_key.key, "Api-Username" => shadow.username }
+      get "/chat/api/channels/#{channel.id}/messages.json", params: { page_size: 1, direction: "past" }, headers: shadow_headers
+      expect(response.status).to eq(200)
+      native_flags = response.parsed_body.fetch("messages").last.fetch("available_flags")
+      expect(native_flags).to be_present
+
+      result = details(selection: "nodes { availableFlags }", request_headers: shadow_headers)
+
+      expect(result["errors"]).to be_blank
+      expect(result.dig("data", "chatMessages", "nodes", 0, "availableFlags")).to eq(native_flags)
+    end
+
+    it "preserves omitted native message collections without inventing empty pages" do
+      restricted = Class.new(Chat::MessageSerializer) do
+        def include_mentioned_users?
+          false
+        end
+
+        def include_uploads?
+          false
+        end
+
+        def include_blocks?
+          false
+        end
+      end
+      stub_const(Chat, :MessageSerializer, restricted) do
+        result = details(selection: "nodes { mentionedUsers { totalCount } uploads { totalCount } blocks { totalCount } }")
+        expect(result["errors"]).to be_blank
+        expect(result.dig("data", "chatMessages", "nodes", 0)).to eq("mentionedUsers" => nil, "uploads" => nil, "blocks" => nil)
+      end
+    end
+
+    it "rejects multiplied block rendering before native history work" do
+      queries = track_sql_queries do
+        result = details(last: 50, selection: "nodes { blocks(first: 5) { nodes { type } } }")
+        expect(result.dig("errors", 0, "extensions", "code")).to eq("QUERY_TOO_COMPLEX")
+      end
+      expect(queries.grep(/FROM "chat_messages"/i)).to eq([])
+    end
+
+    it "bounds SQL growth across fifty authors, mentions, bookmarks and reply previews" do
+      SiteSetting.enable_user_status = true
+      SiteSetting.chat_pinned_messages = true
+      entries = Array.new(50) do
+        sender = Fabricate(:user)
+        entry = Fabricate(:chat_message, chat_channel: channel, user: sender, in_reply_to: message)
+        Fabricate(:user_chat_mention, chat_message: entry)
+        Fabricate(:bookmark, user: user, bookmarkable: entry)
+        entry
+      end
+      selection = "nodes { id author { id username status { description } } edited pinned availableFlags bookmark { id } inReplyTo { id user { id } } mentionedUsers(first: 1) { nodes { id username } } }"
+      [1, 50].each { |last| expect(details(last: last, selection: selection)["errors"]).to be_blank }
+      counts = [1, 50].map do |last|
+        queries = track_sql_queries do
+          result = details(last: last, selection: selection)
+          expect(result["errors"]).to be_blank
+          expect(result.dig("data", "chatMessages", "nodes").size).to eq(last)
+        end
+        tables = queries.group_by { |sql| sql[/FROM "([^"]+)"/i, 1] }.transform_values(&:size)
+        puts({ measurement: "chat_message_presentation_tables", messages: last, tables: tables }.to_json)
+        queries.count { |sql| sql.match?(/\A\s*(SELECT|WITH)\b/i) }
+      end
+      puts({ measurement: "chat_message_presentation_sql", messages: [1, 50], queries: counts }.to_json)
+      expect(counts.last).to be <= counts.first + 3
     end
 
     it "accepts both previously signed native history cursor formats" do

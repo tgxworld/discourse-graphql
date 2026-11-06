@@ -17,6 +17,8 @@ module DiscourseGraphQL
       field :retain_hours, Int, null: true, hash_key: "retain_hours"
       field :human_filesize, String, null: true, hash_key: "human_filesize"
       field :dominant_color, String, null: true, hash_key: "dominant_color"
+      field :thumbnail, UploadThumbnailType, null: true, hash_key: "thumbnail"
+      field :optimized_video, OptimizedVideoType, null: true, hash_key: "optimized_video"
     end
   end
 end

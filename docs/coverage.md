@@ -231,3 +231,10 @@ Thread message history now uses the native channel thread endpoint, with latest 
 
 
 Chat draft reading and changes now preserve the native recent twenty window, serialized composer String, actor separation, native clearing, character limits, channel and thread binding, browser CSRF and native write restrictions. The native read boundary retains own stored drafts after private access loss and omits drafts when personal Chat or native eligibility suppresses them. Content bound cursors reject actor, site, size and source changes. SQL remains 7 queries for 1 and 20 rows, and for 1 and 8 aliases. An uncached control fails at 14 queries and eight native reads. Native count only preparation still copies the complete serialized content, so final total work budgets remain incomplete.
+
+
+## Message presentation increment
+
+Both native history queries now expose edited and pinned state, flag choices, own partial bookmark, reply and webhook presentation, mentions, attachments, structured blocks and selected nested threads. Snapshot fields retain native status privacy and serializer omissions. Private button values remain outside the schema. Bounded content pages bind native permitted parent identities and source content. Original serializer instances and existing channel and thread history cursor formats are retained.
+
+The richer message query holds 31 SQL queries at 1 and 50 messages through the native prepared category permission hook. Permission changes, native Guardian denial and anonymous mode flag parity are exercised through HTTP. This resolves the measured available_flags category query growth. Selected attachment output still uses 29 and 78 queries at 1 and 50 messages through native thumbnail lookups. Message ID only output uses 28 and 28 and avoids thumbnail rendering. The attachment dependency, native eager preparation, final concurrent budgets, remaining contexts and lifecycle operations, complete clients and protected live delivery remain incomplete.

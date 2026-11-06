@@ -123,3 +123,14 @@ The largest GraphQL allocations are about 2002032 bytes in HTTP response copies,
 The native owner needs a projection aware draft window reader used by CurrentUserSerializer inside its controller lifecycle. Eligibility, recent twenty ordering, serializer options and row filtering must remain native. A filter depending on draft data still needs that data, requiring declared dependencies or a complete data fallback. A separate count query cannot preserve those filters. Capturing an earlier Ruby value or discarding the final native response would weaken the boundary and is not a solution.
 
 `spec/performance/measure_chat_draft_window_spec.rb` reproduces native and GraphQL allocations. Alias growth is bounded, but this does not satisfy the required total preparation and concurrency budgets. No safe existing owner projection hook was identified. This dependency remains unresolved.
+
+
+## Chat attachment thumbnail query growth
+
+Status: unresolved native performance dependency. Typed media output does not satisfy the required complete query growth budget.
+
+Chat::MessagesQuery preloads uploads and optimized videos. UploadSerializer obtains each thumbnail through Upload#thumbnail, which calls optimized_images.find_by with the native dimensions. The native association is rendered even when the GraphQL upload selection requests only its ID. Loading the complete optimized_images association alone does not make that relation find_by consume the loaded array. Replacing the model lookup or copying serializer association dispatch into this plugin would duplicate native behavior.
+
+The committed spec/performance/measure_chat_message_media_spec.rb drives real native and GraphQL HTTP with 50 distinct uploads and thumbnails. Native history uses 29 and 78 SQL queries at 1 and 50 messages. GraphQL selected upload ID and selected thumbnail each use 29 and 78, including 1 and 50 optimized_images queries. GraphQL message ID alone uses 28 and 28 with no thumbnail queries or instantiated OptimizedImage records. Native query preparation still loads uploads for that selection.
+
+The owner needs a supported batch thumbnail preparation and lookup boundary that preserves native dimension matching, association output and serializer restrictions. A supported child serializer selection boundary would additionally skip unselected thumbnail work. Existing callers must retain their defaults. Neither partial association caches nor discarding the final native response is an acceptable substitute. Reproduce with tgx-dv test --name <owned-container> --seed 23293 plugins/discourse-graphql/spec/performance/measure_chat_message_media_spec.rb. The probe reports total_performance_budgets_verified:false and must not be counted as a passing performance budget.

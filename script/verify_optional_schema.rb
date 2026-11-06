@@ -24,6 +24,9 @@ data = payload.fetch("data")
 fields = data.dig("__schema", "queryType", "fields").map { |field| field.fetch("name") }
 mutations = data.dig("__schema", "mutationType", "fields").map { |field| field.fetch("name") }
 types = data.dig("__schema", "types").map { |type| type.fetch("name") }
+unless %w[UploadThumbnail OptimizedVideo].all? { |name| types.include?(name) }
+  abort "Core upload presentation types missing without optional plugins."
+end
 unless %w[
          SiteSettingDefinition
          SiteSettingChoicePage

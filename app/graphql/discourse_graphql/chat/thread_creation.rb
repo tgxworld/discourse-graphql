@@ -20,7 +20,7 @@ module DiscourseGraphQL
       def serialize_data(object, serializer, options = nil)
         return super unless serializer == ::Chat::ThreadSerializer
         native = serializer.new(object, { scope: guardian }.merge(options || {}))
-        ThreadFieldSelection.select(serializer: native, fields: @thread_fields).as_json
+        NativeFieldSelection.select(serializer: native, fields: @thread_fields).as_json
       end
     end
   end

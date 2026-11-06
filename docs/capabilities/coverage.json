@@ -198,25 +198,34 @@
       "graphql_tests": [
         "spec/requests/discourse_graphql/chat_history_spec.rb",
         "spec/requests/discourse_graphql/chat_reactions_spec.rb",
-        "script/measure_chat_reaction_loading_spec.rb"
+        "script/measure_chat_reaction_loading_spec.rb",
+        "spec/requests/discourse_graphql/chat_message_details_spec.rb",
+        "spec/performance/measure_chat_message_media_spec.rb"
       ],
       "native_entry_points": [
         "Chat::Api::ChannelMessagesController#index",
         "Chat::ListChannelMessages",
         "Chat::MessagesQuery",
-        "Chat::MessagesSerializer"
+        "Chat::MessagesSerializer",
+        "Chat::MessageSerializer",
+        "Category.post_create_allowed",
+        "Chat::GuardianExtensions#can_flag_in_chat_channel?"
       ],
       "authorization_requirements": [
         "Native public anonymous preview and channel permissions",
         "Native deleted visibility, thread filtering and viewed state",
-        "Signed cursor binding and exact native ordering checks"
+        "Signed cursor binding and exact native ordering checks",
+        "Native snapshot omissions, own bookmark, secure media, status privacy and prepared category flag permissions"
       ],
-      "authorization_audit": "partial, declared adapter paths exercised",
+      "authorization_audit": "partial, declared HTTP presentation and flag permission growth verified, attachment growth remains incomplete",
       "status": "partial",
       "remaining": [
-        "Anonymous deleted anchor dependency",
-        "Attachments, thread previews and remaining message or tracking fields",
-        "Native unselected association loading dependency and final workload budgets"
+        "Native anonymous deleted anchor recovery",
+        "Reviewable, user flag and channel contexts not supplied by these history owners",
+        "Remaining message and tracking fields and alternative history entry points",
+        "Native thumbnail SQL growth and unselected eager preparation dependencies",
+        "Final concurrent performance budgets",
+        "Complete client journeys and protected GraphQL live delivery"
       ]
     },
     "chat/api/channels#show": {
@@ -1377,28 +1386,35 @@
         "spec/requests/discourse_graphql/chat_thread_history_multisite_spec.rb",
         "spec/requests/discourse_graphql/optional_schema_spec.rb",
         "script/verify_chat_reactions_schema.rb",
-        "script/verify_optional_schema.rb"
+        "script/verify_optional_schema.rb",
+        "spec/requests/discourse_graphql/chat_message_details_spec.rb",
+        "spec/performance/measure_chat_message_media_spec.rb"
       ],
       "native_entry_points": [
         "Chat::Api::ChannelThreadMessagesController#index",
         "Chat::ListChannelThreadMessages",
         "Chat::MessagesQuery",
         "Chat::MessagesSerializer",
-        "Chat::MessageSerializer"
+        "Chat::MessageSerializer",
+        "Category.post_create_allowed",
+        "Chat::GuardianExtensions#can_flag_in_chat_channel?"
       ],
       "authorization_requirements": [
         "Native channel and thread identity binding, access and threading policies",
         "Native deleted original moderation and target existence policy",
         "Current permission check on every page",
         "Signed channel, thread, actor, site, size and exact ordering cursor",
-        "Native permitted message collection, field inclusion and logical GET semantics"
+        "Native permitted message collection, field inclusion and logical GET semantics",
+        "Native snapshot omissions, own bookmark, secure media, status privacy and prepared category flag permissions"
       ],
-      "authorization_audit": "partial, declared HTTP paths and complete SQL growth verified",
+      "authorization_audit": "partial, declared HTTP presentation and flag permission growth verified, attachment growth remains incomplete",
       "status": "partial",
       "remaining": [
         "Native anonymous deleted anchor recovery",
-        "Complete native message fields and alternative history entry points",
-        "Native total preparation and final concurrent budgets",
+        "Reviewable, user flag and channel contexts not supplied by these history owners",
+        "Remaining message and tracking fields and alternative history entry points",
+        "Native thumbnail SQL growth and unselected eager preparation dependencies",
+        "Final concurrent performance budgets",
         "Complete client journeys and protected GraphQL live delivery"
       ]
     },

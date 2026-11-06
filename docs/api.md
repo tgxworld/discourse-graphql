@@ -472,3 +472,35 @@ Cursors bind the complete native window, actor, site and first. Any changed wind
 A request scoped source cache shares one native window across aliases. Complete SQL stays at 7 queries for 1 and 20 rows, and for 1 and 8 aliases. Removing source reuse raises the eight alias request to 14 queries and eight native reads, which fails the regression bound. Mutations cost 1000 each. Read cost is 1000 plus first multiplied by 20 plus selected children. Excessive work is rejected before native persistence.
 
 The optional capabilities are chat.draftReading and chat.draftChanges. Disabled Chat returns FEATURE_DISABLED at nullable roots. Absent Chat contributes no fields or types. Count only reads still prepare and copy native serialized content, as recorded in the native dependencies. Final total performance budgets and complete client journeys remain required.
+
+
+## Message presentation
+
+Both history queries expose native edited, pinned, isAction, threadTitle and availableFlags values. Native omission returns null, while false booleans and empty flag lists remain distinct. Message bookmark is the native partial shape for the current actor, including its reminder and target reference. It does not perform a second bookmark lookup. Reply preview contains only native permitted preview content, user snapshot and webhook presentation. Webhook presentation contains username and emoji, without provider keys or URLs.
+
+Author snapshots retain native role, flair, name and status visibility. Mention and reply users have their native partial shapes. Status snapshots expose native description, emoji, expiration and message bus position. UploadedFile adds native thumbnail and optimizedVideo snapshots. Secure upload URLs remain cooked by the native serializer after channel authorization.
+
+Message collections use explicit bounded pages:
+
+| Field | Default first | Maximum first |
+| --- | --- | --- |
+| mentionedUsers | 10 | 50 |
+| uploads | 10 | 20 |
+| blocks | 5 | 5 |
+| Block elements | 10 | 10 |
+| Block parameters | 10 | 50 |
+| Block changes | 10 | 20 |
+
+Counts describe retained native arrays. Mentions keep native sampling and ordering before pagination. Native omitted collections remain null. Signed cursors bind the native permitted message and channel IDs, collection kind, actor, site, page size and content. Block child cursors also bind the complete permitted block. Changed content or context returns BAD_USER_INPUT.
+
+If native parent identity is unavailable, a supplied cursor returns BAD_USER_INPUT. A first page requesting a continuation cursor returns UNAVAILABLE at the nullable collection when more rows exist and identity cannot bind that cursor. Nodes and counts can still be read without requesting that continuation. Terminal first pages need no cursor. Restart from an available authorized parent rather than repeatedly retrying unavailable pagination.
+
+Blocks expose native cooked actions, informative and confirmation presentation. Elements are an explicit button or category union. Button private values are absent from the schema. Text, confirmation parameters, changes and colors have typed fields. Native block cooking remains authoritative. Interactions are a separate required capability.
+
+History selection decorates original native serializer instances and preserves their existing options, predicates and overrides. Nested thread selection skips unselected preview and metadata rendering. Channel history retains its native embedded original message behavior, while thread history retains its own omission. Both history pages use nullable nodes and pageInfo when native collection or anchor data is unavailable. Previously issued channel and thread cursors remain accepted with their original purpose and payload format.
+
+Collection cost is 10 plus first multiplied by 1 plus child cost. Blocks use 1000 instead of 10 because native cooking prepares all selected blocks. Nested thread cost is 1000. These charges combine with the existing history page cost and are checked before native work. A fifty message block selection is rejected as QUERY_TOO_COMPLEX.
+
+Selected flags use the native category posting permission preparation hook, limited to the current history channel and request. All native flag checks still execute. Explicit prepared IDs, direct messages and anonymous mode behavior remain native. The rich message HTTP regression observes 31 SQL queries for both 1 and 50 messages with distinct authors, mentions, bookmarks and reply previews. This does not establish total workload budgets.
+
+Attachment serialization still has a native thumbnail lookup dependency. Selecting only an attachment ID performs the same per upload thumbnail lookup as selecting the thumbnail. The reproducible media probe records 29 and 78 SQL queries for 1 and 50 messages. Selecting only message IDs records 28 and 28 and skips thumbnail rendering. This dependency remains incomplete in the coverage ledger and final performance requirements.

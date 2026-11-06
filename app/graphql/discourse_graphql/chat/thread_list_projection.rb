@@ -10,7 +10,7 @@ module DiscourseGraphQL
         return nil if @graphql_native_thread_serializers.nil?
         natives =
           @graphql_native_thread_serializers.map do |native|
-            ThreadFieldSelection.select(serializer: native, fields: @graphql_thread_node_fields)
+            NativeFieldSelection.select(serializer: native, fields: @graphql_thread_node_fields)
           end
         if SiteSetting.enable_user_status
           originals =

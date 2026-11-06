@@ -7,6 +7,7 @@ module DiscourseGraphQL
       field :username, String, null: true
       field :name, String, null: true
       field :avatar_template, String, null: true, hash_key: "avatar_template"
+      field :status, Types::UserStatusType, null: true, hash_key: "status"
     end
   end
 end

@@ -52,6 +52,27 @@ unless capabilities.drop(1).all? { |capability| capability.fetch("available") ==
 end
 types = data.dig("__schema", "types").map { |type| type.fetch("name") }
 unless %w[
+         ChatMessage
+         ChatMessageBookmark
+         ChatReplyPreview
+         ChatWebhookPresentation
+         ChatMessageUserPage
+         ChatMessageUploadPage
+         ChatMessageBlockPage
+         ChatMessageBlock
+         ChatBlockElement
+         ChatButtonElement
+         ChatCategoryElement
+         ChatBlockParameter
+         ChatBlockChange
+         UploadThumbnail
+         OptimizedVideo
+         UserSnapshot
+         UserStatusSnapshot
+       ].all? { |name| types.include?(name) }
+  abort "Message presentation types missing."
+end
+unless %w[
          ChatReaction
          ChatReactionActor
          ChatReactionUser

@@ -28,13 +28,11 @@ module DiscourseGraphQL
 
       def chat_messages(channel_id:, last:, lookahead:, before: nil)
         Extensions.ensure_enabled!("chat")
-        fields =
-          lookahead.selection(:nodes).selections.map { |selection| selection.field.method_sym }
-        MessageHistory.new(request: context[:request]).call(
+        MessageHistory.new(request: context[:request], request_method: "GET").call(
           channel_id: channel_id,
           last: last,
           before: before,
-          fields: fields,
+          lookahead: lookahead,
         )
       end
     end

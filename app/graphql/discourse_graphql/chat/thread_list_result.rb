@@ -51,7 +51,7 @@ module DiscourseGraphQL
         @thread_count = rows&.size
         native.extend(ThreadListProjection)
         native.select_graphql_thread_nodes(serializers: rows, fields: @node_fields)
-        ThreadFieldSelection.select(serializer: native, fields: @list_fields).as_json
+        NativeFieldSelection.select(serializer: native, fields: @list_fields).as_json
       end
 
       def cursor_offset(cursor)
