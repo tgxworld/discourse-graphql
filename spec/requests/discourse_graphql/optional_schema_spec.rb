@@ -44,6 +44,10 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
           "createChatThread",
           "updateChatChannelDraft",
           "updateChatThreadDraft",
+          "updateChatMessage",
+          "deleteChatMessage",
+          "deleteChatMessages",
+          "restoreChatMessage",
           "updateChatThreadTitle",
           "markChatThreadRead",
           "updateChatThreadNotifications",
@@ -74,6 +78,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
             chat.threadControls
             chat.threadCreation
             chat.draftChanges
+            chat.messageChanges
           ],
         )
       else
