@@ -51,6 +51,7 @@ end
 abort "Chat mutations leaked into the schema." if mutations.any? { |name| name.include?("Chat") }
 abort "Chat fields leaked into the schema." if fields.include?("chatChannels")
 abort "Chat types leaked into the schema." if types.any? { |name| name.start_with?("Chat") }
+abort "Chat message input leaked into the schema." if types.include?("UpdateChatMessageInput")
 abort "Native Chat constants were loaded." if defined?(::Chat)
 abort "Native Data Explorer constants were loaded." if defined?(::DiscourseDataExplorer)
 if types.any? { |name| name.start_with?("Checklist") }

@@ -19,7 +19,11 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       group = Fabricate(:group, users: [user])
       channel.chatable.set_permissions(group => :full)
       channel.chatable.save!
-      original = message.message
+      native_publications = MessageBus.track_publish do
+        put "/chat/api/channels/#{channel.id}/messages/#{message.id}.json", params: { message: "Native publication baseline" }, headers: headers, as: :json
+      end
+      expect(response.status).to eq(200)
+      original = message.reload.message
       events = nil
       publications = MessageBus.track_publish do
         events = DiscourseEvent.track_events do
@@ -32,7 +36,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(revision).to have_attributes(old_message: original, new_message: message.message, user_id: user.id)
       expect(events).to include(include(event_name: :chat_message_edited))
       expect(publications).to include(have_attributes(channel: "/chat/#{channel.id}"))
-      expect(publications.select { |entry| entry.channel == "/chat/#{channel.id}" }.map(&:group_ids).flatten).to include(group.id)
+      expect(publications.select { |entry| entry.channel == "/chat/#{channel.id}" }.map(&:group_ids)).to eq(native_publications.select { |entry| entry.channel == "/chat/#{channel.id}" }.map(&:group_ids))
       get "/chat/api/channels/#{channel.id}/messages.json", params: { page_size: 1 }, headers: headers
       expect(response.status).to eq(200)
       expect(response.parsed_body.dig("messages", 0, "cooked")).to eq(message.cooked)
@@ -133,7 +137,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       notification = Fabricate(:notification)
       Fabricate(:user_chat_mention, chat_message: message, notifications: [notification])
       events = DiscourseEvent.track_events do
-        expect(change("deleteChatMessage").dig("data", "deleteChatMessage", "success")).to eq(true)
+        expect(message_action("deleteChatMessage").dig("data", "deleteChatMessage", "success")).to eq(true)
       end
       expect(message.reload).to be_trashed
       expect(message.deleted_by_id).to eq(user.id)
@@ -145,12 +149,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     end
 
     it "restores native content and publishes recovery without restoring a removed pin" do
-      change("deleteChatMessage")
+      message_action("deleteChatMessage")
       expect(message.reload).to be_trashed
       publications = nil
       events = DiscourseEvent.track_events do
         publications = MessageBus.track_publish do
-          expect(change("restoreChatMessage").dig("data", "restoreChatMessage", "success")).to eq(true)
+          expect(message_action("restoreChatMessage").dig("data", "restoreChatMessage", "success")).to eq(true)
         end
       end
       expect(message.reload.deleted_at).to be_nil
@@ -162,27 +166,28 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "updates native thread reply counts, reading state and publications through delete and restore" do
       channel.update!(threading_enabled: true)
       thread = Fabricate(:chat_thread, channel: channel, original_message_user: user)
+      earlier = Fabricate(:chat_message, chat_channel: channel, thread: thread, user: user)
       reply = Fabricate(:chat_message, chat_channel: channel, thread: thread, user: user)
-      thread.update!(last_message: reply, replies_count: 1)
+      thread.update!(last_message: reply, replies_count: 2)
       membership = thread.add(user)
       membership.update!(last_read_message: reply)
       get "/chat/api/channels/#{channel.id}/threads/#{thread.id}.json", headers: headers
-      expect(response.parsed_body.dig("thread", "reply_count")).to eq(1)
+      expect(response.parsed_body.dig("thread", "reply_count")).to eq(2)
 
       publications = MessageBus.track_publish do
-        expect(change("deleteChatMessage", message_id: reply.id).dig("data", "deleteChatMessage", "success")).to eq(true)
+        expect(message_action("deleteChatMessage", message_id: reply.id).dig("data", "deleteChatMessage", "success")).to eq(true)
       end
       expect(reply.reload).to be_trashed
-      expect(thread.reload.last_message_id).to eq(thread.original_message_id)
-      expect(membership.reload.last_read_message_id).to eq(thread.original_message_id)
-      get "/chat/api/channels/#{channel.id}/threads/#{thread.id}.json", headers: headers
-      expect(response.parsed_body.dig("thread", "reply_count")).to eq(0)
-      expect(publications).to include(have_attributes(channel: "/chat/#{channel.id}/thread/#{thread.id}"))
-
-      expect(change("restoreChatMessage", message_id: reply.id).dig("data", "restoreChatMessage", "success")).to eq(true)
-      expect(thread.reload.last_message_id).to eq(reply.id)
+      expect(thread.reload.last_message_id).to eq(earlier.id)
+      expect(membership.reload.last_read_message_id).to eq(earlier.id)
       get "/chat/api/channels/#{channel.id}/threads/#{thread.id}.json", headers: headers
       expect(response.parsed_body.dig("thread", "reply_count")).to eq(1)
+      expect(publications).to include(have_attributes(channel: "/chat/#{channel.id}/thread/#{thread.id}"))
+
+      expect(message_action("restoreChatMessage", message_id: reply.id).dig("data", "restoreChatMessage", "success")).to eq(true)
+      expect(thread.reload.last_message_id).to eq(reply.id)
+      get "/chat/api/channels/#{channel.id}/threads/#{thread.id}.json", headers: headers
+      expect(response.parsed_body.dig("thread", "reply_count")).to eq(2)
     end
 
     it "preserves serial edit, delete and restore effects within one request" do
@@ -198,7 +203,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       channel.closed!(Discourse.system_user)
       result = edit(input: { message: "Closed channel" })
       expect(result.dig("data", "updateChatMessage", "errors", 0, "code")).to eq("BAD_USER_INPUT")
-      result = change("deleteChatMessage")
+      result = message_action("deleteChatMessage")
       expect(result.dig("data", "deleteChatMessage", "errors", 0, "code")).to eq("FORBIDDEN")
       expect(message.reload.deleted_at).to be_nil
       user.update!(admin: true)
@@ -224,8 +229,8 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       channel.membership_for(user).destroy!
       result = edit(input: { message: "No membership" })
       expect(result.dig("data", "updateChatMessage", "errors", 0, "code")).to eq("NOT_FOUND")
-      expect(change("deleteChatMessage").dig("data", "deleteChatMessage", "success")).to eq(true)
-      expect(change("restoreChatMessage").dig("data", "restoreChatMessage", "success")).to eq(true)
+      expect(message_action("deleteChatMessage").dig("data", "deleteChatMessage", "success")).to eq(true)
+      expect(message_action("restoreChatMessage").dig("data", "restoreChatMessage", "success")).to eq(true)
       expect(channel.membership_for(user)).to be_nil
     end
 
@@ -240,7 +245,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = edit(input: { message: "Forbidden" }, channel_id: private_channel.id, message_id: entry.id)
       expect(result.dig("data", "updateChatMessage", "errors", 0, "code")).to eq("FORBIDDEN")
       %w[deleteChatMessage restoreChatMessage].each do |field|
-        result = change(field, channel_id: private_channel.id, message_id: field == "restoreChatMessage" ? deleted.id : entry.id)
+        result = message_action(field, channel_id: private_channel.id, message_id: field == "restoreChatMessage" ? deleted.id : entry.id)
         expect(result.dig("data", field, "errors", 0, "code")).to eq("FORBIDDEN")
       end
       expect(entry.reload.deleted_at).to be_nil
@@ -252,7 +257,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = edit(input: { message: "Wrong channel" }, channel_id: wrong_channel.id)
       expect(result.dig("data", "updateChatMessage", "errors", 0, "code")).to eq("NOT_FOUND")
       %w[deleteChatMessage restoreChatMessage].each do |field|
-        result = change(field, channel_id: wrong_channel.id)
+        result = message_action(field, channel_id: wrong_channel.id)
         expect(result.dig("data", field, "errors", 0, "code")).to eq("NOT_FOUND")
       end
     end
@@ -264,7 +269,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       entry.trash!(user)
       UserSilencer.new(user).silence
       events = DiscourseEvent.track_events do
-        result = change("restoreChatMessage", channel_id: direct.id, message_id: entry.id)
+        result = message_action("restoreChatMessage", channel_id: direct.id, message_id: entry.id)
         expect(result.dig("data", "restoreChatMessage", "errors", 0, "code")).to eq("FORBIDDEN")
       end
       expect(entry.reload).to be_trashed
@@ -316,7 +321,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "retains anonymous denial and disabled sibling execution" do
       %w[deleteChatMessage restoreChatMessage].each do |field|
-        result = change(field, request_headers: {})
+        result = message_action(field, request_headers: {})
         expect(result.dig("data", field, "errors", 0, "code")).to eq("UNAUTHENTICATED")
       end
       SiteSetting.chat_enabled = false
@@ -332,13 +337,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("BAD_REQUEST")
       Discourse.enable_readonly_mode
       begin
-        graphql(query: query)
+        graphql(query: query, expected_status: 503)
         expect(response.status).to eq(503)
       ensure
         Discourse.disable_readonly_mode
       end
       api_key.update!(scope_mode: :read_only, api_key_scopes: [ApiKeyScope.new(resource: "global", action: "read")])
-      graphql(query: query)
+      graphql(query: query, expected_status: 403)
       expect(response.status).to eq(403)
       expect(message.reload.deleted_at).to be_nil
     end
@@ -366,7 +371,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     graphql(query: "mutation($input: UpdateChatMessageInput!) { updateChatMessage(input: $input) { success errors { code } } __typename }", variables: { input: { channelId: channel_id.to_s, messageId: message_id.to_s }.merge(input) }, request_headers: request_headers, expected_status: expected_status)
   end
 
-  def change(field, channel_id: channel.id, message_id: message.id, request_headers: headers)
+  def message_action(field, channel_id: channel.id, message_id: message.id, request_headers: headers)
     graphql(query: "mutation { #{field}(channelId: #{channel_id.to_s.to_json}, messageId: #{message_id.to_s.to_json}) { success errors { code } } __typename }", request_headers: request_headers)
   end
 

@@ -134,3 +134,30 @@ Chat::MessagesQuery preloads uploads and optimized videos. UploadSerializer obta
 The committed spec/performance/measure_chat_message_media_spec.rb drives real native and GraphQL HTTP with 50 distinct uploads and thumbnails. Native history uses 29 and 78 SQL queries at 1 and 50 messages. GraphQL selected upload ID and selected thumbnail each use 29 and 78, including 1 and 50 optimized_images queries. GraphQL message ID alone uses 28 and 28 with no thumbnail queries or instantiated OptimizedImage records. Native query preparation still loads uploads for that selection.
 
 The owner needs a supported batch thumbnail preparation and lookup boundary that preserves native dimension matching, association output and serializer restrictions. A supported child serializer selection boundary would additionally skip unselected thumbnail work. Existing callers must retain their defaults. Neither partial association caches nor discarding the final native response is an acceptable substitute. Reproduce with tgx-dv test --name <owned-container> --seed 23293 plugins/discourse-graphql/spec/performance/measure_chat_message_media_spec.rb. The probe reports total_performance_budgets_verified:false and must not be counted as a passing performance budget.
+
+
+## Null text in Chat attachment mutations
+
+Native JSON creation with owned upload IDs and omitted or null message returns HTTP 422 with no message created. Editing an existing message with the same inputs returns HTTP 500 with unchanged persisted content in the reproduction. An explicit empty message String succeeds in both actions. The service presence validators accept uploads, but native message processing expects a String. No GraphQL default converts nil into empty text.
+
+The required native correction must define creation and edit handling of absent and null text consistently while retaining validation, cooking, upload ownership and model callbacks. The GraphQL adapter currently preserves creation failure and contains edit exceptions as generic INTERNAL_ERROR. This is not compatible attachment only handling for all native input shapes and remains incomplete.
+
+## Restoring an already live Chat reply changes its count
+
+With one live reply, native thread HTTP lookup reports reply_count 1. Administrator restoration of that already live reply returns HTTP 200 and subsequent lookup reports 2, although no message was recovered or added. A following GraphQL restoration invokes the same native owner and increases the public count to 3. Database replies_count alone does not reveal this defect, since the changed Redis count is read by the native serializer.
+
+The native RestoreMessage owner must define repeated restoration and update the reply count only when appropriate. The adapter does not inspect deletion state to replace that policy. This required lifecycle correction remains unresolved, and success is not an idempotency guarantee.
+
+## Bulk Chat deletion retains pins that break subsequent reads
+
+Native bulk deletion of an owned pinned message returns HTTP 200 and marks the message deleted, while retaining its Chat::PinnedMessage row. The next authorized native channel pins HTTP read returns 500. Single message deletion has an explicit destroy_pin step, while the bulk service does not perform equivalent cleanup. The owning native bulk lifecycle must remove or otherwise correctly handle these pins and retain its publication semantics. The adapter does not perform a second synthetic deletion.
+
+## Bulk Chat deletion prepares per message event payloads
+
+The native and GraphQL bulk paths each emit 27 read events for one message and 419 for fifty. Cache instrumentation identifies 1 and 197 cached reads respectively, leaving actual database reads of 26 and 222. At fifty messages both emit 521 total SQL events, including 50 writes. Native one message total is 32 events and GraphQL is 31, with a different incidental write count. These are complete request observations, not a latency comparison. Database read growth is distinct from required per message writes and cached SQL work.
+
+At fifty messages, category read events number 101, of which 99 are cached. Channel membership and web hook events each number 50, with 49 cache hits each. Mention, reaction and revision reads each number 50 and are uncached. Cached permission and lookup events still consume request work, but must not be counted as database round trips. Chat::TrashMessages publishes one native deletion event per retained message. The native event handler constructs a new Guardian and complete message and channel serializer payload for each event before calling WebHook.enqueue_chat_message_hooks, even when the hook queue retains no work. Native bookkeeping also iterates per message. The adapter cannot suppress those events or replace their payloads with selected GraphQL fields.
+
+The native owners need supported batching and lazy event payload preparation that retain permissions, complete webhook payloads, ordering, callbacks and tracking effects. No plugin query replacement or partial association cache is introduced. Query growth remains an unresolved required performance dependency.
+
+All four lifecycle observations are reproducible through spec/performance/measure_chat_message_lifecycle_spec.rb. It uses actual native and GraphQL HTTP, public thread count readback, persisted deletion and pin state, and separate read and write counts. It reports total_performance_budgets_verified:false. Passing this characterization does not satisfy the required native lifecycle corrections or total performance budgets.

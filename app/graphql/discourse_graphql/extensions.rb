@@ -27,6 +27,7 @@ module DiscourseGraphQL
               Chat::ThreadControlMutationFields,
               Chat::ThreadMutationFields,
               Chat::DraftMutationFields,
+              Chat::MessageMutationFields,
             ]
           else
             []

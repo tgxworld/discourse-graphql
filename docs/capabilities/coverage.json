@@ -173,7 +173,8 @@
         "mutation.createChatMessage"
       ],
       "graphql_tests": [
-        "spec/requests/discourse_graphql/chat_creation_spec.rb"
+        "spec/requests/discourse_graphql/chat_creation_spec.rb",
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb"
       ],
       "native_entry_points": [
         "Chat::Api::ChannelMessagesController#create",
@@ -188,7 +189,9 @@
       "authorization_audit": "partial, declared adapter paths exercised",
       "status": "partial",
       "remaining": [
-        "Upload inputs, bot blocks and remaining integration inputs"
+        "Bot blocks and remaining integration inputs",
+        "Native null text attachment handling",
+        "Complete clients and final concurrent budgets"
       ]
     },
     "chat/api/channel_messages#index": {
@@ -1471,6 +1474,122 @@
       "remaining": [
         "Complete client recovery journeys",
         "Native draft read projection and final total performance budgets"
+      ]
+    },
+    "chat/api/channel_messages#update": {
+      "graphql_operations": [
+        "mutation.updateChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb",
+        "spec/performance/measure_chat_message_lifecycle_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#update",
+        "Chat::UpdateMessage"
+      ],
+      "authorization_requirements": [
+        "Native membership requirement, posting permission and author versus administrator editing policy",
+        "Native upload ownership resolution, replacement semantics, model validation, cooking, revisions, jobs and publications",
+        "Native CSRF, credential restrictions, readonly state and logical request verb",
+        "Native action specific membership and channel state requirements"
+      ],
+      "authorization_audit": "partial, declared HTTP lifecycle and native failure observations verified",
+      "status": "partial",
+      "remaining": [
+        "Native null text attachment handling",
+        "Complete semantic branches and client reconciliation",
+        "Protected GraphQL live delivery and final concurrent budgets"
+      ]
+    },
+    "chat/api/channel_messages#destroy": {
+      "graphql_operations": [
+        "mutation.deleteChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb",
+        "spec/performance/measure_chat_message_lifecycle_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#destroy",
+        "Chat::TrashMessage"
+      ],
+      "authorization_requirements": [
+        "Native can_delete_chat? actor, channel visibility, own versus other message and modification rules",
+        "Native single deletion pin and notification cleanup, last message and reading state, events and publications",
+        "Native CSRF, credential restrictions, readonly state and logical request verb",
+        "Native action specific membership and channel state requirements"
+      ],
+      "authorization_audit": "partial, declared HTTP lifecycle and native failure observations verified",
+      "status": "partial",
+      "remaining": [
+        "Complete semantic branches and client reconciliation",
+        "Protected GraphQL live delivery and final concurrent budgets"
+      ]
+    },
+    "chat/api/channel_messages#bulk_destroy": {
+      "graphql_operations": [
+        "mutation.deleteChatMessages"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb",
+        "spec/performance/measure_chat_message_lifecycle_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#bulk_destroy",
+        "Chat::TrashMessages"
+      ],
+      "authorization_requirements": [
+        "Native channel scoped selection and can_delete_chat? for every retained message before deletion",
+        "Native complete 1 through 200 input window, missing selection handling, per row effects and bulk publication",
+        "Native CSRF, credential restrictions, readonly state and logical request verb",
+        "Native action specific membership and channel state requirements"
+      ],
+      "authorization_audit": "partial, declared HTTP lifecycle and native failure observations verified",
+      "status": "partial",
+      "remaining": [
+        "Native bulk pin cleanup",
+        "Native bulk event preparation and read query growth",
+        "Complete semantic branches and client reconciliation",
+        "Protected GraphQL live delivery and final concurrent budgets"
+      ]
+    },
+    "chat/api/channel_messages#restore": {
+      "graphql_operations": [
+        "mutation.restoreChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_message_changes_spec.rb",
+        "spec/performance/measure_chat_message_lifecycle_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelMessagesController#restore",
+        "Chat::RestoreMessage"
+      ],
+      "authorization_requirements": [
+        "Native posting or moderation permission and can_restore_chat?, including silencing and deletion actor rules",
+        "Native recovery, channel and thread last message, reply count changes, events and publications",
+        "Native CSRF, credential restrictions, readonly state and logical request verb",
+        "Native action specific membership and channel state requirements"
+      ],
+      "authorization_audit": "partial, declared HTTP lifecycle and native failure observations verified",
+      "status": "partial",
+      "remaining": [
+        "Native repeated restore count corruption",
+        "Complete semantic branches and client reconciliation",
+        "Protected GraphQL live delivery and final concurrent budgets"
       ]
     }
   },

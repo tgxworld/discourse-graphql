@@ -72,8 +72,12 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `bookmarks#toggle_pin` | `mutation.toggleBookmarkPin` | partial |
 | `bookmarks#update` | `mutation.updateBookmark` | partial |
 | `categories#index` | `query.categories` | partial |
+| `chat/api/channel_messages#bulk_destroy` | `mutation.deleteChatMessages` | partial |
 | `chat/api/channel_messages#create` | `mutation.createChatMessage` | partial |
+| `chat/api/channel_messages#destroy` | `mutation.deleteChatMessage` | partial |
 | `chat/api/channel_messages#index` | `query.chatMessages` | partial |
+| `chat/api/channel_messages#restore` | `mutation.restoreChatMessage` | partial |
+| `chat/api/channel_messages#update` | `mutation.updateChatMessage` | partial |
 | `chat/api/channel_thread_messages#index` | `query.chatThreadMessages` | partial |
 | `chat/api/channel_threads#create` | `mutation.createChatThread` | partial |
 | `chat/api/channel_threads#index` | `query.chatChannelThreads` | partial |

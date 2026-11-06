@@ -43,6 +43,7 @@ expected = %w[
   chat.threadControls
   chat.threadCreation
   chat.draftChanges
+  chat.messageChanges
 ]
 unless capabilities.map { |capability| capability.fetch("id") } == expected
   abort "Unexpected optional capabilities."
@@ -69,6 +70,7 @@ unless %w[
          OptimizedVideo
          UserSnapshot
          UserStatusSnapshot
+         UpdateChatMessageInput
        ].all? { |name| types.include?(name) }
   abort "Message presentation types missing."
 end
@@ -194,6 +196,21 @@ else
 end
 abort "Thread control lost its sibling." unless result.dig("data", "__typename") == "Mutation"
 abort "Native Checklist loaded unexpectedly." if defined?(::Checklist)
+mutation = 'mutation { edit: updateChatMessage(input: { channelId: "0", messageId: "0", message: "Probe" }) { success errors { code } } remove: deleteChatMessage(channelId: "0", messageId: "0") { success errors { code } } bulk: deleteChatMessages(channelId: "0", messageIds: ["0"]) { success errors { code } } restore: restoreChatMessage(channelId: "0", messageId: "0") { success errors { code } } __typename }'
+session.post("/discourse-graphql/graphql", params: { query: mutation }, headers: { "HTTP_HOST" => "test.localhost" }, as: :json)
+abort "Unexpected message mutation HTTP status." unless session.response.status == 200
+result = JSON.parse(session.response.body)
+%w[edit remove bulk restore].each do |field|
+  if disabled
+    abort result.inspect unless result.dig("data", field).nil?
+  else
+    abort result.inspect unless result.dig("data", field, "errors", 0, "code") == expected_error
+  end
+end
+if disabled && result.fetch("errors").map { |error| error.dig("extensions", "code") } != [expected_error] * 4
+  abort result.inspect
+end
+abort "Message mutations lost their sibling." unless result.dig("data", "__typename") == "Mutation"
 abort "Native Data Explorer loaded unexpectedly." if defined?(::DiscourseDataExplorer)
 puts JSON.generate(
        status: "passed",

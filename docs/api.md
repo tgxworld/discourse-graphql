@@ -504,3 +504,28 @@ Collection cost is 10 plus first multiplied by 1 plus child cost. Blocks use 100
 Selected flags use the native category posting permission preparation hook, limited to the current history channel and request. All native flag checks still execute. Explicit prepared IDs, direct messages and anonymous mode behavior remain native. The rich message HTTP regression observes 31 SQL queries for both 1 and 50 messages with distinct authors, mentions, bookmarks and reply previews. This does not establish total workload budgets.
 
 Attachment serialization still has a native thumbnail lookup dependency. Selecting only an attachment ID performs the same per upload thumbnail lookup as selecting the thumbnail. The reproducible media probe records 29 and 78 SQL queries for 1 and 50 messages. Selecting only message IDs records 28 and 28 and skips thumbnail rendering. This dependency remains incomplete in the coverage ledger and final performance requirements.
+
+
+## Chat message changes
+
+The chat.messageChanges capability contributes updateChatMessage(input:), deleteChatMessage(channelId:, messageId:), deleteChatMessages(channelId:, messageIds:) and restoreChatMessage(channelId:, messageId:). Each returns the existing nullable ActionPayload containing success and typed errors. Disabled Chat returns FEATURE_DISABLED at the field and preserves permitted siblings. Absent Chat contributes no lifecycle field or input type.
+
+UpdateChatMessageInput contains required channelId and messageId, optional message and optional uploadIds. CreateChatMessageInput also accepts uploadIds and optional message. Both upload lists are bounded at 200 IDs. For an attachment only message, send an explicit empty String with permitted uploads. Native creation with omitted or null text returns FAILED. Native editing with omitted or null text and uploads currently fails internally, leaving persisted state unchanged in the reproduced case. The adapter contains that failure without diagnostics. This native defect remains incomplete required work.
+
+Edits follow native replacement semantics:
+
+| Edit uploadIds input | Native result with valid new text |
+| --- | --- |
+| Omitted, null or empty array | Existing attachments are removed |
+| Distinct IDs owned by the actor | Existing attachments are replaced with that list |
+| A foreign, mixed ownership or duplicate list whose resolved count differs | Text can change and success can be true while existing attachments stay unchanged |
+
+To retain attachments during a text edit, send the complete distinct current upload IDs from the permitted message. A successful acknowledgement does not confirm that every requested upload was applied. Creation filters uploads through its own native ownership reader, and can create content with only the owned subset of a mixed list. No extra attachment lookup or policy is implemented here.
+
+Native editing preserves membership requirements, author and administrator rules, channel modification state, cooking, revisions, processing, events and publications. Moderators do not gain administrator editing rights. Delete and restore retain their own native permission and membership rules. Single delete removes native pins and mention notifications and adjusts channel and thread last message and reading state. Restore does not recreate removed pins or notifications.
+
+Bulk deletion accepts 1 through 200 requested IDs. Native selection is scoped to the addressed channel and can retain fewer IDs than requested. Any selected message that the actor cannot delete denies the action before deletion. A wholly missing selection returns NOT_FOUND. The payload contains no inferred affected count or acknowledgement for each ID. Native duplicate handling is retained.
+
+Mutations clear request loader state before and after native execution. Edit, delete and restore can run serially in one mutation document and observe the preceding native state. Scalar action cost is 1000 plus selected children. Creation and update add 20 per upload ID, and bulk deletion adds 20 per requested ID. The complete 200 message native window fits the request budget. Excessive repeated operations are rejected before effects.
+
+A timeout or error does not prove rollback. Reconcile current native content, attachments and deletion state before choosing another operation. Restore is not an idempotency probe: the pinned native owner incorrectly increments public reply count when an administrator restores an already live reply. Bulk deletion also leaves pin rows that can cause subsequent native pin reads to fail. Both remain native dependencies, along with measured bulk read query growth. Do not repeatedly replay an uncertain mutation or mark these gaps complete.
