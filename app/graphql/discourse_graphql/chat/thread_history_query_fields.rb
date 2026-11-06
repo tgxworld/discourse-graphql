@@ -6,9 +6,15 @@ module DiscourseGraphQL
           extras [:lookahead]
           argument :channel_id, GraphQL::Types::ID, required: true
           argument :thread_id, GraphQL::Types::ID, required: true
-          argument :last, Integer, required: false, default_value: 25, replace_null_with_default: true
+          argument :last,
+                   Integer,
+                   required: false,
+                   default_value: 25,
+                   replace_null_with_default: true
           argument :before, String, required: false
-          complexity ->(_context, arguments, child) { 100 + arguments[:last].clamp(1, 50) * (20 + child) }
+          complexity ->(_context, arguments, child) do
+                       100 + arguments[:last].clamp(1, 50) * (20 + child)
+                     end
         end
       end
 

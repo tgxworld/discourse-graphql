@@ -33,9 +33,13 @@ module DiscourseGraphQL
         raise Discourse::InvalidParameters unless first.between?(1, MAX_PAGE_SIZE)
         cache = context.namespace(:chat_draft_windows)
         key = [context[:guardian].user&.id, RailsMultisite::ConnectionManagement.current_db]
-        source = cache.fetch(key) do
-          cache[key] = CurrentUserDrafts.new(request: context[:request], request_method: "GET").call
-        end
+        source =
+          cache.fetch(key) do
+            cache[key] = CurrentUserDrafts.new(
+              request: context[:request],
+              request_method: "GET",
+            ).call
+          end
         NativeArrayPage.call(
           source: source,
           kind: "chat_drafts",

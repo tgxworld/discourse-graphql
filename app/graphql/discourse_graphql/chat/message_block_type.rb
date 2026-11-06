@@ -12,12 +12,22 @@ module DiscourseGraphQL
       field :show_description, Boolean, null: true, hash_key: "show_description"
       field :description_label, String, null: true, hash_key: "description_label"
 
-      { elements: [BlockElementPageType, 10], parameters: [BlockParameterPageType, 50], changes: [BlockChangePageType, 20] }.each do |name, (type, maximum)|
+      {
+        elements: [BlockElementPageType, 10],
+        parameters: [BlockParameterPageType, 50],
+        changes: [BlockChangePageType, 20],
+      }.each do |name, (type, maximum)|
         field name, type, null: true do
           extras [:lookahead]
-          argument :first, Integer, required: false, default_value: 10, replace_null_with_default: true
+          argument :first,
+                   Integer,
+                   required: false,
+                   default_value: 10,
+                   replace_null_with_default: true
           argument :after, String, required: false
-          complexity ->(_context, arguments, child) { 10 + arguments[:first].clamp(1, maximum) * (1 + child) }
+          complexity ->(_context, arguments, child) do
+                       10 + arguments[:first].clamp(1, maximum) * (1 + child)
+                     end
         end
       end
 
@@ -26,7 +36,13 @@ module DiscourseGraphQL
       end
 
       def parameters(first:, lookahead:, after: nil)
-        collection(name: "parameters", maximum: 50, first: first, lookahead: lookahead, after: after)
+        collection(
+          name: "parameters",
+          maximum: 50,
+          first: first,
+          lookahead: lookahead,
+          after: after,
+        )
       end
 
       def changes(first:, lookahead:, after: nil)

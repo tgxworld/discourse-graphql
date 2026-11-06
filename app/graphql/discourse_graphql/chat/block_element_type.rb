@@ -12,9 +12,11 @@ module DiscourseGraphQL
           CategoryElementType
         else
           raise GraphQL::ExecutionError.new(
-            I18n.t("discourse_graphql.errors.internal_error"),
-            extensions: { code: "INTERNAL_ERROR" },
-          )
+                  I18n.t("discourse_graphql.errors.internal_error"),
+                  extensions: {
+                    code: "INTERNAL_ERROR",
+                  },
+                )
         end
       end
     end

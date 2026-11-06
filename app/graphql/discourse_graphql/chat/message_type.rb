@@ -24,10 +24,18 @@ module DiscourseGraphQL
       field :webhook, WebhookPresentationType, null: true, hash_key: "chat_webhook_event"
       field :thread, ThreadType, null: true, hash_key: "thread", complexity: 1000
 
-      { mentioned_users: [MessageUserPageType, 10, 50], uploads: [MessageUploadPageType, 10, 20], blocks: [MessageBlockPageType, 5, 5] }.each do |name, (type, default, maximum)|
+      {
+        mentioned_users: [MessageUserPageType, 10, 50],
+        uploads: [MessageUploadPageType, 10, 20],
+        blocks: [MessageBlockPageType, 5, 5],
+      }.each do |name, (type, default, maximum)|
         field name, type, null: true do
           extras [:lookahead]
-          argument :first, Integer, required: false, default_value: default, replace_null_with_default: true
+          argument :first,
+                   Integer,
+                   required: false,
+                   default_value: default,
+                   replace_null_with_default: true
           argument :after, String, required: false
           complexity ->(_context, arguments, child) do
                        base = name == :blocks ? 1000 : 10
@@ -47,15 +55,34 @@ module DiscourseGraphQL
       end
 
       def mentioned_users(first:, lookahead:, after: nil)
-        message_collection(name: "mentioned_users", maximum: 50, first: first, lookahead: lookahead, after: after)
+        message_collection(
+          name: "mentioned_users",
+          maximum: 50,
+          first: first,
+          lookahead: lookahead,
+          after: after,
+        )
       end
 
       def uploads(first:, lookahead:, after: nil)
-        message_collection(name: "uploads", maximum: 20, first: first, lookahead: lookahead, after: after)
+        message_collection(
+          name: "uploads",
+          maximum: 20,
+          first: first,
+          lookahead: lookahead,
+          after: after,
+        )
       end
 
       def blocks(first:, lookahead:, after: nil)
-        page = message_collection(name: "blocks", maximum: 5, first: first, lookahead: lookahead, after: after)
+        page =
+          message_collection(
+            name: "blocks",
+            maximum: 5,
+            first: first,
+            lookahead: lookahead,
+            after: after,
+          )
         if page
           scope = object.slice("id", "chat_channel_id")
           page[:nodes] = page[:nodes].map do |node|

@@ -22,29 +22,47 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       channel.chatable.set_permissions(pinning_group => :full)
       channel.chatable.save!
       freeze_time
-      native_pin = MessageBus.track_publish("/chat/#{channel.id}") do
-        post "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json", headers: headers
-      end
+      native_pin =
+        MessageBus.track_publish("/chat/#{channel.id}") do
+          post "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json", headers: headers
+        end
       expect(response.status).to eq(200)
       delete "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json", headers: headers
       expect(response.status).to eq(200)
 
-      actual_pin = MessageBus.track_publish("/chat/#{channel.id}") do
-        expect(pin_action("pinChatMessage").dig("data", "pinChatMessage")).to eq("success" => true, "errors" => [])
-      end
+      actual_pin =
+        MessageBus.track_publish("/chat/#{channel.id}") do
+          expect(pin_action("pinChatMessage").dig("data", "pinChatMessage")).to eq(
+            "success" => true,
+            "errors" => [],
+          )
+        end
       pin = Chat::PinnedMessage.find_by!(chat_message: message)
       expect(pin.pinned_by_id).to eq(user.id)
-      expect(actual_pin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] }).to eq(native_pin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] })
-      native_unpin = MessageBus.track_publish("/chat/#{channel.id}") do
-        delete "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json", headers: headers
-      end
+      expect(
+        actual_pin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] },
+      ).to eq(
+        native_pin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] },
+      )
+      native_unpin =
+        MessageBus.track_publish("/chat/#{channel.id}") do
+          delete "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json",
+                 headers: headers
+        end
       expect(response.status).to eq(200)
       pin_action("pinChatMessage")
-      actual_unpin = MessageBus.track_publish("/chat/#{channel.id}") do
-        expect(pin_action("unpinChatMessage").dig("data", "unpinChatMessage", "success")).to eq(true)
-      end
+      actual_unpin =
+        MessageBus.track_publish("/chat/#{channel.id}") do
+          expect(pin_action("unpinChatMessage").dig("data", "unpinChatMessage", "success")).to eq(
+            true,
+          )
+        end
       expect(Chat::PinnedMessage.where(chat_message: message)).not_to exist
-      expect(actual_unpin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] }).to eq(native_unpin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] })
+      expect(
+        actual_unpin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] },
+      ).to eq(
+        native_unpin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] },
+      )
     end
 
     it "preserves native singular duplicate and missing pin messages" do
@@ -55,13 +73,19 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
       result = pin_action("pinChatMessage")
 
-      expect(result.dig("data", "pinChatMessage")).to eq("success" => false, "errors" => [{ "code" => "BAD_USER_INPUT", "message" => duplicate_error }])
+      expect(result.dig("data", "pinChatMessage")).to eq(
+        "success" => false,
+        "errors" => [{ "code" => "BAD_USER_INPUT", "message" => duplicate_error }],
+      )
       pin.destroy!
       delete "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json", headers: headers
       expect(response.status).to eq(422)
       missing_error = response.parsed_body.fetch("error")
       result = pin_action("unpinChatMessage")
-      expect(result.dig("data", "unpinChatMessage")).to eq("success" => false, "errors" => [{ "code" => "BAD_USER_INPUT", "message" => missing_error }])
+      expect(result.dig("data", "unpinChatMessage")).to eq(
+        "success" => false,
+        "errors" => [{ "code" => "BAD_USER_INPUT", "message" => missing_error }],
+      )
     end
 
     it "retains the native twenty pin limit and its error message" do
@@ -73,7 +97,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(response.status).to eq(422)
       native_error = response.parsed_body.fetch("error")
       result = pin_action("pinChatMessage")
-      expect(result.dig("data", "pinChatMessage", "errors")).to eq([{ "code" => "BAD_USER_INPUT", "message" => native_error }])
+      expect(result.dig("data", "pinChatMessage", "errors")).to eq(
+        [{ "code" => "BAD_USER_INPUT", "message" => native_error }],
+      )
       expect(Chat::PinnedMessage.where(chat_channel: channel).count).to eq(20)
       expect(Chat::PinnedMessage.where(chat_message: message)).not_to exist
     end
@@ -86,7 +112,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       direct_message = Fabricate(:chat_message, chat_channel: direct)
       result = pin_action("pinChatMessage", channel_id: direct.id, message_id: direct_message.id)
       expect(result.dig("data", "pinChatMessage", "success")).to eq(true)
-      expect(pin_action("unpinChatMessage", channel_id: direct.id, message_id: direct_message.id).dig("data", "unpinChatMessage", "success")).to eq(true)
+      expect(
+        pin_action("unpinChatMessage", channel_id: direct.id, message_id: direct_message.id).dig(
+          "data",
+          "unpinChatMessage",
+          "success",
+        ),
+      ).to eq(true)
     end
 
     it "rechecks private access before changing pins or the reading timestamp" do
@@ -133,15 +165,34 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
       membership = channel.membership_for(user)
       expect(membership.last_viewed_pins_at.iso8601(6)).to eq(Time.zone.now.iso8601(6))
-      expect(other_membership.reload.last_viewed_pins_at).to eq(previous)
+      expect(other_membership.reload.last_viewed_pins_at.iso8601(6)).to eq(previous.iso8601(6))
       get "/chat/api/channels/#{channel.id}.json", headers: headers
       expect(response.status).to eq(200)
-      native_timestamp = response.parsed_body.dig("channel", "current_user_membership", "last_viewed_pins_at")
+      native_timestamp =
+        response.parsed_body.dig("channel", "current_user_membership", "last_viewed_pins_at")
       expect(native_timestamp).to be_present
-      get "/discourse-graphql/graphql", params: { query: "{ chatChannel(id: #{channel.id.to_s.to_json}) { currentUserMembership { lastViewedPinsAt } } membershipType: __type(name: \"ChatMembership\") { fields { name type { name } } } }" }, headers: headers
+      get "/discourse-graphql/graphql",
+          params: {
+            query:
+              "{ chatChannel(id: #{channel.id.to_s.to_json}) { currentUserMembership { lastViewedPinsAt } } membershipType: __type(name: \"ChatMembership\") { fields { name type { name } } } }",
+          },
+          headers: headers
       expect(response.parsed_body["errors"]).to be_blank
-      expect(Time.iso8601(response.parsed_body.dig("data", "chatChannel", "currentUserMembership", "lastViewedPinsAt"))).to eq(Time.iso8601(native_timestamp))
-      field = response.parsed_body.dig("data", "membershipType", "fields").find { |entry| entry["name"] == "lastViewedPinsAt" }
+      expect(
+        Time.iso8601(
+          response.parsed_body.dig(
+            "data",
+            "chatChannel",
+            "currentUserMembership",
+            "lastViewedPinsAt",
+          ),
+        ),
+      ).to eq(Time.iso8601(native_timestamp))
+      field =
+        response
+          .parsed_body
+          .dig("data", "membershipType", "fields")
+          .find { |entry| entry["name"] == "lastViewedPinsAt" }
       expect(field.dig("type", "name")).to eq("NativeTimestamp")
     end
 
@@ -162,8 +213,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         result = pin_action(field)
         expect(result.dig("data", field, "errors", 0, "code")).to eq("NOT_FOUND")
       end
-      get "/discourse-graphql/graphql", params: { query: "{ capabilities { id available } }" }, headers: headers
-      capability = response.parsed_body.dig("data", "capabilities").find { |entry| entry["id"] == "chat.pinControls" }
+      get "/discourse-graphql/graphql",
+          params: {
+            query: "{ capabilities { id available } }",
+          },
+          headers: headers
+      capability =
+        response
+          .parsed_body
+          .dig("data", "capabilities")
+          .find { |entry| entry["id"] == "chat.pinControls" }
       expect(capability).to include("available" => false)
       SiteSetting.chat_enabled = false
       result = pin_action("pinChatMessage")
@@ -181,17 +240,30 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     end
 
     it "rejects excessive pin controls before publication or persistence" do
-      actions = 11.times.map { |index| "a#{index}: pinChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success }" }.join(" ")
-      publications = MessageBus.track_publish("/chat/#{channel.id}") do
-        post "/discourse-graphql/graphql", params: { query: "mutation { #{actions} }" }, headers: headers, as: :json
-      end
+      actions =
+        11
+          .times
+          .map do |index|
+            "a#{index}: pinChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success }"
+          end
+          .join(" ")
+      publications =
+        MessageBus.track_publish("/chat/#{channel.id}") do
+          post "/discourse-graphql/graphql",
+               params: {
+                 query: "mutation { #{actions} }",
+               },
+               headers: headers,
+               as: :json
+        end
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("QUERY_TOO_COMPLEX")
       expect(publications).to be_empty
       expect(Chat::PinnedMessage.where(chat_message: message)).not_to exist
     end
 
     it "retains read credential, GET and readonly protections" do
-      query = "mutation { pinChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success } }"
+      query =
+        "mutation { pinChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success } }"
       get "/discourse-graphql/graphql", params: { query: query }, headers: headers
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("BAD_REQUEST")
       Discourse.enable_readonly_mode
@@ -200,7 +272,10 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       ensure
         Discourse.disable_readonly_mode
       end
-      api_key.update!(scope_mode: :read_only, api_key_scopes: [ApiKeyScope.new(resource: "global", action: "read")])
+      api_key.update!(
+        scope_mode: :read_only,
+        api_key_scopes: [ApiKeyScope.new(resource: "global", action: "read")],
+      )
       pin_action("pinChatMessage", expected_status: 403)
       expect(Chat::PinnedMessage.where(chat_message: message)).not_to exist
     end
@@ -214,7 +289,14 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       begin
         pin_action("pinChatMessage", request_headers: {}, expected_status: 403)
         expect(Chat::PinnedMessage.where(chat_message: message)).not_to exist
-        result = pin_action("pinChatMessage", request_headers: { "X-CSRF-Token" => token, "X-Requested-With" => "XMLHttpRequest" })
+        result =
+          pin_action(
+            "pinChatMessage",
+            request_headers: {
+              "X-CSRF-Token" => token,
+              "X-Requested-With" => "XMLHttpRequest",
+            },
+          )
         expect(result.dig("data", "pinChatMessage", "success")).to eq(true)
       ensure
         ActionController::Base.allow_forgery_protection = previous
@@ -224,10 +306,22 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
   private
 
-  def pin_action(field, channel_id: channel.id, message_id: message.id, request_headers: headers, expected_status: 200)
+  def pin_action(
+    field,
+    channel_id: channel.id,
+    message_id: message.id,
+    request_headers: headers,
+    expected_status: 200
+  )
     arguments = "channelId: #{channel_id.to_s.to_json}"
     arguments += ", messageId: #{message_id.to_s.to_json}" unless field == "markChatPinsRead"
-    post "/discourse-graphql/graphql", params: { query: "mutation { #{field}(#{arguments}) { success errors { code message } } __typename }" }, headers: request_headers, as: :json
+    post "/discourse-graphql/graphql",
+         params: {
+           query:
+             "mutation { #{field}(#{arguments}) { success errors { code message } } __typename }",
+         },
+         headers: request_headers,
+         as: :json
     expect(response.status).to eq(expected_status)
     response.parsed_body
   end

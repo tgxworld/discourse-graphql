@@ -2,11 +2,17 @@ module DiscourseGraphQL
   module Chat
     module DraftMutationFields
       def self.included(type)
-        type.field :update_chat_channel_draft, Types::ActionPayloadType, null: true, complexity: 1000 do
+        type.field :update_chat_channel_draft,
+                   Types::ActionPayloadType,
+                   null: true,
+                   complexity: 1000 do
           argument :channel_id, GraphQL::Types::ID, required: true
           argument :serialized_data, String, required: false
         end
-        type.field :update_chat_thread_draft, Types::ActionPayloadType, null: true, complexity: 1000 do
+        type.field :update_chat_thread_draft,
+                   Types::ActionPayloadType,
+                   null: true,
+                   complexity: 1000 do
           argument :channel_id, GraphQL::Types::ID, required: true
           argument :thread_id, GraphQL::Types::ID, required: true
           argument :serialized_data, String, required: false
@@ -23,11 +29,24 @@ module DiscourseGraphQL
       end
 
       def update_chat_channel_draft(channel_id:, serialized_data: nil)
-        perform_chat_draft_change(adapter: ChannelDraftUpdate, parameters: { channel_id: channel_id, data: serialized_data })
+        perform_chat_draft_change(
+          adapter: ChannelDraftUpdate,
+          parameters: {
+            channel_id: channel_id,
+            data: serialized_data,
+          },
+        )
       end
 
       def update_chat_thread_draft(channel_id:, thread_id:, serialized_data: nil)
-        perform_chat_draft_change(adapter: ThreadDraftUpdate, parameters: { channel_id: channel_id, thread_id: thread_id, data: serialized_data })
+        perform_chat_draft_change(
+          adapter: ThreadDraftUpdate,
+          parameters: {
+            channel_id: channel_id,
+            thread_id: thread_id,
+            data: serialized_data,
+          },
+        )
       end
 
       private

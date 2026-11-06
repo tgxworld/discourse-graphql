@@ -21,7 +21,11 @@ module DiscourseGraphQL
       def thread
         serializer = super
         return serializer unless serializer.is_a?(ActiveModel::Serializer)
-        fields = @graphql_message_lookahead.selection(:thread).selections.map { |selection| selection.field.method_sym }
+        fields =
+          @graphql_message_lookahead
+            .selection(:thread)
+            .selections
+            .map { |selection| selection.field.method_sym }
         NativeFieldSelection.select(serializer: serializer, fields: fields)
       end
     end

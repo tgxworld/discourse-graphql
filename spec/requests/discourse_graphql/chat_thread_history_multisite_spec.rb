@@ -22,14 +22,24 @@ RSpec.describe DiscourseGraphQL::GraphQLController, type: %i[multisite request] 
           currentUser { id }
         }
       GRAPHQL
-      get "/discourse-graphql/graphql", params: { query: query, variables: { channelId: channel.id, threadId: thread.id }.to_json }, headers: request_headers
+      get "/discourse-graphql/graphql",
+          params: {
+            query: query,
+            variables: { channelId: channel.id, threadId: thread.id }.to_json,
+          },
+          headers: request_headers
       expect(response.parsed_body["errors"]).to be_blank
       cursor = response.parsed_body.dig("data", "chatThreadMessages", "pageInfo", "startCursor")
       expect(cursor).to be_present
 
       test_multisite_connection("second") do
         actor = Fabricate(:user, id: user.id, username: user.username, refresh_auto_groups: true)
-        Fabricate(:api_key, user: actor, key_hash: api_key.key_hash, truncated_key: api_key.truncated_key)
+        Fabricate(
+          :api_key,
+          user: actor,
+          key_hash: api_key.key_hash,
+          truncated_key: api_key.truncated_key,
+        )
         local_channel = Fabricate(:category_channel, id: channel.id, threading_enabled: true)
         local_channel.add(actor)
         local_thread = Fabricate(:chat_thread, id: thread.id, channel: local_channel)
@@ -38,13 +48,25 @@ RSpec.describe DiscourseGraphQL::GraphQLController, type: %i[multisite request] 
         SiteSetting.chat_enabled = true
         SiteSetting.chat_allowed_groups = Group::AUTO_GROUPS[:everyone]
         variables = { channelId: channel.id, threadId: thread.id }
-        get "http://test2.localhost/discourse-graphql/graphql", params: { query: query, variables: variables.to_json }, headers: request_headers
+        get "http://test2.localhost/discourse-graphql/graphql",
+            params: {
+              query: query,
+              variables: variables.to_json,
+            },
+            headers: request_headers
         expect(response.status).to eq(200)
         expect(response.parsed_body["errors"]).to be_blank
         expect(response.parsed_body.dig("data", "currentUser", "id")).to eq(user.id.to_s)
-        expect(response.parsed_body.dig("data", "chatThreadMessages", "nodes", 0, "id")).to eq(local_reply.id.to_s)
+        expect(response.parsed_body.dig("data", "chatThreadMessages", "nodes", 0, "id")).to eq(
+          local_reply.id.to_s,
+        )
 
-        get "http://test2.localhost/discourse-graphql/graphql", params: { query: query, variables: variables.merge(before: cursor).to_json }, headers: request_headers
+        get "http://test2.localhost/discourse-graphql/graphql",
+            params: {
+              query: query,
+              variables: variables.merge(before: cursor).to_json,
+            },
+            headers: request_headers
         expect(response.status).to eq(200)
         expect(response.parsed_body.dig("data", "currentUser", "id")).to eq(user.id.to_s)
         expect(response.parsed_body.dig("data", "chatThreadMessages")).to be_nil

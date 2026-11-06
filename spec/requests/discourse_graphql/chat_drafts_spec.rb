@@ -41,7 +41,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         result = update_draft(data: blank)
         expect(result.dig("data", "updateChatChannelDraft", "success")).to eq(true)
         expect(Chat::Draft.where(user: user, chat_channel: channel, thread_id: nil)).not_to exist
-        expect(Chat::Draft.find_by!(user: user, chat_channel: channel, thread_id: thread.id).data).to eq("Thread")
+        expect(
+          Chat::Draft.find_by!(user: user, chat_channel: channel, thread_id: thread.id).data,
+        ).to eq("Thread")
         result = update_draft(data: blank, thread_id: thread.id)
         expect(result.dig("data", "updateChatThreadDraft", "success")).to eq(true)
         expect(Chat::Draft.where(user: user, chat_channel: channel)).not_to exist
@@ -59,33 +61,53 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = drafts
 
       expect(result["errors"]).to be_blank
-      expect(result.dig("data", "currentUserChatDrafts", "nodes")).to eq([
-        { "channelId" => channel.id.to_s, "threadId" => nil, "serializedData" => "First actor state" },
-      ])
-      expect(Chat::Draft.find_by!(user: other, chat_channel: channel).data).to eq("Second actor state")
+      expect(result.dig("data", "currentUserChatDrafts", "nodes")).to eq(
+        [
+          {
+            "channelId" => channel.id.to_s,
+            "threadId" => nil,
+            "serializedData" => "First actor state",
+          },
+        ],
+      )
+      expect(Chat::Draft.find_by!(user: other, chat_channel: channel).data).to eq(
+        "Second actor state",
+      )
     end
 
     it "traverses exactly the native recent window with stable serialized data and order" do
-      entries = Array.new(21) do |index|
-        draft_channel = Fabricate(:category_channel)
-        Chat::Draft.create!(user: user, chat_channel: draft_channel, data: "Stored #{index}", updated_at: index.minutes.ago)
-      end
+      entries =
+        Array.new(21) do |index|
+          draft_channel = Fabricate(:category_channel)
+          Chat::Draft.create!(
+            user: user,
+            chat_channel: draft_channel,
+            data: "Stored #{index}",
+            updated_at: index.minutes.ago,
+          )
+        end
       get "/session/current.json", headers: headers
       expect(response.status).to eq(200)
       native = response.parsed_body.fetch("current_user").fetch("chat_drafts")
       expect(native.size).to eq(20)
       cursor = nil
-      pages = 3.times.map do
-        result = drafts(first: 7, after: cursor)
-        expect(result["errors"]).to be_blank
-        page = result.dig("data", "currentUserChatDrafts")
-        cursor = page.dig("pageInfo", "endCursor")
-        page
-      end
+      pages =
+        3.times.map do
+          result = drafts(first: 7, after: cursor)
+          expect(result["errors"]).to be_blank
+          page = result.dig("data", "currentUserChatDrafts")
+          cursor = page.dig("pageInfo", "endCursor")
+          page
+        end
 
-      expected = native.map do |entry|
-        { "channelId" => entry.fetch("channel_id").to_s, "threadId" => entry["thread_id"]&.to_s, "serializedData" => entry.fetch("data") }
-      end
+      expected =
+        native.map do |entry|
+          {
+            "channelId" => entry.fetch("channel_id").to_s,
+            "threadId" => entry["thread_id"]&.to_s,
+            "serializedData" => entry.fetch("data"),
+          }
+        end
       expect(pages.flat_map { |page| page.fetch("nodes") }).to eq(expected)
       expect(pages.map { |page| page.fetch("windowSize") }).to eq([20, 20, 20])
       expect(pages.map { |page| page.dig("pageInfo", "hasNextPage") }).to eq([true, true, false])
@@ -96,7 +118,14 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "distinguishes an empty native window from omitted personal Chat data" do
       result = drafts
       expect(result["errors"]).to be_blank
-      expect(result.dig("data", "currentUserChatDrafts")).to eq("nodes" => [], "windowSize" => 0, "pageInfo" => { "endCursor" => nil, "hasNextPage" => false })
+      expect(result.dig("data", "currentUserChatDrafts")).to eq(
+        "nodes" => [],
+        "windowSize" => 0,
+        "pageInfo" => {
+          "endCursor" => nil,
+          "hasNextPage" => false,
+        },
+      )
       update_draft(data: "Saved before disabling")
       user.user_option.update!(chat_enabled: false)
 
@@ -122,18 +151,29 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(native.map { |entry| entry.fetch("data") }).to include(draft.data)
       result = drafts
       expect(result["errors"]).to be_blank
-      expect(result.dig("data", "currentUserChatDrafts", "nodes").map { |entry| entry.fetch("serializedData") }).to include(draft.data)
+      expect(
+        result
+          .dig("data", "currentUserChatDrafts", "nodes")
+          .map { |entry| entry.fetch("serializedData") },
+      ).to include(draft.data)
 
-      post "/chat/api/channels/#{private_channel.id}/drafts", params: { data: nil }, headers: headers
+      post "/chat/api/channels/#{private_channel.id}/drafts",
+           params: {
+             data: nil,
+           },
+           headers: headers
       expect(response.status).to eq(422)
       result = update_draft(channel_id: private_channel.id, data: nil)
 
       expect(result.dig("data", "updateChatChannelDraft", "success")).to eq(false)
-      expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq("BAD_USER_INPUT")
+      expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq(
+        "BAD_USER_INPUT",
+      )
       expect(draft.reload.data).to eq("Own private draft")
     end
 
-    it "rejects blank required thread identity without changing the channel draft", :aggregate_failures do
+    it "rejects blank required thread identity without changing the channel draft",
+       :aggregate_failures do
       update_draft(data: "Channel state")
       draft = Chat::Draft.find_by!(user: user, chat_channel: channel, thread_id: nil)
 
@@ -148,7 +188,11 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "retains native missing channel and thread binding errors" do
       other_channel = Fabricate(:category_channel)
-      [[-999, nil, "updateChatChannelDraft"], [channel.id, -999, "updateChatThreadDraft"], [other_channel.id, thread.id, "updateChatThreadDraft"]].each do |channel_id, thread_id, field|
+      [
+        [-999, nil, "updateChatChannelDraft"],
+        [channel.id, -999, "updateChatThreadDraft"],
+        [other_channel.id, thread.id, "updateChatThreadDraft"],
+      ].each do |channel_id, thread_id, field|
         result = update_draft(channel_id: channel_id, thread_id: thread_id, data: "Denied")
         expect(result.dig("data", field, "success")).to eq(false)
         expect(result.dig("data", field, "errors", 0, "code")).to eq("NOT_FOUND")
@@ -158,12 +202,23 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "preserves native readonly category and Chat eligibility denial" do
       group = Fabricate(:group, users: [user])
-      category = Fabricate(:private_category, group: group, permission_type: CategoryGroup.permission_types[:readonly])
+      category =
+        Fabricate(
+          :private_category,
+          group: group,
+          permission_type: CategoryGroup.permission_types[:readonly],
+        )
       readonly_channel = Fabricate(:category_channel, chatable: category)
-      post "/chat/api/channels/#{readonly_channel.id}/drafts", params: { data: "Denied" }, headers: headers
+      post "/chat/api/channels/#{readonly_channel.id}/drafts",
+           params: {
+             data: "Denied",
+           },
+           headers: headers
       expect(response.status).to eq(422)
       result = update_draft(channel_id: readonly_channel.id, data: "Denied")
-      expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq("BAD_USER_INPUT")
+      expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq(
+        "BAD_USER_INPUT",
+      )
       SiteSetting.chat_allowed_groups = Group::AUTO_GROUPS[:staff]
       result = update_draft(data: "Denied")
       expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq("FORBIDDEN")
@@ -179,7 +234,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = update_draft(data: "👋" * 11)
 
       expect(result.dig("data", "updateChatChannelDraft", "success")).to eq(false)
-      expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq("BAD_USER_INPUT")
+      expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq(
+        "BAD_USER_INPUT",
+      )
       expect(draft.reload.data).to eq("👋" * 10)
     end
 
@@ -188,7 +245,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       update_draft(data: "Thread", thread_id: thread.id)
       cursor = drafts(first: 1).dig("data", "currentUserChatDrafts", "pageInfo", "endCursor")
       expect(cursor).to be_present
-      [{ first: 0 }, { first: 21 }, { after: "invalid" }, { after: "x" * 16_385 }, { first: 2, after: cursor }].each do |arguments|
+      [
+        { first: 0 },
+        { first: 21 },
+        { after: "invalid" },
+        { after: "x" * 16_385 },
+        { first: 2, after: cursor },
+      ].each do |arguments|
         result = drafts(**arguments)
         expect(result.dig("data", "currentUserChatDrafts")).to be_nil
         expect(result.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
@@ -198,9 +261,17 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       other_key = Fabricate(:api_key, user: other)
       other_headers = { "Api-Key" => other_key.key, "Api-Username" => other.username }
       source.each_with_index do |row, index|
-        Chat::Draft.create!(user: other, chat_channel_id: row.fetch("channelId"), thread_id: row["threadId"], data: row.fetch("serializedData"), updated_at: index.seconds.ago)
+        Chat::Draft.create!(
+          user: other,
+          chat_channel_id: row.fetch("channelId"),
+          thread_id: row["threadId"],
+          data: row.fetch("serializedData"),
+          updated_at: index.seconds.ago,
+        )
       end
-      expect(drafts(request_headers: other_headers).dig("data", "currentUserChatDrafts", "nodes")).to eq(source)
+      expect(
+        drafts(request_headers: other_headers).dig("data", "currentUserChatDrafts", "nodes"),
+      ).to eq(source)
       result = drafts(first: 1, after: cursor, request_headers: other_headers)
       expect(result.dig("errors", 0, "extensions", "code")).to eq("BAD_USER_INPUT")
       update_draft(data: "Changed")
@@ -223,21 +294,25 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "retains native field omission and skips unrelated current user renderers" do
       update_draft(data: "Native state")
-      restricted = Class.new(CurrentUserSerializer) do
-        def unread_notifications
-          raise "Unselected notification renderer unavailable"
+      restricted =
+        Class.new(CurrentUserSerializer) do
+          def unread_notifications
+            raise "Unselected notification renderer unavailable"
+          end
         end
-      end
       stub_const(Object, :CurrentUserSerializer, restricted) do
         result = drafts
         expect(result["errors"]).to be_blank
-        expect(result.dig("data", "currentUserChatDrafts", "nodes", 0, "serializedData")).to eq("Native state")
+        expect(result.dig("data", "currentUserChatDrafts", "nodes", 0, "serializedData")).to eq(
+          "Native state",
+        )
       end
-      omitted = Class.new(CurrentUserSerializer) do
-        def include_chat_drafts?
-          false
+      omitted =
+        Class.new(CurrentUserSerializer) do
+          def include_chat_drafts?
+            false
+          end
         end
-      end
       stub_const(Object, :CurrentUserSerializer, omitted) do
         result = drafts
         expect(result["errors"]).to be_blank
@@ -248,11 +323,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "preserves native draft source filtering and representation" do
       update_draft(data: "Channel")
       update_draft(data: "Thread", thread_id: thread.id)
-      filtered = Class.new(CurrentUserSerializer) do
-        def chat_drafts
-          super.reverse.take(1).map { |row| row.merge(data: "Native #{row.fetch(:channel_id)}") }
+      filtered =
+        Class.new(CurrentUserSerializer) do
+          def chat_drafts
+            super.reverse.take(1).map { |row| row.merge(data: "Native #{row.fetch(:channel_id)}") }
+          end
         end
-      end
       stub_const(Object, :CurrentUserSerializer, filtered) do
         get "/session/current.json", headers: headers
         native = response.parsed_body.dig("current_user", "chat_drafts")
@@ -262,7 +338,15 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
         expect(result["errors"]).to be_blank
         expect(result.dig("data", "currentUserChatDrafts", "windowSize")).to eq(1)
-        expect(result.dig("data", "currentUserChatDrafts", "nodes")).to eq(native.map { |row| { "channelId" => row.fetch("channel_id").to_s, "threadId" => row["thread_id"]&.to_s, "serializedData" => row.fetch("data") } })
+        expect(result.dig("data", "currentUserChatDrafts", "nodes")).to eq(
+          native.map do |row|
+            {
+              "channelId" => row.fetch("channel_id").to_s,
+              "threadId" => row["thread_id"]&.to_s,
+              "serializedData" => row.fetch("data"),
+            }
+          end,
+        )
       end
     end
 
@@ -273,14 +357,19 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       queries = track_sql_queries { expect(drafts(first: 1)["errors"]).to be_blank }
       counts << queries.count { |sql| sql.match?(/\A\s*(SELECT|WITH)\b/i) }
       19.times do |index|
-        Chat::Draft.create!(user: user, chat_channel: Fabricate(:category_channel), data: "Stored #{index}")
+        Chat::Draft.create!(
+          user: user,
+          chat_channel: Fabricate(:category_channel),
+          data: "Stored #{index}",
+        )
       end
       drafts
-      queries = track_sql_queries do
-        result = drafts
-        expect(result["errors"]).to be_blank
-        expect(result.dig("data", "currentUserChatDrafts", "nodes").size).to eq(20)
-      end
+      queries =
+        track_sql_queries do
+          result = drafts
+          expect(result["errors"]).to be_blank
+          expect(result.dig("data", "currentUserChatDrafts", "nodes").size).to eq(20)
+        end
       counts << queries.count { |sql| sql.match?(/\A\s*(SELECT|WITH)\b/i) }
       puts({ measurement: "chat_draft_window_sql", rows: [1, 20], queries: counts }.to_json)
       expect(counts.last).to be <= counts.first + 2
@@ -292,28 +381,61 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       counts = []
       native_reads = []
       [1, 8].each do |aliases|
-        fields = aliases.times.map { |index| "a#{index}: currentUserChatDrafts(first: 1) { nodes { serializedData } windowSize pageInfo { endCursor } }" }.join(" ")
+        fields =
+          aliases
+            .times
+            .map do |index|
+              "a#{index}: currentUserChatDrafts(first: 1) { nodes { serializedData } windowSize pageInfo { endCursor } }"
+            end
+            .join(" ")
         get "/discourse-graphql/graphql", params: { query: "{ #{fields} }" }, headers: headers
         expect(response.parsed_body["errors"]).to be_blank
-        queries = track_sql_queries do
-          get "/discourse-graphql/graphql", params: { query: "{ #{fields} }" }, headers: headers
-          expect(response.parsed_body["errors"]).to be_blank
-          expect(response.parsed_body.fetch("data").values.map { |page| page.fetch("windowSize") }).to eq([2] * aliases)
-        end
+        queries =
+          track_sql_queries do
+            get "/discourse-graphql/graphql", params: { query: "{ #{fields} }" }, headers: headers
+            expect(response.parsed_body["errors"]).to be_blank
+            expect(
+              response.parsed_body.fetch("data").values.map { |page| page.fetch("windowSize") },
+            ).to eq([2] * aliases)
+          end
         counts << queries.count { |sql| sql.match?(/\A\s*(SELECT|WITH)\b/i) }
         native_reads << queries.count { |sql| sql.match?(/FROM "chat_drafts"/i) }
       end
-      puts({ measurement: "chat_draft_alias_sql", aliases: [1, 8], queries: counts, native_reads: native_reads }.to_json)
+      puts(
+        {
+          measurement: "chat_draft_alias_sql",
+          aliases: [1, 8],
+          queries: counts,
+          native_reads: native_reads,
+        }.to_json,
+      )
       expect(counts.last).to be <= counts.first + 2
       expect(native_reads).to eq([1, 1])
     end
 
     it "rejects excessive read breadth and mutation aliases before persistence" do
-      fields = 11.times.map { |index| "a#{index}: updateChatChannelDraft(channelId: \"#{channel.id}\", serializedData: \"Denied\") { success }" }.join(" ")
-      post "/discourse-graphql/graphql", params: { query: "mutation { #{fields} }" }, headers: headers, as: :json
+      fields =
+        11
+          .times
+          .map do |index|
+            "a#{index}: updateChatChannelDraft(channelId: \"#{channel.id}\", serializedData: \"Denied\") { success }"
+          end
+          .join(" ")
+      post "/discourse-graphql/graphql",
+           params: {
+             query: "mutation { #{fields} }",
+           },
+           headers: headers,
+           as: :json
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("QUERY_TOO_COMPLEX")
       expect(Chat::Draft.where(user: user)).not_to exist
-      fields = 11.times.map { |index| "a#{index}: currentUserChatDrafts(first: 20) { nodes { serializedData } }" }.join(" ")
+      fields =
+        11
+          .times
+          .map do |index|
+            "a#{index}: currentUserChatDrafts(first: 20) { nodes { serializedData } }"
+          end
+          .join(" ")
       get "/discourse-graphql/graphql", params: { query: "{ #{fields} }" }, headers: headers
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("QUERY_TOO_COMPLEX")
     end
@@ -330,9 +452,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       post "/discourse-graphql/graphql", params: { query: query }, headers: headers, as: :json
       expect(response.parsed_body["errors"]).to be_blank
       expect(response.parsed_body.fetch("data").values).to eq([{ "success" => true }] * 3)
-      expect(Chat::Draft.find_by!(user: user, chat_channel: channel, thread_id: nil).data).to eq("Second")
+      expect(Chat::Draft.find_by!(user: user, chat_channel: channel, thread_id: nil).data).to eq(
+        "Second",
+      )
       expect(Chat::Draft.where(user: user, thread_id: thread.id)).not_to exist
-      expect(drafts.dig("data", "currentUserChatDrafts", "nodes", 0, "serializedData")).to eq("Second")
+      expect(drafts.dig("data", "currentUserChatDrafts", "nodes", 0, "serializedData")).to eq(
+        "Second",
+      )
     end
 
     it "preserves browser CSRF protection and accepts a native session header token" do
@@ -345,7 +471,14 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         update_draft(data: "Denied", request_headers: {})
         expect(response.status).to eq(403)
         expect(Chat::Draft.where(user: user)).not_to exist
-        result = update_draft(data: "Session saved", request_headers: { "X-CSRF-Token" => token, "X-Requested-With" => "XMLHttpRequest" })
+        result =
+          update_draft(
+            data: "Session saved",
+            request_headers: {
+              "X-CSRF-Token" => token,
+              "X-Requested-With" => "XMLHttpRequest",
+            },
+          )
         expect(result.dig("data", "updateChatChannelDraft", "success")).to eq(true)
         expect(Chat::Draft.find_by!(user: user, chat_channel: channel).data).to eq("Session saved")
       ensure
@@ -368,7 +501,10 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       ensure
         SiteSetting.site_archived = false
       end
-      api_key.update!(scope_mode: :read_only, api_key_scopes: [ApiKeyScope.new(resource: "global", action: "read")])
+      api_key.update!(
+        scope_mode: :read_only,
+        api_key_scopes: [ApiKeyScope.new(resource: "global", action: "read")],
+      )
       expect(drafts["errors"]).to be_blank
       update_draft(data: "Denied")
       expect(response.status).to eq(403)
@@ -383,7 +519,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       expect(result.dig("errors", 0, "extensions", "code")).to eq("NOT_FOUND")
       result = update_draft(data: "Denied", request_headers: {})
       expect(result.dig("data", "updateChatChannelDraft", "success")).to eq(false)
-      expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq("UNAUTHENTICATED")
+      expect(result.dig("data", "updateChatChannelDraft", "errors", 0, "code")).to eq(
+        "UNAUTHENTICATED",
+      )
       expect(Chat::Draft.where(user: user)).not_to exist
     end
 
@@ -422,7 +560,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
         currentUser { id }
       }
     GRAPHQL
-    get "/discourse-graphql/graphql", params: { query: query, variables: { first: first, after: after }.to_json }, headers: request_headers
+    get "/discourse-graphql/graphql",
+        params: {
+          query: query,
+          variables: { first: first, after: after }.to_json,
+        },
+        headers: request_headers
     response.parsed_body
   end
 end

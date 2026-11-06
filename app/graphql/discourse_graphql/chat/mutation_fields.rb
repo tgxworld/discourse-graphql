@@ -4,7 +4,9 @@ module DiscourseGraphQL
       def self.included(type)
         type.field :create_chat_message, MessageCreationPayloadType, null: true do
           argument :input, CreateMessageInput, required: true
-          complexity ->(_context, arguments, child) { 1000 + 20 * arguments[:input][:upload_ids].to_a.size + child }
+          complexity ->(_context, arguments, child) do
+                       1000 + 20 * arguments[:input][:upload_ids].to_a.size + child
+                     end
         end
       end
 

@@ -7,11 +7,12 @@ module DiscourseGraphQL
         raise Discourse::InvalidParameters unless last.between?(1, 50)
         @next_boundary = nil
         @history_purpose = purpose
-        @cursor_context = scope.merge(
-          "last" => last,
-          "actor_id" => current_user&.id,
-          "site" => RailsMultisite::ConnectionManagement.current_db,
-        )
+        @cursor_context =
+          scope.merge(
+            "last" => last,
+            "actor_id" => current_user&.id,
+            "site" => RailsMultisite::ConnectionManagement.current_db,
+          )
         @before_boundary = before.nil? ? nil : cursor_boundary(before)
         @message_lookahead = lookahead.selection(:nodes)
         @page_fields = []
@@ -45,7 +46,10 @@ module DiscourseGraphQL
         native = serializer.new(object, { scope: guardian }.merge(options || {}))
         @messages_available = native.include?(:messages)
         rows = native.messages if @messages_available
-        if rows.present? && rows.all? { |row| row.is_a?(ActiveModel::Serializer) && row.include?(:id) && row.include?(:created_at) }
+        if rows.present? &&
+             rows.all? { |row|
+               row.is_a?(ActiveModel::Serializer) && row.include?(:id) && row.include?(:created_at)
+             }
           if @before_boundary
             boundary = [@before_boundary.fetch(:created_at), @before_boundary.fetch(:message_id)]
             if rows.any? { |row| ([row.object.created_at, row.object.id] <=> boundary) >= 0 }
@@ -54,22 +58,32 @@ module DiscourseGraphQL
           end
           oldest = rows.first
           if oldest.id == oldest.object.id
-            @next_boundary = { "message_id" => oldest.id, "created_at" => oldest.object.created_at.iso8601(6) }
+            @next_boundary = {
+              "message_id" => oldest.id,
+              "created_at" => oldest.object.created_at.iso8601(6),
+            }
           end
         end
         native.extend(MessagePageProjection)
-        native.select_graphql_messages(rows: @page_fields.include?(:messages) ? rows : nil, lookahead: @message_lookahead)
+        native.select_graphql_messages(
+          rows: @page_fields.include?(:messages) ? rows : nil,
+          lookahead: @message_lookahead,
+        )
         NativeFieldSelection.select(serializer: native, fields: @page_fields).as_json
       end
 
       def cursor_boundary(cursor)
         raise Discourse::InvalidParameters if cursor.bytesize > 4096
         payload = verifier.verified(cursor)
-        unless payload.is_a?(Hash) && payload["message_id"].is_a?(Integer) && payload["message_id"] > 0 &&
-                 payload["created_at"].is_a?(String) && payload.except("message_id", "created_at") == @cursor_context
+        unless payload.is_a?(Hash) && payload["message_id"].is_a?(Integer) &&
+                 payload["message_id"] > 0 && payload["created_at"].is_a?(String) &&
+                 payload.except("message_id", "created_at") == @cursor_context
           raise Discourse::InvalidParameters
         end
-        { message_id: payload.fetch("message_id"), created_at: Time.iso8601(payload.fetch("created_at")) }
+        {
+          message_id: payload.fetch("message_id"),
+          created_at: Time.iso8601(payload.fetch("created_at")),
+        }
       rescue ArgumentError
         raise Discourse::InvalidParameters
       end

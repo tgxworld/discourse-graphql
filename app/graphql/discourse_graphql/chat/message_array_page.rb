@@ -7,9 +7,11 @@ module DiscourseGraphQL
           raise Discourse::InvalidParameters if after
           if source.size > first && lookahead.selection(:page_info).selects?(:end_cursor)
             raise GraphQL::ExecutionError.new(
-              I18n.t("discourse_graphql.errors.operation_failed"),
-              extensions: { code: "UNAVAILABLE" },
-            )
+                    I18n.t("discourse_graphql.errors.operation_failed"),
+                    extensions: {
+                      code: "UNAVAILABLE",
+                    },
+                  )
           end
         end
         NativeArrayPage.call(

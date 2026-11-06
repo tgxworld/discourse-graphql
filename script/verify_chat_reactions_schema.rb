@@ -99,7 +99,12 @@ unless %w[
        ].all? { |name| types.include?(name) }
   abort "Thread membership types missing."
 end
-unless %w[chatChannelThreads currentUserChatThreads chatThreadMessages currentUserChatDrafts].all? { |name| fields.include?(name) }
+unless %w[
+         chatChannelThreads
+         currentUserChatThreads
+         chatThreadMessages
+         currentUserChatDrafts
+       ].all? { |name| fields.include?(name) }
   abort "Thread lists missing."
 end
 abort "Thread lookup missing." if fields.exclude?("chatThread")
@@ -198,8 +203,18 @@ else
 end
 abort "Thread control lost its sibling." unless result.dig("data", "__typename") == "Mutation"
 abort "Native Checklist loaded unexpectedly." if defined?(::Checklist)
-mutation = 'mutation { edit: updateChatMessage(input: { channelId: "0", messageId: "0", message: "Probe" }) { success errors { code } } remove: deleteChatMessage(channelId: "0", messageId: "0") { success errors { code } } bulk: deleteChatMessages(channelId: "0", messageIds: ["0"]) { success errors { code } } restore: restoreChatMessage(channelId: "0", messageId: "0") { success errors { code } } __typename }'
-session.post("/discourse-graphql/graphql", params: { query: mutation }, headers: { "HTTP_HOST" => "test.localhost" }, as: :json)
+mutation =
+  'mutation { edit: updateChatMessage(input: { channelId: "0", messageId: "0", message: "Probe" }) { success errors { code } } remove: deleteChatMessage(channelId: "0", messageId: "0") { success errors { code } } bulk: deleteChatMessages(channelId: "0", messageIds: ["0"]) { success errors { code } } restore: restoreChatMessage(channelId: "0", messageId: "0") { success errors { code } } __typename }'
+session.post(
+  "/discourse-graphql/graphql",
+  params: {
+    query: mutation,
+  },
+  headers: {
+    "HTTP_HOST" => "test.localhost",
+  },
+  as: :json,
+)
 abort "Unexpected message mutation HTTP status." unless session.response.status == 200
 result = JSON.parse(session.response.body)
 %w[edit remove bulk restore].each do |field|
@@ -209,12 +224,23 @@ result = JSON.parse(session.response.body)
     abort result.inspect unless result.dig("data", field, "errors", 0, "code") == expected_error
   end
 end
-if disabled && result.fetch("errors").map { |error| error.dig("extensions", "code") } != [expected_error] * 4
+if disabled &&
+     result.fetch("errors").map { |error| error.dig("extensions", "code") } != [expected_error] * 4
   abort result.inspect
 end
 abort "Message mutations lost their sibling." unless result.dig("data", "__typename") == "Mutation"
-mutation = 'mutation { pinChatMessage(channelId: "0", messageId: "0") { success errors { code } } unpinChatMessage(channelId: "0", messageId: "0") { success errors { code } } markChatPinsRead(channelId: "0") { success errors { code } } __typename }'
-session.post("/discourse-graphql/graphql", params: { query: mutation }, headers: { "HTTP_HOST" => "test.localhost" }, as: :json)
+mutation =
+  'mutation { pinChatMessage(channelId: "0", messageId: "0") { success errors { code } } unpinChatMessage(channelId: "0", messageId: "0") { success errors { code } } markChatPinsRead(channelId: "0") { success errors { code } } __typename }'
+session.post(
+  "/discourse-graphql/graphql",
+  params: {
+    query: mutation,
+  },
+  headers: {
+    "HTTP_HOST" => "test.localhost",
+  },
+  as: :json,
+)
 abort "Unexpected pin mutation HTTP status." unless session.response.status == 200
 result = JSON.parse(session.response.body)
 %w[pinChatMessage unpinChatMessage markChatPinsRead].each do |field|
@@ -224,16 +250,28 @@ result = JSON.parse(session.response.body)
     abort result.inspect unless result.dig("data", field, "errors", 0, "code") == expected_error
   end
 end
-if disabled && result.fetch("errors").map { |error| error.dig("extensions", "code") } != [expected_error] * 3
+if disabled &&
+     result.fetch("errors").map { |error| error.dig("extensions", "code") } != [expected_error] * 3
   abort result.inspect
 end
 abort "Pin mutations lost their sibling." unless result.dig("data", "__typename") == "Mutation"
-session.get("/discourse-graphql/graphql", params: { query: '{ __type(name: "ChatMembership") { fields { name type { name } } } }' }, headers: { "HTTP_HOST" => "test.localhost" })
+session.get(
+  "/discourse-graphql/graphql",
+  params: {
+    query: '{ __type(name: "ChatMembership") { fields { name type { name } } } }',
+  },
+  headers: {
+    "HTTP_HOST" => "test.localhost",
+  },
+)
 abort "Unexpected membership schema HTTP status." unless session.response.status == 200
 result = JSON.parse(session.response.body)
 abort result.inspect if result["errors"].present?
-timestamp = result.dig("data", "__type", "fields").find { |field| field["name"] == "lastViewedPinsAt" }
-abort "Native pin timestamp scalar missing." unless timestamp.dig("type", "name") == "NativeTimestamp"
+timestamp =
+  result.dig("data", "__type", "fields").find { |field| field["name"] == "lastViewedPinsAt" }
+unless timestamp.dig("type", "name") == "NativeTimestamp"
+  abort "Native pin timestamp scalar missing."
+end
 abort "Native Data Explorer loaded unexpectedly." if defined?(::DiscourseDataExplorer)
 puts JSON.generate(
        status: "passed",

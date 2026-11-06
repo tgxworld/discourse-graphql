@@ -11,32 +11,58 @@ RSpec.describe DiscourseGraphQL::GraphQLController, type: :request do
     channel.add(user)
     50.times do
       upload = Fabricate(:upload)
-      Fabricate(:optimized_image, upload: upload, width: upload.thumbnail_width, height: upload.thumbnail_height)
+      Fabricate(
+        :optimized_image,
+        upload: upload,
+        width: upload.thumbnail_width,
+        height: upload.thumbnail_height,
+      )
       Fabricate(:chat_message, chat_channel: channel, user: user, uploads: [upload])
     end
 
     measurements = []
     %w[native graphql_id graphql_upload_id graphql_thumbnail].each do |operation|
       [1, 50].each do |last|
-        request_page = lambda do
-          if operation == "native"
-            get "/chat/api/channels/#{channel.id}/messages.json", params: { page_size: last, direction: "past" }, headers: headers
-          else
-            selection = {
-              "graphql_id" => "id",
-              "graphql_upload_id" => "uploads(first: 1) { nodes { id } }",
-              "graphql_thumbnail" => "uploads(first: 1) { nodes { id thumbnail { id width height url } } }",
-            }.fetch(operation)
-            get "/discourse-graphql/graphql", params: { query: "{ chatMessages(channelId: #{channel.id.to_s.to_json}, last: #{last}) { nodes { #{selection} } } }" }, headers: headers
+        request_page =
+          lambda do
+            if operation == "native"
+              get "/chat/api/channels/#{channel.id}/messages.json",
+                  params: {
+                    page_size: last,
+                    direction: "past",
+                  },
+                  headers: headers
+            else
+              selection = {
+                "graphql_id" => "id",
+                "graphql_upload_id" => "uploads(first: 1) { nodes { id } }",
+                "graphql_thumbnail" =>
+                  "uploads(first: 1) { nodes { id thumbnail { id width height url } } }",
+              }.fetch(operation)
+              get "/discourse-graphql/graphql",
+                  params: {
+                    query:
+                      "{ chatMessages(channelId: #{channel.id.to_s.to_json}, last: #{last}) { nodes { #{selection} } } }",
+                  },
+                  headers: headers
+            end
+            expect(response.status).to eq(200)
+            expect(response.parsed_body["errors"]).to be_blank
+            nodes =
+              (
+                if operation == "native"
+                  response.parsed_body["messages"]
+                else
+                  response.parsed_body.dig("data", "chatMessages", "nodes")
+                end
+              )
+            expect(nodes.size).to eq(last)
+            if operation == "graphql_thumbnail"
+              expect(
+                nodes.map { |node| node.dig("uploads", "nodes", 0, "thumbnail", "id") },
+              ).to all(be_present)
+            end
           end
-          expect(response.status).to eq(200)
-          expect(response.parsed_body["errors"]).to be_blank
-          nodes = operation == "native" ? response.parsed_body["messages"] : response.parsed_body.dig("data", "chatMessages", "nodes")
-          expect(nodes.size).to eq(last)
-          if operation == "graphql_thumbnail"
-            expect(nodes.map { |node| node.dig("uploads", "nodes", 0, "thumbnail", "id") }).to all(be_present)
-          end
-        end
         request_page.call
         records = Hash.new(0)
         listener = ->(_name, _start, _finish, _id, payload) do
@@ -55,6 +81,10 @@ RSpec.describe DiscourseGraphQL::GraphQLController, type: :request do
         }
       end
     end
-    puts JSON.generate(measurement: "chat_message_media_preparation", measurements: measurements, total_performance_budgets_verified: false)
+    puts JSON.generate(
+           measurement: "chat_message_media_preparation",
+           measurements: measurements,
+           total_performance_budgets_verified: false,
+         )
   end
 end

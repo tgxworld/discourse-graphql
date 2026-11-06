@@ -3,7 +3,9 @@ require "rails_helper"
 RSpec.describe DiscourseGraphQL::GraphQLController do
   fab!(:user) { Fabricate(:user, refresh_auto_groups: true) }
   fab!(:channel, :category_channel)
-  fab!(:message) { Fabricate(:chat_message, chat_channel: channel, user: user, created_at: 1.hour.ago) }
+  fab!(:message) do
+    Fabricate(:chat_message, chat_channel: channel, user: user, created_at: 1.hour.ago)
+  end
 
   let!(:api_key) { Fabricate(:api_key, user: user) }
   let(:headers) { { "Api-Key" => api_key.key, "Api-Username" => user.username } }
@@ -19,35 +21,73 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       group = Fabricate(:group, users: [user])
       channel.chatable.set_permissions(group => :full)
       channel.chatable.save!
-      native_publications = MessageBus.track_publish do
-        put "/chat/api/channels/#{channel.id}/messages/#{message.id}.json", params: { message: "Native publication baseline" }, headers: headers, as: :json
-      end
+      native_publications =
+        MessageBus.track_publish do
+          put "/chat/api/channels/#{channel.id}/messages/#{message.id}.json",
+              params: {
+                message: "Native publication baseline",
+              },
+              headers: headers,
+              as: :json
+        end
       expect(response.status).to eq(200)
       original = message.reload.message
       events = nil
-      publications = MessageBus.track_publish do
-        events = DiscourseEvent.track_events do
-          expect(edit(input: { message: "  **Edited content**  " }).dig("data", "updateChatMessage")).to eq("success" => true, "errors" => [])
+      publications =
+        MessageBus.track_publish do
+          events =
+            DiscourseEvent.track_events do
+              expect(
+                edit(input: { message: "  **Edited content**  " }).dig("data", "updateChatMessage"),
+              ).to eq("success" => true, "errors" => [])
+            end
         end
-      end
       expect(message.reload.message).to eq("**Edited content**")
       expect(message.cooked).to include("<strong>Edited content</strong>")
       revision = message.revisions.last
-      expect(revision).to have_attributes(old_message: original, new_message: message.message, user_id: user.id)
+      expect(revision).to have_attributes(
+        old_message: original,
+        new_message: message.message,
+        user_id: user.id,
+      )
       expect(events).to include(include(event_name: :chat_message_edited))
       expect(publications).to include(have_attributes(channel: "/chat/#{channel.id}"))
-      expect(publications.select { |entry| entry.channel == "/chat/#{channel.id}" }.map(&:group_ids)).to eq(native_publications.select { |entry| entry.channel == "/chat/#{channel.id}" }.map(&:group_ids))
-      get "/chat/api/channels/#{channel.id}/messages.json", params: { page_size: 1 }, headers: headers
+      expect(
+        publications.select { |entry| entry.channel == "/chat/#{channel.id}" }.map(&:group_ids),
+      ).to eq(
+        native_publications
+          .select { |entry| entry.channel == "/chat/#{channel.id}" }
+          .map(&:group_ids),
+      )
+      get "/chat/api/channels/#{channel.id}/messages.json",
+          params: {
+            page_size: 1,
+          },
+          headers: headers
       expect(response.status).to eq(200)
       expect(response.parsed_body.dig("messages", 0, "cooked")).to eq(message.cooked)
     end
 
     it "creates and edits attachment only messages using an explicit empty String" do
       upload = Fabricate(:upload, user: user)
-      post "/discourse-graphql/graphql", params: { query: "mutation($input: CreateChatMessageInput!) { createChatMessage(input: $input) { status messageId errors { code } } }", variables: { input: { channelId: channel.id.to_s, message: "", uploadIds: [upload.id.to_s] } } }, headers: headers, as: :json
+      post "/discourse-graphql/graphql",
+           params: {
+             query:
+               "mutation($input: CreateChatMessageInput!) { createChatMessage(input: $input) { status messageId errors { code } } }",
+             variables: {
+               input: {
+                 channelId: channel.id.to_s,
+                 message: "",
+                 uploadIds: [upload.id.to_s],
+               },
+             },
+           },
+           headers: headers,
+           as: :json
       expect(response.status).to eq(200)
       expect(response.parsed_body.dig("data", "createChatMessage", "status")).to eq("CREATED")
-      created = Chat::Message.find(response.parsed_body.dig("data", "createChatMessage", "messageId"))
+      created =
+        Chat::Message.find(response.parsed_body.dig("data", "createChatMessage", "messageId"))
       expect(created.upload_ids).to eq([upload.id])
 
       result = edit(input: { message: "", uploadIds: [upload.id.to_s] })
@@ -86,10 +126,27 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     it "retains native creation filtering without attaching another actor's upload" do
       owned = Fabricate(:upload, user: user)
       foreign = Fabricate(:upload)
-      post "/discourse-graphql/graphql", params: { query: "mutation($input: CreateChatMessageInput!) { createChatMessage(input: $input) { status messageId } }", variables: { input: { channelId: channel.id.to_s, message: "Mixed creation", uploadIds: [owned.id.to_s, foreign.id.to_s] } } }, headers: headers, as: :json
+      post "/discourse-graphql/graphql",
+           params: {
+             query:
+               "mutation($input: CreateChatMessageInput!) { createChatMessage(input: $input) { status messageId } }",
+             variables: {
+               input: {
+                 channelId: channel.id.to_s,
+                 message: "Mixed creation",
+                 uploadIds: [owned.id.to_s, foreign.id.to_s],
+               },
+             },
+           },
+           headers: headers,
+           as: :json
       expect(response.status).to eq(200)
       expect(response.parsed_body.dig("data", "createChatMessage", "status")).to eq("CREATED")
-      expect(Chat::Message.find(response.parsed_body.dig("data", "createChatMessage", "messageId")).upload_ids).to eq([owned.id])
+      expect(
+        Chat::Message.find(
+          response.parsed_body.dig("data", "createChatMessage", "messageId"),
+        ).upload_ids,
+      ).to eq([owned.id])
     end
 
     it "contains native null text edit failure without changing persisted state" do
@@ -110,7 +167,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       owned = Fabricate(:upload, user: user)
       [{}, { message: nil }].each do |input|
         expect do
-          post "/discourse-graphql/graphql", params: { query: "mutation($input: CreateChatMessageInput!) { createChatMessage(input: $input) { status errors { code } } }", variables: { input: input.merge(channelId: channel.id.to_s, uploadIds: [owned.id.to_s]) } }, headers: headers, as: :json
+          post "/discourse-graphql/graphql",
+               params: {
+                 query:
+                   "mutation($input: CreateChatMessageInput!) { createChatMessage(input: $input) { status errors { code } } }",
+                 variables: {
+                   input: input.merge(channelId: channel.id.to_s, uploadIds: [owned.id.to_s]),
+                 },
+               },
+               headers: headers,
+               as: :json
         end.not_to change(Chat::Message, :count)
         expect(response.status).to eq(200)
         expect(response.parsed_body.dig("data", "createChatMessage", "status")).to eq("FAILED")
@@ -136,9 +202,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       pin = Fabricate(:chat_pinned_message, chat_message: message, user: user)
       notification = Fabricate(:notification)
       Fabricate(:user_chat_mention, chat_message: message, notifications: [notification])
-      events = DiscourseEvent.track_events do
-        expect(message_action("deleteChatMessage").dig("data", "deleteChatMessage", "success")).to eq(true)
-      end
+      events =
+        DiscourseEvent.track_events do
+          expect(
+            message_action("deleteChatMessage").dig("data", "deleteChatMessage", "success"),
+          ).to eq(true)
+        end
       expect(message.reload).to be_trashed
       expect(message.deleted_by_id).to eq(user.id)
       expect(Chat::PinnedMessage.exists?(pin.id)).to eq(false)
@@ -152,11 +221,15 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       message_action("deleteChatMessage")
       expect(message.reload).to be_trashed
       publications = nil
-      events = DiscourseEvent.track_events do
-        publications = MessageBus.track_publish do
-          expect(message_action("restoreChatMessage").dig("data", "restoreChatMessage", "success")).to eq(true)
+      events =
+        DiscourseEvent.track_events do
+          publications =
+            MessageBus.track_publish do
+              expect(
+                message_action("restoreChatMessage").dig("data", "restoreChatMessage", "success"),
+              ).to eq(true)
+            end
         end
-      end
       expect(message.reload.deleted_at).to be_nil
       expect(channel.reload.last_message_id).to eq(message.id)
       expect(events).to include(include(event_name: :chat_message_restored))
@@ -174,17 +247,32 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       get "/chat/api/channels/#{channel.id}/threads/#{thread.id}.json", headers: headers
       expect(response.parsed_body.dig("thread", "reply_count")).to eq(2)
 
-      publications = MessageBus.track_publish do
-        expect(message_action("deleteChatMessage", message_id: reply.id).dig("data", "deleteChatMessage", "success")).to eq(true)
-      end
+      publications =
+        MessageBus.track_publish do
+          expect(
+            message_action("deleteChatMessage", message_id: reply.id).dig(
+              "data",
+              "deleteChatMessage",
+              "success",
+            ),
+          ).to eq(true)
+        end
       expect(reply.reload).to be_trashed
       expect(thread.reload.last_message_id).to eq(earlier.id)
       expect(membership.reload.last_read_message_id).to eq(earlier.id)
       get "/chat/api/channels/#{channel.id}/threads/#{thread.id}.json", headers: headers
       expect(response.parsed_body.dig("thread", "reply_count")).to eq(1)
-      expect(publications).to include(have_attributes(channel: "/chat/#{channel.id}/thread/#{thread.id}"))
+      expect(publications).to include(
+        have_attributes(channel: "/chat/#{channel.id}/thread/#{thread.id}"),
+      )
 
-      expect(message_action("restoreChatMessage", message_id: reply.id).dig("data", "restoreChatMessage", "success")).to eq(true)
+      expect(
+        message_action("restoreChatMessage", message_id: reply.id).dig(
+          "data",
+          "restoreChatMessage",
+          "success",
+        ),
+      ).to eq(true)
       expect(thread.reload.last_message_id).to eq(reply.id)
       get "/chat/api/channels/#{channel.id}/threads/#{thread.id}.json", headers: headers
       expect(response.parsed_body.dig("thread", "reply_count")).to eq(2)
@@ -192,7 +280,11 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "preserves serial edit, delete and restore effects within one request" do
       reference = "channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}"
-      result = graphql(query: "mutation { edit: updateChatMessage(input: { #{reference}, message: \"Serial content\" }) { success } remove: deleteChatMessage(#{reference}) { success } recover: restoreChatMessage(#{reference}) { success } }")
+      result =
+        graphql(
+          query:
+            "mutation { edit: updateChatMessage(input: { #{reference}, message: \"Serial content\" }) { success } remove: deleteChatMessage(#{reference}) { success } recover: restoreChatMessage(#{reference}) { success } }",
+        )
       expect(result["errors"]).to be_blank
       expect(result.fetch("data").values).to eq([{ "success" => true }] * 3)
       expect(message.reload.message).to eq("Serial content")
@@ -229,8 +321,12 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       channel.membership_for(user).destroy!
       result = edit(input: { message: "No membership" })
       expect(result.dig("data", "updateChatMessage", "errors", 0, "code")).to eq("NOT_FOUND")
-      expect(message_action("deleteChatMessage").dig("data", "deleteChatMessage", "success")).to eq(true)
-      expect(message_action("restoreChatMessage").dig("data", "restoreChatMessage", "success")).to eq(true)
+      expect(message_action("deleteChatMessage").dig("data", "deleteChatMessage", "success")).to eq(
+        true,
+      )
+      expect(
+        message_action("restoreChatMessage").dig("data", "restoreChatMessage", "success"),
+      ).to eq(true)
       expect(channel.membership_for(user)).to be_nil
     end
 
@@ -242,10 +338,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       deleted = Fabricate(:chat_message, chat_channel: private_channel, user: user)
       deleted.trash!(user)
       GroupUser.where(group: group, user: user).destroy_all
-      result = edit(input: { message: "Forbidden" }, channel_id: private_channel.id, message_id: entry.id)
+      result =
+        edit(input: { message: "Forbidden" }, channel_id: private_channel.id, message_id: entry.id)
       expect(result.dig("data", "updateChatMessage", "errors", 0, "code")).to eq("FORBIDDEN")
       %w[deleteChatMessage restoreChatMessage].each do |field|
-        result = message_action(field, channel_id: private_channel.id, message_id: field == "restoreChatMessage" ? deleted.id : entry.id)
+        result =
+          message_action(
+            field,
+            channel_id: private_channel.id,
+            message_id: field == "restoreChatMessage" ? deleted.id : entry.id,
+          )
         expect(result.dig("data", field, "errors", 0, "code")).to eq("FORBIDDEN")
       end
       expect(entry.reload.deleted_at).to be_nil
@@ -268,10 +370,11 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       entry = Fabricate(:chat_message, chat_channel: direct, user: user)
       entry.trash!(user)
       UserSilencer.new(user).silence
-      events = DiscourseEvent.track_events do
-        result = message_action("restoreChatMessage", channel_id: direct.id, message_id: entry.id)
-        expect(result.dig("data", "restoreChatMessage", "errors", 0, "code")).to eq("FORBIDDEN")
-      end
+      events =
+        DiscourseEvent.track_events do
+          result = message_action("restoreChatMessage", channel_id: direct.id, message_id: entry.id)
+          expect(result.dig("data", "restoreChatMessage", "errors", 0, "code")).to eq("FORBIDDEN")
+        end
       expect(entry.reload).to be_trashed
       expect(events).not_to include(include(event_name: :chat_message_restored))
     end
@@ -299,7 +402,9 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       result = bulk(ids: entries.map(&:id))
       expect(result.dig("data", "deleteChatMessages", "success")).to eq(true)
       expect(Chat::Message.where(id: entries.map(&:id)).count).to eq(0)
-      expect(Chat::Message.with_deleted.where(id: entries.map(&:id)).where.not(deleted_at: nil).count).to eq(200)
+      expect(
+        Chat::Message.with_deleted.where(id: entries.map(&:id)).where.not(deleted_at: nil).count,
+      ).to eq(200)
     end
 
     it "bounds upload IDs and bulk IDs before native work" do
@@ -313,7 +418,13 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     end
 
     it "rejects multiplied destructive work before deleting messages" do
-      selections = 11.times.map { |index| "a#{index}: deleteChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success }" }.join(" ")
+      selections =
+        11
+          .times
+          .map do |index|
+            "a#{index}: deleteChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success }"
+          end
+          .join(" ")
       result = graphql(query: "mutation { #{selections} }")
       expect(result.dig("errors", 0, "extensions", "code")).to eq("QUERY_TOO_COMPLEX")
       expect(message.reload.deleted_at).to be_nil
@@ -332,7 +443,8 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
     end
 
     it "retains GET, readonly and read credential protections" do
-      query = "mutation { deleteChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success } }"
+      query =
+        "mutation { deleteChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success } }"
       get "/discourse-graphql/graphql", params: { query: query }, headers: headers
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("BAD_REQUEST")
       Discourse.enable_readonly_mode
@@ -342,7 +454,10 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       ensure
         Discourse.disable_readonly_mode
       end
-      api_key.update!(scope_mode: :read_only, api_key_scopes: [ApiKeyScope.new(resource: "global", action: "read")])
+      api_key.update!(
+        scope_mode: :read_only,
+        api_key_scopes: [ApiKeyScope.new(resource: "global", action: "read")],
+      )
       graphql(query: query, expected_status: 403)
       expect(response.status).to eq(403)
       expect(message.reload.deleted_at).to be_nil
@@ -356,7 +471,16 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       ActionController::Base.allow_forgery_protection = true
       begin
         edit(input: { message: "Denied browser edit" }, request_headers: {}, expected_status: 403)
-        result = edit(input: { message: "Browser edit" }, request_headers: { "X-CSRF-Token" => token, "X-Requested-With" => "XMLHttpRequest" })
+        result =
+          edit(
+            input: {
+              message: "Browser edit",
+            },
+            request_headers: {
+              "X-CSRF-Token" => token,
+              "X-Requested-With" => "XMLHttpRequest",
+            },
+          )
         expect(result.dig("data", "updateChatMessage", "success")).to eq(true)
         expect(message.reload.message).to eq("Browser edit")
       ensure
@@ -367,20 +491,55 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
   private
 
-  def edit(input:, channel_id: channel.id, message_id: message.id, request_headers: headers, expected_status: 200)
-    graphql(query: "mutation($input: UpdateChatMessageInput!) { updateChatMessage(input: $input) { success errors { code } } __typename }", variables: { input: { channelId: channel_id.to_s, messageId: message_id.to_s }.merge(input) }, request_headers: request_headers, expected_status: expected_status)
+  def edit(
+    input:,
+    channel_id: channel.id,
+    message_id: message.id,
+    request_headers: headers,
+    expected_status: 200
+  )
+    graphql(
+      query:
+        "mutation($input: UpdateChatMessageInput!) { updateChatMessage(input: $input) { success errors { code } } __typename }",
+      variables: {
+        input: { channelId: channel_id.to_s, messageId: message_id.to_s }.merge(input),
+      },
+      request_headers: request_headers,
+      expected_status: expected_status,
+    )
   end
 
-  def message_action(field, channel_id: channel.id, message_id: message.id, request_headers: headers)
-    graphql(query: "mutation { #{field}(channelId: #{channel_id.to_s.to_json}, messageId: #{message_id.to_s.to_json}) { success errors { code } } __typename }", request_headers: request_headers)
+  def message_action(
+    field,
+    channel_id: channel.id,
+    message_id: message.id,
+    request_headers: headers
+  )
+    graphql(
+      query:
+        "mutation { #{field}(channelId: #{channel_id.to_s.to_json}, messageId: #{message_id.to_s.to_json}) { success errors { code } } __typename }",
+      request_headers: request_headers,
+    )
   end
 
   def bulk(ids:)
-    graphql(query: "mutation($ids: [ID!]!) { deleteChatMessages(channelId: #{channel.id.to_s.to_json}, messageIds: $ids) { success errors { code } } __typename }", variables: { ids: ids.map(&:to_s) })
+    graphql(
+      query:
+        "mutation($ids: [ID!]!) { deleteChatMessages(channelId: #{channel.id.to_s.to_json}, messageIds: $ids) { success errors { code } } __typename }",
+      variables: {
+        ids: ids.map(&:to_s),
+      },
+    )
   end
 
   def graphql(query:, variables: {}, request_headers: headers, expected_status: 200)
-    post "/discourse-graphql/graphql", params: { query: query, variables: variables }, headers: request_headers, as: :json
+    post "/discourse-graphql/graphql",
+         params: {
+           query: query,
+           variables: variables,
+         },
+         headers: request_headers,
+         as: :json
     expect(response.status).to eq(expected_status)
     response.parsed_body
   end
