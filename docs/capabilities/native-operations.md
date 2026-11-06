@@ -78,6 +78,9 @@ These links cover declared adapter slices. The remaining native action capabilit
 | `chat/api/channel_messages#index` | `query.chatMessages` | partial |
 | `chat/api/channel_messages#restore` | `mutation.restoreChatMessage` | partial |
 | `chat/api/channel_messages#update` | `mutation.updateChatMessage` | partial |
+| `chat/api/channel_pins#create` | `mutation.pinChatMessage` | partial |
+| `chat/api/channel_pins#destroy` | `mutation.unpinChatMessage` | partial |
+| `chat/api/channel_pins#mark_read` | `mutation.markChatPinsRead` | partial |
 | `chat/api/channel_thread_messages#index` | `query.chatThreadMessages` | partial |
 | `chat/api/channel_threads#create` | `mutation.createChatThread` | partial |
 | `chat/api/channel_threads#index` | `query.chatChannelThreads` | partial |

@@ -245,3 +245,10 @@ The richer message query holds 31 SQL queries at 1 and 50 messages through the n
 Native message editing, single and bulk deletion and restoration have typed mutation adapters. Creation accepts upload references and explicit empty text for attachment only messages. HTTP contracts cover revision and cooking results, exact native private publication audiences, attachment replacement and ownership mismatches, permissions, membership differences, channel states, private revocation, serial mutations, pins, notifications, channel and thread reading effects, browser CSRF, anonymous users and input and request bounds. The complete native 200 message bulk window is exercised with distinct messages.
 
 Native null text failure, repeated restoration count corruption, retained bulk pins and bulk read query growth remain required owner dependencies. These are documented and reproduced independently. The new operations remain partial in the ledger. Complete Chat clients, remaining inputs, moderation contexts, semantic branches, protected live delivery and final performance budgets remain required.
+
+
+## Chat pin control increment
+
+Native pin, unpin and read acknowledgement have typed mutation adapters. HTTP contracts retain private publication payloads and audiences, singular native error messages, the twenty pin limit, category group and direct message rights, current private access, membership differences, actor timestamp isolation, channel state behavior, disabled settings, credentials and browser CSRF. Existing membership readback now preserves native pin timestamp milliseconds through NativeTimestamp, with the introspection change explicit.
+
+Complete typed pin lists and nested message selection remain required. The native array row constructor is a viable version specific boundary, but native pinned message associations still lack a verified child selection boundary. No placeholder read field or private dispatch copy substitutes for that work. Native bulk pin cleanup, full clients, protected live delivery and final total budgets remain incomplete.

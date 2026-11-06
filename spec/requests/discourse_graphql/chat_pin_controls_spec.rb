@@ -22,25 +22,25 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       channel.chatable.set_permissions(pinning_group => :full)
       channel.chatable.save!
       freeze_time
-      native_pin = MessageBus.track_publish do
+      native_pin = MessageBus.track_publish("/chat/#{channel.id}") do
         post "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json", headers: headers
       end
       expect(response.status).to eq(200)
       delete "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json", headers: headers
       expect(response.status).to eq(200)
 
-      actual_pin = MessageBus.track_publish do
+      actual_pin = MessageBus.track_publish("/chat/#{channel.id}") do
         expect(pin_action("pinChatMessage").dig("data", "pinChatMessage")).to eq("success" => true, "errors" => [])
       end
       pin = Chat::PinnedMessage.find_by!(chat_message: message)
       expect(pin.pinned_by_id).to eq(user.id)
       expect(actual_pin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] }).to eq(native_pin.map { |entry| [entry.channel, entry.user_ids, entry.group_ids, entry.data] })
-      native_unpin = MessageBus.track_publish do
+      native_unpin = MessageBus.track_publish("/chat/#{channel.id}") do
         delete "/chat/api/channels/#{channel.id}/messages/#{message.id}/pin.json", headers: headers
       end
       expect(response.status).to eq(200)
       pin_action("pinChatMessage")
-      actual_unpin = MessageBus.track_publish do
+      actual_unpin = MessageBus.track_publish("/chat/#{channel.id}") do
         expect(pin_action("unpinChatMessage").dig("data", "unpinChatMessage", "success")).to eq(true)
       end
       expect(Chat::PinnedMessage.where(chat_message: message)).not_to exist
@@ -93,7 +93,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       channel.chatable.set_permissions(pinning_group => :full)
       channel.chatable.save!
       Fabricate(:chat_pinned_message, chat_message: message, user: user)
-      pinning_group.remove(user)
+      GroupUser.where(group: pinning_group, user: user).delete_all
       %w[pinChatMessage unpinChatMessage markChatPinsRead].each do |field|
         result = pin_action(field)
         expect(result.dig("data", field, "errors", 0, "code")).to eq("FORBIDDEN")
@@ -126,17 +126,23 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
       other = Fabricate(:user)
       other_membership = channel.add(other)
       other_membership.update!(last_viewed_pins_at: 1.day.ago)
-      previous = other_membership.last_viewed_pins_at
-      freeze_time
+      previous = other_membership.reload.last_viewed_pins_at
+      freeze_time(Time.iso8601("2026-11-06T01:00:00.123456Z"))
 
       expect(pin_action("markChatPinsRead").dig("data", "markChatPinsRead", "success")).to eq(true)
 
       membership = channel.membership_for(user)
-      expect(membership.last_viewed_pins_at).to eq(Time.zone.now)
+      expect(membership.last_viewed_pins_at.iso8601(6)).to eq(Time.zone.now.iso8601(6))
       expect(other_membership.reload.last_viewed_pins_at).to eq(previous)
-      get "/discourse-graphql/graphql", params: { query: "{ chatChannel(id: #{channel.id.to_s.to_json}) { currentUserMembership { lastViewedPinsAt } } }" }, headers: headers
+      get "/chat/api/channels/#{channel.id}.json", headers: headers
+      expect(response.status).to eq(200)
+      native_timestamp = response.parsed_body.dig("channel", "current_user_membership", "last_viewed_pins_at")
+      expect(native_timestamp).to be_present
+      get "/discourse-graphql/graphql", params: { query: "{ chatChannel(id: #{channel.id.to_s.to_json}) { currentUserMembership { lastViewedPinsAt } } membershipType: __type(name: \"ChatMembership\") { fields { name type { name } } } }" }, headers: headers
       expect(response.parsed_body["errors"]).to be_blank
-      expect(Time.iso8601(response.parsed_body.dig("data", "chatChannel", "currentUserMembership", "lastViewedPinsAt"))).to eq(membership.last_viewed_pins_at)
+      expect(Time.iso8601(response.parsed_body.dig("data", "chatChannel", "currentUserMembership", "lastViewedPinsAt"))).to eq(Time.iso8601(native_timestamp))
+      field = response.parsed_body.dig("data", "membershipType", "fields").find { |entry| entry["name"] == "lastViewedPinsAt" }
+      expect(field.dig("type", "name")).to eq("NativeTimestamp")
     end
 
     it "retains native closed channel and silenced actor pin behavior" do
@@ -176,7 +182,7 @@ RSpec.describe DiscourseGraphQL::GraphQLController do
 
     it "rejects excessive pin controls before publication or persistence" do
       actions = 11.times.map { |index| "a#{index}: pinChatMessage(channelId: #{channel.id.to_s.to_json}, messageId: #{message.id.to_s.to_json}) { success }" }.join(" ")
-      publications = MessageBus.track_publish do
+      publications = MessageBus.track_publish("/chat/#{channel.id}") do
         post "/discourse-graphql/graphql", params: { query: "mutation { #{actions} }" }, headers: headers, as: :json
       end
       expect(response.parsed_body.dig("errors", 0, "extensions", "code")).to eq("QUERY_TOO_COMPLEX")

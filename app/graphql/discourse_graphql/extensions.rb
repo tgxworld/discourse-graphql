@@ -28,6 +28,7 @@ module DiscourseGraphQL
               Chat::ThreadMutationFields,
               Chat::DraftMutationFields,
               Chat::MessageMutationFields,
+              Chat::PinMutationFields,
             ]
           else
             []

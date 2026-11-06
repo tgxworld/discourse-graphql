@@ -529,3 +529,16 @@ Bulk deletion accepts 1 through 200 requested IDs. Native selection is scoped to
 Mutations clear request loader state before and after native execution. Edit, delete and restore can run serially in one mutation document and observe the preceding native state. Scalar action cost is 1000 plus selected children. Creation and update add 20 per upload ID, and bulk deletion adds 20 per requested ID. The complete 200 message native window fits the request budget. Excessive repeated operations are rejected before effects.
 
 A timeout or error does not prove rollback. Reconcile current native content, attachments and deletion state before choosing another operation. Restore is not an idempotency probe: the pinned native owner incorrectly increments public reply count when an administrator restores an already live reply. Bulk deletion also leaves pin rows that can cause subsequent native pin reads to fail. Both remain native dependencies, along with measured bulk read query growth. Do not repeatedly replay an uncertain mutation or mark these gaps complete.
+
+
+## Chat pin controls
+
+The chat.pinControls capability contributes pinChatMessage(channelId:, messageId:), unpinChatMessage(channelId:, messageId:) and markChatPinsRead(channelId:). Each returns the existing nullable ActionPayload. Availability requires both Chat and native pin support. The schema remains installed while those settings are disabled. Disabled Chat returns FEATURE_DISABLED at the field. An authenticated request with native pins disabled retains the native NOT_FOUND response. Native login and permission checks retain their own ordering.
+
+Pinning and unpinning use native channel visibility and pinning permissions. Category channels retain the configured pinning groups. Direct messages retain participant permissions. These actions do not create membership or add a membership requirement. Native closed channel and silenced actor behavior is retained. Mark read requires the actor's existing membership and current preview access, and updates only that membership's last_viewed_pins_at.
+
+Native duplicate, limit and missing pin messages are preserved in typed errors, including the native singular error field. A present plural errors message retains precedence. Blank or unsupported singular error shapes use the existing generic error. Pin limits and duplicate ordering remain native. Each control costs 1000 plus selected children, and excessive repeated controls are rejected before effects.
+
+ChatMembership.lastViewedPinsAt now uses NativeTimestamp rather than ISO8601DateTime. Both represent ISO date text, but NativeTimestamp preserves the native JSON millisecond value. For example, native 01:00:00.123 must not become 01:00:00.000 during readback. Generated clients with custom scalar mappings should map NativeTimestamp to the same date text representation used by native timestamps. Other membership timestamp fields are unchanged.
+
+After an ambiguous response, inspect permitted message pinned state and membership state. A duplicate or missing pin error is not proof of what happened to an earlier request. If current readback is unavailable, completion remains unknown. Full typed pin lists, excerpts, pinning users and nested messages remain required work. The current native bulk deletion pin defect also remains unresolved.

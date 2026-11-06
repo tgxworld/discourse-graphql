@@ -1591,6 +1591,90 @@
         "Complete semantic branches and client reconciliation",
         "Protected GraphQL live delivery and final concurrent budgets"
       ]
+    },
+    "chat/api/channel_pins#create": {
+      "graphql_operations": [
+        "mutation.pinChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_pin_controls_spec.rb",
+        "spec/lib/discourse_graphql/native_response_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelPinsController#create",
+        "Chat::PinMessage"
+      ],
+      "authorization_requirements": [
+        "Native Chat eligibility, channel visibility, category pinning groups and direct message participant policy",
+        "Native feature, CSRF, credentials and readonly guards with original request verb",
+        "Native pin state, limit and duplicate rules, publications or actor reading timestamp"
+      ],
+      "authorization_audit": "partial, declared HTTP control paths and native timestamp readback verified",
+      "status": "partial",
+      "remaining": [
+        "Complete native pin list, excerpts, users and nested message presentation",
+        "Native bulk pin cleanup and complete semantic coverage",
+        "Complete client reconciliation, protected live delivery and final performance budgets"
+      ]
+    },
+    "chat/api/channel_pins#destroy": {
+      "graphql_operations": [
+        "mutation.unpinChatMessage"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_pin_controls_spec.rb",
+        "spec/lib/discourse_graphql/native_response_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelPinsController#destroy",
+        "Chat::UnpinMessage"
+      ],
+      "authorization_requirements": [
+        "Native Chat eligibility, channel visibility, category pinning groups and direct message participant policy",
+        "Native feature, CSRF, credentials and readonly guards with original request verb",
+        "Native pin state, limit and duplicate rules, publications or actor reading timestamp"
+      ],
+      "authorization_audit": "partial, declared HTTP control paths and native timestamp readback verified",
+      "status": "partial",
+      "remaining": [
+        "Complete native pin list, excerpts, users and nested message presentation",
+        "Native bulk pin cleanup and complete semantic coverage",
+        "Complete client reconciliation, protected live delivery and final performance budgets"
+      ]
+    },
+    "chat/api/channel_pins#mark_read": {
+      "graphql_operations": [
+        "mutation.markChatPinsRead"
+      ],
+      "graphql_tests": [
+        "spec/requests/discourse_graphql/chat_pin_controls_spec.rb",
+        "spec/lib/discourse_graphql/native_response_spec.rb",
+        "spec/requests/discourse_graphql/optional_schema_spec.rb",
+        "script/verify_chat_reactions_schema.rb",
+        "script/verify_optional_schema.rb"
+      ],
+      "native_entry_points": [
+        "Chat::Api::ChannelPinsController#mark_read",
+        "Chat::MarkPinsAsRead"
+      ],
+      "authorization_requirements": [
+        "Native actor membership and current channel preview access",
+        "Native feature, CSRF, credentials and readonly guards with original request verb",
+        "Native pin state, limit and duplicate rules, publications or actor reading timestamp"
+      ],
+      "authorization_audit": "partial, declared HTTP control paths and native timestamp readback verified",
+      "status": "partial",
+      "remaining": [
+        "Complete native pin list, excerpts, users and nested message presentation",
+        "Native bulk pin cleanup and complete semantic coverage",
+        "Complete client reconciliation, protected live delivery and final performance budgets"
+      ]
     }
   },
   "shared_plugin_assessments": {

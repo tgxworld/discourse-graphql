@@ -11,6 +11,7 @@ end
 
 Rails.application.eager_load!
 SiteSetting.chat_enabled = !disabled
+SiteSetting.chat_pinned_messages = true
 session = ActionDispatch::Integration::Session.new(Rails.application)
 query =
   "{ capabilities { id available queryFields mutationFields } __schema { queryType { fields { name } } mutationType { fields { name } } types { name } } }"
@@ -44,6 +45,7 @@ expected = %w[
   chat.threadCreation
   chat.draftChanges
   chat.messageChanges
+  chat.pinControls
 ]
 unless capabilities.map { |capability| capability.fetch("id") } == expected
   abort "Unexpected optional capabilities."
@@ -211,6 +213,27 @@ if disabled && result.fetch("errors").map { |error| error.dig("extensions", "cod
   abort result.inspect
 end
 abort "Message mutations lost their sibling." unless result.dig("data", "__typename") == "Mutation"
+mutation = 'mutation { pinChatMessage(channelId: "0", messageId: "0") { success errors { code } } unpinChatMessage(channelId: "0", messageId: "0") { success errors { code } } markChatPinsRead(channelId: "0") { success errors { code } } __typename }'
+session.post("/discourse-graphql/graphql", params: { query: mutation }, headers: { "HTTP_HOST" => "test.localhost" }, as: :json)
+abort "Unexpected pin mutation HTTP status." unless session.response.status == 200
+result = JSON.parse(session.response.body)
+%w[pinChatMessage unpinChatMessage markChatPinsRead].each do |field|
+  if disabled
+    abort result.inspect unless result.dig("data", field).nil?
+  else
+    abort result.inspect unless result.dig("data", field, "errors", 0, "code") == expected_error
+  end
+end
+if disabled && result.fetch("errors").map { |error| error.dig("extensions", "code") } != [expected_error] * 3
+  abort result.inspect
+end
+abort "Pin mutations lost their sibling." unless result.dig("data", "__typename") == "Mutation"
+session.get("/discourse-graphql/graphql", params: { query: '{ __type(name: "ChatMembership") { fields { name type { name } } } }' }, headers: { "HTTP_HOST" => "test.localhost" })
+abort "Unexpected membership schema HTTP status." unless session.response.status == 200
+result = JSON.parse(session.response.body)
+abort result.inspect if result["errors"].present?
+timestamp = result.dig("data", "__type", "fields").find { |field| field["name"] == "lastViewedPinsAt" }
+abort "Native pin timestamp scalar missing." unless timestamp.dig("type", "name") == "NativeTimestamp"
 abort "Native Data Explorer loaded unexpectedly." if defined?(::DiscourseDataExplorer)
 puts JSON.generate(
        status: "passed",
